@@ -1,0 +1,254 @@
+[
+  {
+    "id": "1",
+    "title": "Luxury Apartment in Downtown",
+    "price": 25000000,
+    "priceUnit": "one_time",
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "area": 1200,
+    "location": {
+      "locality": "Downtown",
+      "city": "Mumbai",
+      "address": "123 Main Street, Downtown Mumbai",
+      "lat": 19.0760,
+      "lng": 72.8777
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80",
+      "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&q=80"
+    ],
+    "type": "residential",
+    "intent": "buy",
+    "featured": true,
+    "amenities": ["Gym", "Swimming Pool", "Parking", "24/7 Security"],
+    "description": "Experience luxury living in the heart of Mumbai with this stunning 3 BHK apartment. Features include modern amenities, spacious rooms, and breathtaking city views.",
+    "createdAt": "2024-01-15T10:30:00Z"
+  },
+  {
+    "id": "2",
+    "title": "Modern Villa with Garden",
+    "price": 85000000,
+    "priceUnit": "one_time",
+    "bedrooms": 5,
+    "bathrooms": 4,
+    "area": 3500,
+    "location": {
+      "locality": "Bandra",
+      "city": "Mumbai",
+      "address": "45 Park Lane, Bandra West",
+      "lat": 19.0578,
+      "lng": 72.8299
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1560185007-6e8f1a0d5d4d?w=800&q=80",
+      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80"
+    ],
+    "type": "residential",
+    "intent": "buy",
+    "featured": true,
+    "amenities": ["Garden", "Parking", "Security", "Power Backup"],
+    "description": "Beautiful modern villa with spacious garden and private pool. Perfect for families looking for luxury living in a peaceful neighborhood.",
+    "createdAt": "2024-01-14T09:15:00Z"
+  },
+  {
+    "id": "3",
+    "title": "Cozy 1 BHK for Rent",
+    "price": 25000,
+    "priceUnit": "per_month",
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "area": 450,
+    "location": {
+      "locality": "Andheri",
+      "city": "Mumbai",
+      "address": "789 Cross Street, Andheri East",
+      "lat": 19.1100,
+      "lng": 72.8664
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=800&q=80"
+    ],
+    "type": "residential",
+    "intent": "rent",
+    "featured": false,
+    "amenities": ["Parking", "Security"],
+    "description": "Cozy 1 BHK apartment available for rent. Well-maintained, with all basic amenities, located in a prime area with easy access to public transport.",
+    "createdAt": "2024-01-13T16:45:00Z"
+  },
+  {
+    "id": "4",
+    "title": "Commercial Office Space",
+    "price": 50000000,
+    "priceUnit": "one_time",
+    "bedrooms": 0,
+    "bathrooms": 2,
+    "area": 2000,
+    "location": {
+      "locality": "Nariman Point",
+      "city": "Mumbai",
+      "address": "22 Business Park, Nariman Point",
+      "lat": 18.9220,
+      "lng": 72.8347
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80"
+    ],
+    "type": "commercial",
+    "intent": "buy",
+    "featured": true,
+    "amenities": ["Parking", "Security", "Meeting Rooms", "Elevator"],
+    "description": "Premium commercial office space in Nariman Point. Ideal for startups and established businesses looking for a prestigious address.",
+    "createdAt": "2024-01-12T11:20:00Z"
+  },
+  {
+    "id": "5",
+    "title": "Beachfront Property",
+    "price": 120000000,
+    "priceUnit": "one_time",
+    "bedrooms": 4,
+    "bathrooms": 3,
+    "area": 2800,
+    "location": {
+      "locality": "Juhu",
+      "city": "Mumbai",
+      "address": "56 Beach Road, Juhu",
+      "lat": 19.1038,
+      "lng": 72.8231
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?w=800&q=80"
+    ],
+    "type": "residential",
+    "intent": "buy",
+    "featured": true,
+    "amenities": ["Swimming Pool", "Garden", "Parking", "Security"],
+    "description": "Exclusive beachfront property with stunning sea views. Luxury living at its finest with world-class amenities.",
+    "createdAt": "2024-01-11T08:30:00Z"
+  },
+  {
+    "id": "6",
+    "title": "Budget 2 BHK Apartment",
+    "price": 8500000,
+    "priceUnit": "one_time",
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "area": 750,
+    "location": {
+      "locality": "Dadar",
+      "city": "Mumbai",
+      "address": "101 Central Avenue, Dadar",
+      "lat": 19.0242,
+      "lng": 72.8331
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1560185007-6e8f1a0d5d4d?w=800&q=80"
+    ],
+    "type": "residential",
+    "intent": "buy",
+    "featured": false,
+    "amenities": ["Parking", "Security"],
+    "description": "Affordable 2 BHK apartment in Dadar. Well-connected to all major areas, perfect for small families and first-time buyers.",
+    "createdAt": "2024-01-10T14:50:00Z"
+  },
+  {
+    "id": "7",
+    "title": "PG Accommodation",
+    "price": 15000,
+    "priceUnit": "per_month",
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "area": 300,
+    "location": {
+      "locality": "Powai",
+      "city": "Mumbai",
+      "address": "44 Student Hostel, Powai",
+      "lat": 19.1154,
+      "lng": 72.9094
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1560185007-6e8f1a0d5d4d?w=800&q=80"
+    ],
+    "type": "pg",
+    "intent": "rent",
+    "featured": false,
+    "amenities": ["Food", "Wifi", "Security", "Cleaning"],
+    "description": "Comfortable PG accommodation for students and working professionals. Fully furnished rooms with all modern amenities.",
+    "createdAt": "2024-01-09T12:15:00Z"
+  },
+  {
+    "id": "8",
+    "title": "Retail Space for Lease",
+    "price": 120000,
+    "priceUnit": "per_month",
+    "bedrooms": 0,
+    "bathrooms": 1,
+    "area": 800,
+    "location": {
+      "locality": "Colaba",
+      "city": "Mumbai",
+      "address": "77 Shopping Plaza, Colaba",
+      "lat": 18.9216,
+      "lng": 72.8346
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80"
+    ],
+    "type": "commercial",
+    "intent": "rent",
+    "featured": false,
+    "amenities": ["Parking", "Security", "Display Window"],
+    "description": "Prime retail space available for lease in Colaba. High foot traffic area, perfect for boutique shops and restaurants.",
+    "createdAt": "2024-01-08T09:45:00Z"
+  },
+  {
+    "id": "9",
+    "title": "Land for Development",
+    "price": 30000000,
+    "priceUnit": "one_time",
+    "bedrooms": 0,
+    "bathrooms": 0,
+    "area": 5000,
+    "location": {
+      "locality": "Thane",
+      "city": "Mumbai",
+      "address": "100 Acres Plot, Thane West",
+      "lat": 19.2183,
+      "lng": 72.9781
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80"
+    ],
+    "type": "plot",
+    "intent": "buy",
+    "featured": false,
+    "amenities": ["Road Access", "Water Supply", "Electricity"],
+    "description": "Prime land parcel available for development. Located in a rapidly growing area with excellent connectivity.",
+    "createdAt": "2024-01-07T15:30:00Z"
+  },
+  {
+    "id": "10",
+    "title": "Penthouse with Terrace",
+    "price": 65000000,
+    "priceUnit": "one_time",
+    "bedrooms": 4,
+    "bathrooms": 3,
+    "area": 2200,
+    "location": {
+      "locality": "Worli",
+      "city": "Mumbai",
+      "address": "88 Sky Tower, Worli",
+      "lat": 18.9970,
+      "lng": 72.8183
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80"
+    ],
+    "type": "residential",
+    "intent": "buy",
+    "featured": true,
+    "amenities": ["Terrace", "Gym", "Swimming Pool", "Parking"],
+    "description": "Luxurious penthouse with private terrace and panoramic city views. Ultimate living experience in the heart of Mumbai.",
+    "createdAt": "2024-01-06T11:00:00Z"
+  }
+]
