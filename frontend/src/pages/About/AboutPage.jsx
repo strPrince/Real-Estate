@@ -1,7 +1,7 @@
 ﻿import React from 'react';
 import Header from '../../components/Header/Header.jsx';
 import Footer from '../../components/Footer/Footer.jsx';
-import { Home, MapPin, DollarSign, Building2, Award, Target, TrendingUp, Users, Star } from 'lucide-react';
+import { Home, MapPin, DollarSign, Building2, Award, Target, TrendingUp, Users, Star, ShieldCheck, Headphones } from 'lucide-react';
 import aboutimg from '../../assets/about.png';
 import { LazyMotion, domAnimation, m, useMotionValue, useReducedMotion, useSpring, useTransform } from 'framer-motion';
 
@@ -239,132 +239,176 @@ export default function AboutPage() {
         <div className="pointer-events-none absolute top-1/2 -right-16 w-52 h-52 bg-brand-200 rounded-full opacity-20 blur-3xl"></div>
 
         {/* ── HOW WE HELP CARDS ── */}
-        <m.section {...reveal} className="py-16 sm:py-24 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-14">
-              <span className="inline-flex items-center gap-2 bg-brand-500/10 border border-brand-500/20 text-brand-600 text-xs font-semibold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">
-                <Star className="w-3.5 h-3.5" /> How We Help
+        <m.section {...reveal} className="py-16 sm:py-24 bg-gray-50 relative overflow-hidden">
+          {/* Decorative elements */}
+          <div className="absolute -top-24 -left-24 w-96 h-96 bg-brand-100 rounded-full opacity-20 blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-80 h-80 bg-orange-100 rounded-full opacity-30 blur-3xl"></div>
+          
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="text-center mb-16">
+              <span className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-500/10 to-orange-500/10 border border-brand-500/20 text-brand-600 text-xs font-semibold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">
+                <Star className="w-3.5 h-3.5" /> Our Expertise
               </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">Our Services &amp; Approach</h2>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
+                Our Services & <span className="text-gradient-brand">Approach</span>
+              </h2>
+              <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+                Comprehensive real estate solutions tailored to your unique needs and aspirations
+              </p>
             </div>
 
-            <div className="grid gap-10 lg:gap-12 lg:grid-cols-2">
-
-              <InteractiveCard>
-                <div className="flex items-center gap-4 mb-6" style={{ transform: 'translateZ(18px)' }}>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500/12 text-brand-600 ring-1 ring-brand-200/70 shadow-sm">
-                    <Target className="h-5 w-5" />
+            {/* New premium design for services section */}
+            <div className="grid gap-8 lg:gap-10 lg:grid-cols-2">
+              {/* Who We Guide - Enhanced Card */}
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-br from-brand-500 to-orange-500 rounded-3xl opacity-0 group-hover:opacity-20 blur transition-all duration-300"></div>
+                <div className="relative bg-white rounded-3xl border border-gray-200/80 p-8 shadow-[0_20px_50px_-25px_rgba(15,23,42,0.15)] h-full transition-all duration-300 group-hover:shadow-[0_25px_60px_-20px_rgba(255,122,0,0.2)]">
+                  <div className="flex items-start gap-5 mb-6">
+                    <div className="flex-shrink-0 flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 to-orange-500 text-white shadow-[0_8px_20px_-8px_rgba(255,122,0,0.4)]">
+                      <Target className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-500">Service Focus</p>
+                      <h3 className="text-2xl font-bold text-gray-900 mt-1">Who We Guide</h3>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-500/80">Service Focus</p>
-                    <h3 className="text-xl font-bold text-gray-900">Who We Guide</h3>
-                  </div>
-                </div>
-                <div className="h-px w-full bg-gradient-to-r from-brand-200/60 via-gray-100 to-transparent mb-6"></div>
-                <ul className="space-y-4" style={{ transform: 'translateZ(8px)' }}>
-                {[
-                  { icon: Home, text: 'First-time homebuyers looking for their dream home' },
-                  { icon: DollarSign, text: 'Individual investors seeking high ROI properties' },
-                  { icon: Building2, text: 'Long-term property investors building a portfolio' },
-                  { icon: Users, text: 'Families relocating to Vadodara' },
-                ].map(({ icon: Icon, text }) => (
-                  <li key={text} className="flex items-start gap-3 text-gray-700">
-                    <span className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 ring-1 ring-brand-100">
-                      <Icon className="h-4 w-4 text-brand-500" />
-                    </span>
-                    <span className="leading-relaxed">{text}</span>
-                  </li>
-                ))}
-                </ul>
-              </InteractiveCard>
-
-              <InteractiveCard>
-                <div className="flex items-center gap-4 mb-6" style={{ transform: 'translateZ(18px)' }}>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500/12 text-brand-600 ring-1 ring-brand-200/70 shadow-sm">
-                    <TrendingUp className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-500/80">Advisory Method</p>
-                    <h3 className="text-xl font-bold text-gray-900">Our Approach</h3>
+                  
+                  <div className="space-y-5">
+                    {[
+                      { icon: Home, text: 'First-time homebuyers looking for their dream home', bgColor: 'bg-blue-50', ringColor: 'ring-blue-100', textColor: 'text-blue-500' },
+                      { icon: DollarSign, text: 'Individual investors seeking high ROI properties', bgColor: 'bg-green-50', ringColor: 'ring-green-100', textColor: 'text-green-500' },
+                      { icon: Building2, text: 'Long-term property investors building a portfolio', bgColor: 'bg-purple-50', ringColor: 'ring-purple-100', textColor: 'text-purple-500' },
+                      { icon: Users, text: 'Families relocating to Vadodara', bgColor: 'bg-amber-50', ringColor: 'ring-amber-100', textColor: 'text-amber-500' },
+                    ].map(({ icon: Icon, text, bgColor, ringColor, textColor }, index) => (
+                      <div key={text} className="flex items-start gap-4 group/item">
+                        <div className={`mt-1 flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-lg ${bgColor} ring-1 ${ringColor} transition-all duration-300 group-hover/item:${bgColor.replace('bg-', 'bg-').replace('-50', '-100')}`}>
+                          <Icon className={`h-4 w-4 ${textColor}`} />
+                        </div>
+                        <p className="text-gray-700 leading-relaxed group-hover/item:text-gray-900 transition-colors duration-300">
+                          {text}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div className="h-px w-full bg-gradient-to-r from-brand-200/60 via-gray-100 to-transparent mb-6"></div>
-                <p className="text-gray-600 mb-6 leading-relaxed" style={{ transform: 'translateZ(10px)' }}>
-                  Many customers want to invest in property but are confused about location, builder
-                  quality, or budget fit. That is exactly where we step in — with honest, expert guidance
-                  every step of the way.
-                </p>
-                <ul className="space-y-4" style={{ transform: 'translateZ(8px)' }}>
-                {[
-                  { icon: DollarSign, text: 'Budget-friendly pricing with maximum value' },
-                  { icon: Building2, text: 'Only quality-verified constructions' },
-                  { icon: MapPin, text: 'Prime and high-appreciation locations' },
-                  { icon: Home, text: 'End-to-end support from search to registration' },
-                ].map(({ icon: Icon, text }) => (
-                  <li key={text} className="flex items-start gap-3 text-gray-700">
-                    <span className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 ring-1 ring-brand-100">
-                      <Icon className="h-4 w-4 text-brand-500" />
-                    </span>
-                    <span className="leading-relaxed font-medium">{text}</span>
-                  </li>
-                ))}
-                </ul>
-              </InteractiveCard>
+              </div>
 
-              <InteractiveCard>
-                <div className="flex items-center gap-4 mb-6" style={{ transform: 'translateZ(18px)' }}>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500/12 text-brand-600 ring-1 ring-brand-200/70 shadow-sm">
-                    <Star className="h-5 w-5" />
+              {/* Our Approach - Enhanced Card */}
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-br from-brand-500 to-orange-500 rounded-3xl opacity-0 group-hover:opacity-20 blur transition-all duration-300"></div>
+                <div className="relative bg-white rounded-3xl border border-gray-200/80 p-8 shadow-[0_20px_50px_-25px_rgba(15,23,42,0.15)] h-full transition-all duration-300 group-hover:shadow-[0_25px_60px_-20px_rgba(255,122,0,0.2)]">
+                  <div className="flex items-start gap-5 mb-6">
+                    <div className="flex-shrink-0 flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 to-orange-500 text-white shadow-[0_8px_20px_-8px_rgba(255,122,0,0.4)]">
+                      <TrendingUp className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-500">Advisory Method</p>
+                      <h3 className="text-2xl font-bold text-gray-900 mt-1">Our Approach</h3>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-500/80">Core Values</p>
-                    <h3 className="text-xl font-bold text-gray-900">Our Values</h3>
+                  
+                  <p className="text-gray-600 mb-6 leading-relaxed">
+                    Many customers want to invest in property but are confused about location, builder
+                    quality, or budget fit. That is exactly where we step in — with honest, expert guidance
+                    every step of the way.
+                  </p>
+                  
+                  <div className="space-y-5">
+                    {[
+                      { icon: DollarSign, text: 'Budget-friendly pricing with maximum value', bgColor: 'bg-emerald-50', ringColor: 'ring-emerald-100', textColor: 'text-emerald-500' },
+                      { icon: Building2, text: 'Only quality-verified constructions', bgColor: 'bg-indigo-50', ringColor: 'ring-indigo-100', textColor: 'text-indigo-500' },
+                      { icon: MapPin, text: 'Prime and high-appreciation locations', bgColor: 'bg-rose-50', ringColor: 'ring-rose-100', textColor: 'text-rose-500' },
+                      { icon: Home, text: 'End-to-end support from search to registration', bgColor: 'bg-cyan-50', ringColor: 'ring-cyan-100', textColor: 'text-cyan-500' },
+                    ].map(({ icon: Icon, text, bgColor, ringColor, textColor }, index) => (
+                      <div key={text} className="flex items-start gap-4 group/item">
+                        <div className={`mt-1 flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-lg ${bgColor} ring-1 ${ringColor} transition-all duration-300 group-hover/item:${bgColor.replace('bg-', 'bg-').replace('-50', '-100')}`}>
+                          <Icon className={`h-4 w-4 ${textColor}`} />
+                        </div>
+                        <p className="text-gray-700 leading-relaxed font-medium group-hover/item:text-gray-900 transition-colors duration-300">
+                          {text}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div className="h-px w-full bg-gradient-to-r from-brand-200/60 via-gray-100 to-transparent mb-6"></div>
-                <ul className="space-y-4" style={{ transform: 'translateZ(8px)' }}>
-                {[
-                  'Transparency in every transaction',
-                  'Client-first advisory approach',
-                  'Honest market valuation — no inflated prices',
-                  'Long-term relationship over one-time sales',
-                  'Respect for every budget and requirement',
-                ].map((text) => (
-                  <li key={text} className="flex items-start gap-3 text-gray-700">
-                    <span className="mt-2.5 h-2.5 w-2.5 shrink-0 rounded-full bg-brand-500/90 shadow-[0_0_0_4px_rgba(99,102,241,0.12)]"></span>
-                    <span className="leading-relaxed">{text}</span>
-                  </li>
-                ))}
-                </ul>
-              </InteractiveCard>
-
-              <InteractiveCard>
-                <div className="flex items-center gap-4 mb-6" style={{ transform: 'translateZ(18px)' }}>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500/12 text-brand-600 ring-1 ring-brand-200/70 shadow-sm">
-                    <Award className="h-5 w-5" />
+              </div>
+              
+              {/* Our Values - Enhanced Card */}
+              <div className="relative group lg:col-span-2">
+                <div className="absolute -inset-0.5 bg-gradient-to-br from-brand-500 to-orange-500 rounded-3xl opacity-0 group-hover:opacity-20 blur transition-all duration-300"></div>
+                <div className="relative bg-white rounded-3xl border border-gray-200/80 p-8 shadow-[0_20px_50px_-25px_rgba(15,23,42,0.15)] transition-all duration-300 group-hover:shadow-[0_25px_60px_-20px_rgba(255,122,0,0.2)]">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
+                    <div className="flex items-start gap-5">
+                      <div className="flex-shrink-0 flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 to-orange-500 text-white shadow-[0_8px_20px_-8px_rgba(255,122,0,0.4)]">
+                        <Star className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-500">Core Values</p>
+                        <h3 className="text-2xl font-bold text-gray-900 mt-1">Our Values</h3>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-3">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-brand-50 text-brand-700 border border-brand-100">
+                        Transparency
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-orange-50 text-orange-700 border border-orange-100">
+                        Integrity
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-purple-50 text-purple-700 border border-purple-100">
+                        Excellence
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-500/80">Premium Advantage</p>
-                    <h3 className="text-xl font-bold text-gray-900">Why Choose Us</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
+                    {[
+                      'Transparency in every transaction',
+                      'Client-first advisory approach',
+                      'Honest market valuation — no inflated prices',
+                      'Long-term relationship over one-time sales',
+                      'Respect for every budget and requirement',
+                    ].map((text, index) => (
+                      <div key={text} className="group/item">
+                        <div className="flex items-start gap-3">
+                          <div className="mt-1 flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-brand-500/10">
+                            <div className="w-2 h-2 rounded-full bg-brand-500"></div>
+                          </div>
+                          <p className="text-gray-700 leading-relaxed group-hover/item:text-gray-900 transition-colors duration-300">
+                            {text}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div className="h-px w-full bg-gradient-to-r from-brand-200/60 via-gray-100 to-transparent mb-6"></div>
-                <ul className="space-y-4" style={{ transform: 'translateZ(8px)' }}>
+              </div>
+            </div>
+            
+            {/* Additional Benefits Section */}
+            <div className="mt-16 pt-16 border-t border-gray-200">
+              <div className="text-center mb-12">
+                <h3 className="text-2xl font-bold text-gray-900">Why Choose Property Master Vadodara</h3>
+                <p className="text-gray-600 mt-2">Premium advantages that set us apart</p>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
                 {[
-                  'Deep local knowledge of Vadodara micro-markets',
-                  'MBA-backed financial insight for investment decisions',
-                  'Curated listings — only the best properties',
-                  'Direct dealer access — no middlemen',
-                  'Post-purchase support and guidance',
-                ].map((text) => (
-                  <li key={text} className="flex items-start gap-3 text-gray-700">
-                    <span className="mt-2.5 h-2.5 w-2.5 shrink-0 rounded-full bg-brand-500/90 shadow-[0_0_0_4px_rgba(99,102,241,0.12)]"></span>
-                    <span className="leading-relaxed">{text}</span>
-                  </li>
+                  { icon: Award, title: 'Expertise', desc: 'MBA-backed insights' },
+                  { icon: MapPin, title: 'Local Knowledge', desc: 'Vadodara specialists' },
+                  { icon: Users, title: 'Personalized', desc: 'Tailored solutions' },
+                  { icon: ShieldCheck, title: 'Trust', desc: 'Verified properties' },
+                  { icon: Headphones, title: 'Support', desc: 'End-to-end guidance' },
+                ].map(({ icon: Icon, title, desc }) => (
+                  <div key={title} className="text-center group">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-orange-500 text-white shadow-[0_8px_20px_-8px_rgba(255,122,0,0.4)] mb-4 group-hover:scale-105 transition-transform duration-300">
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <h4 className="font-bold text-gray-900 group-hover:text-brand-600 transition-colors duration-300">{title}</h4>
+                    <p className="text-sm text-gray-600 mt-1">{desc}</p>
+                  </div>
                 ))}
-                </ul>
-              </InteractiveCard>
-
+              </div>
             </div>
           </div>
         </m.section>
