@@ -135,7 +135,7 @@ export default function UserDashboardPage() {
                         <div>
                           <p className="text-sm font-semibold text-gray-900">{property.title}</p>
                           <p className="mt-1 text-xs text-gray-500 tabular-nums">
-                            INR {priceLabel} • {property.bedrooms} bed • {property.area} sqft
+                            INR {priceLabel} ï¿½ {property.bedrooms} bed ï¿½ {property.area} sqft
                           </p>
                         </div>
                         <div className="flex flex-wrap items-center gap-3">
