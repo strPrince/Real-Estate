@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import Header from '../../components/Header/Header.jsx';
 import Footer from '../../components/Footer/Footer.jsx';
+import lvp from '../../assets/lvp.png';
 import {
   Landmark, GraduationCap, TrendingUp, IndianRupee, Building2,
   MapPin, Star, ArrowRight, Train, TreePine, Shield, Zap
@@ -249,39 +250,56 @@ export default function WhyVadodaraPage() {
             </div>
 
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {reasons.map(({ icon: Icon, title, desc, color, bg }) => (
-                <m.div
+              {reasons.map(({ icon: Icon, title, desc, color, bg }, index) => (
+                <m.article
                   key={title}
                   {...hoverLift}
-                  className="bg-white rounded-2xl shadow-md p-6 border-t-4 border-brand-500 hover:shadow-xl transition-shadow duration-300"
+                  className="group relative"
                 >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
-                      <Icon className={`w-5 h-5 ${color}`} />
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-900">{title}</h3>
-                  </div>
-                  <p className="text-gray-600 text-sm leading-relaxed">{desc}</p>
-                </m.div>
-              ))}
-            </div>
-          </div>
-        </m.section>
+                  <div className="absolute inset-0 translate-x-2 translate-y-2 rounded-[28px] bg-brand-500/10"></div>
+                  <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-brand-500/10 blur-2xl"></div>
 
-        {/* ── PHOTO CALLOUT ── */}
-        <m.section {...reveal} className="relative overflow-hidden">
-          <img
-            src={LAXMI_VILAS}
-            alt="Vadodara — Laxmi Vilas Palace"
-            className="w-full h-100 object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gray-900/70 flex items-center justify-center">
-            <div className="max-w-2xl text-center px-4">
-              <p className="text-brand-400 text-sm font-semibold uppercase tracking-widest mb-3">Vadodara Real Estate</p>
-              <blockquote className="text-white text-2xl sm:text-3xl font-extrabold leading-snug mb-6">
-                "Vadodara is not just a place to live — it's a place to grow, invest, and thrive."
-              </blockquote>
-              <p className="text-gray-300">— Vasudha Thakur, Property Master Vadodara</p>
+                  <div className="relative rounded-[28px] border border-gray-200 bg-white/85 backdrop-blur p-6 sm:p-7 overflow-hidden shadow-[0_18px_40px_-24px_rgba(15,23,42,0.35)]">
+                    <div className="absolute -right-8 top-6 rotate-12 rounded-full border border-dashed border-gray-300 bg-white/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.35em] text-gray-400">
+                      Reason {String(index + 1).padStart(2, '0')}
+                    </div>
+
+                    <svg
+                      className="absolute -right-10 -bottom-10 h-44 w-44 text-gray-200 opacity-70"
+                      viewBox="0 0 200 200"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path d="M20 150 C 60 90, 140 90, 180 150" stroke="currentColor" strokeWidth="2" strokeDasharray="4 6" />
+                      <path d="M30 50 C 80 20, 120 20, 170 50" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 7" />
+                      <circle cx="40" cy="150" r="6" fill="currentColor" />
+                      <circle cx="160" cy="50" r="5" fill="currentColor" />
+                    </svg>
+
+                    <div className="relative flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          <div className={`absolute -inset-2 rounded-2xl ${bg} opacity-50 blur-sm`}></div>
+                          <div className={`relative w-12 h-12 rounded-2xl ${bg} flex items-center justify-center border border-white shadow-sm`}>
+                            <Icon className={`w-6 h-6 ${color}`} />
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-gray-400">Reason</p>
+                          <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+                        </div>
+                      </div>
+                      <span className="text-3xl font-extrabold text-gray-200">{String(index + 1).padStart(2, '0')}</span>
+                    </div>
+
+                    <div className="mt-4 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
+                    <p className="mt-4 text-gray-600 text-sm leading-relaxed">{desc}</p>
+                  </div>
+
+                  <span className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-200"></span>
+                  <span className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-gray-50 border border-gray-200"></span>
+                </m.article>
+              ))}
             </div>
           </div>
         </m.section>
@@ -319,6 +337,24 @@ export default function WhyVadodaraPage() {
                   Talk to Us
                 </a>
               </m.div>
+            </div>
+          </div>
+        </m.section>
+
+        {/* ── PHOTO CALLOUT ── */}
+        <m.section {...reveal} className="relative overflow-hidden">
+          <img
+            src={lvp}
+            alt="Vadodara — Laxmi Vilas Palace"
+            className="w-full h-100 object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gray-900/70 flex items-center justify-center">
+            <div className="max-w-2xl text-center px-4">
+              <p className="text-brand-400 text-sm font-semibold uppercase tracking-widest mb-3">Vadodara Real Estate</p>
+              <blockquote className="text-white text-2xl sm:text-3xl font-extrabold leading-snug mb-6">
+                "Vadodara is not just a place to live — it's a place to grow, invest, and thrive."
+              </blockquote>
+              <p className="text-gray-300">— Vasudha Thakur, Property Master Vadodara</p>
             </div>
           </div>
         </m.section>

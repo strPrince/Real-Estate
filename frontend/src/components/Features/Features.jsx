@@ -14,20 +14,20 @@ const FEATURE_LEFT = [
     subtitle: 'Tailored to Your Needs',
     desc: 'We provide customized property recommendations based on your budget, lifestyle, and investment goals.',
   },
-];
+]; 
 
 const FEATURE_RIGHT = [
-  {
-    Icon: Award,
-    title: 'Verified Properties',
-    subtitle: 'Quality Assured',
-    desc: 'Every property is thoroughly vetted for legal compliance, construction quality, and market value.',
-  },
   {
     Icon: ShieldCheck,
     title: 'Transparent Process',
     subtitle: 'Honest & Ethical',
     desc: 'No hidden costs, no false promises. We ensure complete transparency at every step of your property journey.',
+  },
+  {
+    Icon: Award,
+    title: 'Verified Properties',
+    subtitle: 'Quality Assured',
+    desc: 'Every property is thoroughly vetted for legal compliance, construction quality, and market value.',
   },
 ];
 
