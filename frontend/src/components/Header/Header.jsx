@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext.jsx';
+import { Menu, X, ChevronDown, User } from 'lucide-react';
 import logo from '../../property-master.png';
 
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { currentUser } = useAuth();
 
   const navLinks = [
     { label: 'Home', to: '/' },
@@ -18,11 +21,20 @@ export default function Header() {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      const dropdown = document.querySelector('.navbar-dropdown');
-      const dropdownButton = document.querySelector('.dropdown-button');
+      // Handle about us dropdown
+      const aboutDropdown = document.querySelector('.navbar-dropdown');
+      const aboutDropdownButton = document.querySelector('.dropdown-button');
       
-      if (dropdown && dropdownButton && !dropdown.contains(event.target) && !dropdownButton.contains(event.target)) {
+      if (aboutDropdown && aboutDropdownButton && !aboutDropdown.contains(event.target) && !aboutDropdownButton.contains(event.target)) {
         setDropdownOpen(false);
+      }
+      
+      // Handle user dropdown
+      const userDropdown = document.querySelector('.user-dropdown');
+      const userDropdownButton = document.querySelector('.user-dropdown-button');
+      
+      if (userDropdown && userDropdownButton && !userDropdown.contains(event.target) && !userDropdownButton.contains(event.target)) {
+        setUserDropdownOpen(false);
       }
     };
 
@@ -113,14 +125,76 @@ export default function Header() {
             )}
           </div>
           
-          <button
-            onClick={() => navigate('/properties')}
-            className="relative group bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 shadow-[0_4px_14px_0_rgba(255,122,0,0.35)] overflow-hidden"
-          >
-            <span className="relative z-10 group-hover:translate-x-1 transition-all duration-400">Search Properties</span>
-            <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-all duration-400" />
-            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-all duration-800" />
-          </button>
+          {/* User Authentication Links */}
+          {currentUser ? (
+            <div className="relative">
+              <button
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                className="flex items-center gap-2 text-sm font-semibold text-gray-300 hover:text-white transition-colors duration-300 user-dropdown-button"
+              >
+                <User className="w-5 h-5" />
+                <span>{currentUser.displayName || currentUser.email}</span>
+              </button>
+              
+              {userDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-[0_24px_60px_-15px_rgba(15,23,42,0.45)] py-2 z-50 border border-gray-100 animate-in slide-in-from-top-2 fade-in duration-400 user-dropdown">
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setUserDropdownOpen(false)}
+                    className="block px-5 py-3 text-sm text-gray-700 rounded-lg transition-all duration-300 group relative overflow-hidden"
+                  >
+                    <span className="relative z-10 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0" />
+                      Dashboard
+                    </span>
+                    <span className="absolute inset-0 bg-brand-50 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                    <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/10 group-hover:w-full transition-all duration-300" />
+                  </Link>
+                  <Link
+                    to="/account"
+                    onClick={() => setUserDropdownOpen(false)}
+                    className="block px-5 py-3 text-sm text-gray-700 rounded-lg transition-all duration-300 group relative overflow-hidden"
+                  >
+                    <span className="relative z-10 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0" />
+                      Account Settings
+                    </span>
+                    <span className="absolute inset-0 bg-brand-50 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                    <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/10 group-hover:w-full transition-all duration-300" />
+                  </Link>
+                  <Link
+                    to="/post-property"
+                    onClick={() => setUserDropdownOpen(false)}
+                    className="block px-5 py-3 text-sm text-gray-700 rounded-lg transition-all duration-300 group relative overflow-hidden"
+                  >
+                    <span className="relative z-10 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0" />
+                      Post Property
+                    </span>
+                    <span className="absolute inset-0 bg-brand-50 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                    <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/10 group-hover:w-full transition-all duration-300" />
+                  </Link>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center gap-4">
+              <Link
+                to="/login"
+                className="text-sm font-semibold text-gray-300 hover:text-white transition-colors duration-300"
+              >
+                Login
+              </Link>
+              <Link
+                to="/signup"
+                className="relative group bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white px-6 py-2 rounded-xl text-sm font-semibold transition-all duration-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 shadow-[0_4px_14px_0_rgba(255,122,0,0.35)] overflow-hidden"
+              >
+                <span className="relative z-10 group-hover:translate-x-1 transition-all duration-400">Sign Up</span>
+                <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-all duration-400" />
+                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-all duration-800" />
+              </Link>
+            </div>
+          )}
         </nav>
 
         {/* Mobile hamburger */}
@@ -186,6 +260,72 @@ export default function Header() {
               <span className="absolute left-0 top-0 bottom-0 w-0 bg-accent-500/20 group-hover:w-full transition-all duration-400" />
             </Link>
           </div>
+          
+          {currentUser ? (
+            <div className="pt-4 border-t border-gray-700">
+              <div className="py-2 text-gray-300 font-semibold text-sm">
+                {currentUser.displayName || currentUser.email}
+              </div>
+              <Link
+                to="/dashboard"
+                onClick={() => setOpen(false)}
+                className="block py-3 pl-6 text-sm text-gray-400 hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-3 transition-all duration-400 hover:bg-white/5 relative overflow-hidden group"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  <span className="w-1 h-1 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                  Dashboard
+                </span>
+                <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/20 group-hover:w-full transition-all duration-400" />
+              </Link>
+              <Link
+                to="/account"
+                onClick={() => setOpen(false)}
+                className="block py-3 pl-6 text-sm text-gray-400 hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-3 transition-all duration-400 hover:bg-white/5 relative overflow-hidden group"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  <span className="w-1 h-1 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                  Account Settings
+                </span>
+                <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/20 group-hover:w-full transition-all duration-400" />
+              </Link>
+              <Link
+                to="/post-property"
+                onClick={() => setOpen(false)}
+                className="block py-3 pl-6 text-sm text-gray-400 hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-3 transition-all duration-400 hover:bg-white/5 relative overflow-hidden group"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  <span className="w-1 h-1 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                  Post Property
+                </span>
+                <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/20 group-hover:w-full transition-all duration-400" />
+              </Link>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3 pt-4 border-t border-gray-700">
+              <Link
+                to="/login"
+                onClick={() => setOpen(false)}
+                className="block py-3 text-sm text-gray-400 hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-3 transition-all duration-400 hover:bg-white/5 relative overflow-hidden group"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  <span className="w-1 h-1 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                  Login
+                </span>
+                <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/20 group-hover:w-full transition-all duration-400" />
+              </Link>
+              <Link
+                to="/signup"
+                onClick={() => setOpen(false)}
+                className="block py-3 text-sm text-gray-400 hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-3 transition-all duration-400 hover:bg-white/5 relative overflow-hidden group"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  <span className="w-1 h-1 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                  Sign Up
+                </span>
+                <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/20 group-hover:w-full transition-all duration-400" />
+              </Link>
+            </div>
+          )}
           
           <button
             onClick={() => { setOpen(false); navigate('/properties'); }}

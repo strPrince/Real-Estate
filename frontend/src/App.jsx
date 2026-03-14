@@ -17,6 +17,11 @@ import AdminLayout from './layouts/AdminLayout.jsx';
 import AdminDashboard from './pages/Admin/AdminDashboard.jsx';
 import AdminPropertyForm from './pages/Admin/AdminPropertyForm.jsx';
 import AdminResetPasswordPage from './pages/Admin/AdminResetPasswordPage.jsx';
+import LoginPage from './pages/Auth/LoginPage.jsx';
+import SignupPage from './pages/Auth/SignupPage.jsx';
+import AccountPage from './pages/Auth/AccountPage.jsx';
+import UserDashboardPage from './pages/Auth/UserDashboardPage.jsx';
+import PostPropertyPage from './pages/Auth/PostPropertyPage.jsx';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -34,6 +39,13 @@ function AnimatedRoutes() {
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/policy" element={<PolicyPage />} />
 
+        {/* User auth */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><UserDashboardPage /></ProtectedRoute>} />
+        <Route path="/post-property" element={<ProtectedRoute><PostPropertyPage /></ProtectedRoute>} />
+
         {/* Admin auth */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin/reset-password" element={<AdminResetPasswordPage />} />
@@ -42,7 +54,7 @@ function AnimatedRoutes() {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute redirectTo="/admin/login">
               <AdminLayout />
             </ProtectedRoute>
           }

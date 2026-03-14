@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut, reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut, reauthenticateWithCredential, EmailAuthProvider, updatePassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase.js';
 
 const AuthContext = createContext(null);
@@ -20,6 +20,10 @@ export function AuthProvider({ children }) {
     return signInWithEmailAndPassword(auth, email, password);
   }
 
+  async function signup(email, password) {
+    return createUserWithEmailAndPassword(auth, email, password);
+  }
+
   async function logout() {
     return signOut(auth);
   }
@@ -36,7 +40,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ currentUser, login, logout, changePassword, getToken, loading }}>
+    <AuthContext.Provider value={{ currentUser, login, signup, logout, changePassword, getToken, loading }}>
       {children}
     </AuthContext.Provider>
   );

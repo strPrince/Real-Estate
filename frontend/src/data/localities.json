@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Alkapuri",
+    "properties": "120+",
+    "type": "Premium",
+    "description": "Luxury apartments & villas",
+    "color": "from-amber-400 to-amber-600",
+    "lat": 22.3072,
+    "lng": 73.1812
+  },
+  {
+    "name": "Gotri",
+    "properties": "240+",
+    "type": "Residential",
+    "description": "Affordable housing options",
+    "color": "from-emerald-400 to-emerald-600",
+    "lat": 22.3175,
+    "lng": 73.1550
+  },
+  {
+    "name": "Manjalpur",
+    "properties": "180+",
+    "type": "Developing",
+    "description": "Emerging commercial hub",
+    "color": "from-blue-400 to-blue-600",
+    "lat": 22.3250,
+    "lng": 73.1750
+  },
+  {
+    "name": "Sama",
+    "properties": "150+",
+    "type": "Commercial",
+    "description": "Business district",
+    "color": "from-purple-400 to-purple-600",
+    "lat": 22.3000,
+    "lng": 73.1600
+  },
+  {
+    "name": "Waghodia",
+    "properties": "90+",
+    "type": "Heritage",
+    "description": "Historical significance",
+    "color": "from-rose-400 to-rose-600",
+    "lat": 22.2800,
+    "lng": 73.1900
+  }
+]

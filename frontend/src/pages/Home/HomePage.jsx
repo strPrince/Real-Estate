@@ -7,6 +7,7 @@ import Features from '../../components/Features/Features.jsx';
 import Testimonials from '../../components/Testimonials/Testimonials.jsx';
 import EmiCalculator from '../../components/EmiCalculator/EmiCalculator.jsx';
 import FAQ from '../../components/FAQ/FAQ.jsx';
+import LocalityMap from '../../components/LocalityMap/LocalityMap.jsx';
 import { getProperties } from '../../api.js';
 import { Link } from 'react-router-dom';
 import { LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
@@ -173,6 +174,25 @@ export default function HomePage() {
             </div>
           </m.section>
 
+          {/* Localities Showcase */}
+          <m.section {...reveal} className="py-12 sm:py-16 bg-gray-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="mb-6 sm:mb-8">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-brand-500 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-full">
+                  Localities
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-3">
+                  Locality map of Vadodara
+                </h2>
+                <p className="mt-2 text-sm text-gray-600 text-pretty max-w-2xl">
+                  Pinpoint the neighborhoods that match your lifestyle and explore listings with local insights.
+                </p>
+              </div>
+              <LocalityMap />
+            </div>
+          </m.section>
+
+
           <m.div {...reveal}>
             <EmiCalculator headerVariant="outer" />
           </m.div>
@@ -271,4 +291,3 @@ export default function HomePage() {
     </>
   );
 }
-
