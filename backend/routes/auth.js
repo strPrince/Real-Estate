@@ -312,4 +312,92 @@ router.post('/change-password', requireAuth, async (req, res) => {
   }
 });
 
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body?.email);
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const userDoc = await findUserByEmail(email);
+    if (!userDoc) {
+      // Don't reveal if user exists or not, just return success
+      return res.json({ message: 'If an account with that email exists, we have sent a password reset link.' });
+    }
+
+    const { randomBytes } = await import('crypto');
+    const resetToken = randomBytes(32).toString('hex');
+    const resetTokenHash = await bcrypt.hash(resetToken, 10);
+    const resetTokenExpires = Date.now() + 3600000; // 1 hour
+
+    await db.collection('users').doc(userDoc.id).update({
+      resetTokenHash,
+      resetTokenExpires,
+    });
+
+    const resetUrl = `${req.headers.origin || 'http://localhost:5173'}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+    
+    // Simulate email sending
+    console.log('\n=== SIMULATED EMAIL ===');
+    console.log(`To: ${email}`);
+    console.log(`Subject: Reset Your Password`);
+    console.log(`Body: Click here to reset your password: ${resetUrl}`);
+    console.log('=======================\n');
+
+    res.json({ message: 'If an account with that email exists, we have sent a password reset link.' });
+  } catch (err) {
+    console.error('POST /auth/forgot-password error:', err);
+    res.status(500).json({ error: 'Failed to process request' });
+  }
+});
+
+router.post('/reset-password', async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body?.email);
+    const token = String(req.body?.token || '');
+    const newPassword = String(req.body?.newPassword || '');
+
+    if (!email || !token || !newPassword) {
+      return res.status(400).json({ error: 'Email, token, and new password are required' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    const userDoc = await findUserByEmail(email);
+    if (!userDoc) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    const data = userDoc.data() || {};
+    
+    if (!data.resetTokenHash || !data.resetTokenExpires || Date.now() > data.resetTokenExpires) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    const isValidToken = await bcrypt.compare(token, data.resetTokenHash);
+    if (!isValidToken) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    const tokenVersion = (data.tokenVersion || 0) + 1; // Revoke old sessions
+
+    await db.collection('users').doc(userDoc.id).update({
+      passwordHash,
+      tokenVersion,
+      refreshTokenHash: null,
+      resetTokenHash: null,
+      resetTokenExpires: null,
+      passwordUpdatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    res.json({ message: 'Password has been successfully reset' });
+  } catch (err) {
+    console.error('POST /auth/reset-password error:', err);
+    res.status(500).json({ error: 'Failed to reset password' });
+  }
+});
+
 export default router;

@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 const AuthContext = createContext(null);
 
@@ -135,9 +135,25 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function forgotPassword(email) {
+    const data = await authFetch('/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+    return data;
+  }
+
+  async function resetPassword(email, token, newPassword) {
+    const data = await authFetch('/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ email, token, newPassword }),
+    });
+    return data;
+  }
+
   return (
     <AuthContext.Provider
-      value={{ currentUser, login, signup, logout, changePassword, updateProfile, getToken, loading }}
+      value={{ currentUser, login, signup, logout, changePassword, updateProfile, getToken, loading, forgotPassword, resetPassword }}
     >
       {children}
     </AuthContext.Provider>

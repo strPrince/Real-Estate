@@ -19,6 +19,8 @@ import AdminPropertyForm from './pages/Admin/AdminPropertyForm.jsx';
 import AdminResetPasswordPage from './pages/Admin/AdminResetPasswordPage.jsx';
 import LoginPage from './pages/Auth/LoginPage.jsx';
 import SignupPage from './pages/Auth/SignupPage.jsx';
+import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage.jsx';
+import ResetPasswordPage from './pages/Auth/ResetPasswordPage.jsx';
 import AccountPage from './pages/Auth/AccountPage.jsx';
 import UserDashboardPage from './pages/Auth/UserDashboardPage.jsx';
 import PostPropertyPage from './pages/Auth/PostPropertyPage.jsx';
@@ -42,6 +44,8 @@ function AnimatedRoutes() {
         {/* User auth */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><UserDashboardPage /></ProtectedRoute>} />
         <Route path="/post-property" element={<ProtectedRoute><PostPropertyPage /></ProtectedRoute>} />
