@@ -1,7 +1,6 @@
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
-import { getAuth } from 'firebase-admin/auth';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -25,4 +24,3 @@ const app = getApps().length === 0
 
 export const db = getFirestore(app);
 export const storage = getStorage(app);
-export const auth = getAuth(app);

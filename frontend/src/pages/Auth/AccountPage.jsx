@@ -1,18 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { updateProfile } from 'firebase/auth';
 import { toast } from 'react-hot-toast';
 import Header from '../../components/Header/Header.jsx';
 
 export default function AccountPage() {
-  const { currentUser, logout, changePassword } = useAuth();
-  const [name, setName] = useState(currentUser?.displayName || '');
+  const { currentUser, logout, changePassword, updateProfile } = useAuth();
+  const [name, setName] = useState(currentUser?.displayName || currentUser?.name || '');
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setName(currentUser?.displayName || currentUser?.name || '');
+  }, [currentUser]);
 
   const inputClass =
     'mt-2 w-full rounded-xl border border-gray-100 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 shadow-[0_1px_3px_rgba(15,23,42,0.06)] focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-gray-50';
@@ -25,7 +28,7 @@ export default function AccountPage() {
     setLoading(true);
 
     try {
-      await updateProfile(currentUser, { displayName: name });
+      await updateProfile(name);
       toast.success('Profile updated successfully!');
     } catch (error) {
       toast.error('Failed to update profile: ' + error.message);

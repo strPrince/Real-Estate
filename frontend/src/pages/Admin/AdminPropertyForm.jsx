@@ -6,8 +6,9 @@ import { X, Upload, Loader2, Info, DollarSign, MapPin, Sparkles, ImagePlus, Sett
 import toast from 'react-hot-toast';
 
 const PROPERTY_TYPES = ['residential', 'commercial', 'plot', 'pg'];
-const INTENTS = ['buy', 'rent'];
+const INTENTS = ['buy', 'rent', 'commercial'];
 const STATUSES = ['active', 'sold', 'rented'];
+const DEFAULT_CITY = 'Vadodara';
 
 const AMENITIES_LIST = [
   'Parking', 'Lift', 'Gym', 'Swimming Pool', 'Security', 'Power Backup',
@@ -19,7 +20,7 @@ const EMPTY_FORM = {
   type: 'residential', intent: 'buy',
   price: '', priceUnit: 'total',
   bedrooms: '', bathrooms: '', area: '',
-  city: '', locality: '', address: '',
+  locality: '', address: '',
   lat: '', lng: '',
   status: 'active', featured: false,
   images: [], amenities: [],
@@ -51,7 +52,6 @@ export default function AdminPropertyForm() {
           bedrooms: data.bedrooms ?? '',
           bathrooms: data.bathrooms ?? '',
           area: data.area ?? '',
-          city: data.location?.city || '',
           locality: data.location?.locality || '',
           address: data.location?.address || '',
           lat: data.location?.lat ?? '',
@@ -115,7 +115,7 @@ export default function AdminPropertyForm() {
         bathrooms: form.bathrooms,
         area: form.area,
         location: {
-          city: form.city.trim(),
+          city: DEFAULT_CITY,
           locality: form.locality.trim(),
           address: form.address.trim(),
           lat: form.lat ? parseFloat(form.lat) : null,
@@ -236,12 +236,9 @@ export default function AdminPropertyForm() {
             <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center"><MapPin className="w-3.5 h-3.5 text-blue-600" /></div>
             <h2 className="font-bold text-gray-800 text-base">Location Details</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <Field label="City *" required>
-              <input required value={form.city} onChange={set('city')} placeholder="e.g. Mumbai" className={inputCls} />
-            </Field>
-            <Field label="Locality">
-              <input value={form.locality} onChange={set('locality')} placeholder="e.g. Andheri West" className={inputCls} />
+          <div className="grid grid-cols-1 gap-5">
+            <Field label="Locality *" required>
+              <input required value={form.locality} onChange={set('locality')} placeholder="e.g. Alkapuri" className={inputCls} />
             </Field>
           </div>
           <Field label="Full Address">

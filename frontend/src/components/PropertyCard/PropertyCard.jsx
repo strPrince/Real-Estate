@@ -11,7 +11,8 @@ export default function PropertyCard({ property, style }) {
   } = property;
 
   const thumb = images?.[0] || PLACEHOLDER;
-  const intentLabel = intent === 'rent' ? 'For Rent' : 'For Sale';
+  const intentLabel = intent === 'rent' ? 'For Rent' : intent === 'commercial' ? 'Commercial' : 'For Sale';
+  const locationLabel = location?.locality || location?.city || 'Vadodara';
 
   const formatPrice = (n) => {
     if (n >= 10_000_000) return `Rs ${(n / 10_000_000).toFixed(1)} Cr`;
@@ -37,11 +38,11 @@ export default function PropertyCard({ property, style }) {
   return (
      <Link
       to={`/properties/${id}`}
-      className="block rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-[0_1px_3px_rgba(15,23,42,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+      className="block rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-[0_1px_3px_rgba(15,23,42,0.06)] transition-transform duration-200 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
       style={style}
     >
       {/* Image */}
-      <div className="relative h-60 overflow-hidden">
+      <div className="relative aspect-[4/3] overflow-hidden">
         <img
           src={thumb}
           alt={title}
@@ -49,7 +50,7 @@ export default function PropertyCard({ property, style }) {
           decoding="async"
           width="800"
           height="500"
-          className="w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover"
           onError={(e) => { e.target.src = PLACEHOLDER; }}
         />
         {featured && (
@@ -65,10 +66,15 @@ export default function PropertyCard({ property, style }) {
           {formatPrice(price)}
           {priceUnit === 'per_month' && <span className="text-sm font-normal text-gray-500">/mo</span>}
         </p>
+        {area > 0 && price > 0 && (
+          <p className="text-xs text-gray-400 -mt-1">
+            {`Rs ${Math.round(price / area).toLocaleString('en-IN')}/sqft`}
+          </p>
+        )}
         <h3 className="font-semibold text-gray-900 text-lg leading-snug text-balance">{title}</h3>
         <div className="flex items-center gap-1 text-gray-500 text-sm">
           <MapPin className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-          <span>{location?.locality || location?.city || 'India'}</span>
+          <span>{locationLabel}</span>
         </div>
         <div className="flex items-center gap-4 text-gray-500 text-sm pt-3 border-t border-gray-200/70">
           {bedrooms > 0 && (

@@ -10,12 +10,27 @@ const TYPES = [
   { value: 'pg', label: 'PG / Rental' },
 ];
 
+const INTENTS = [
+  { value: '', label: 'All' },
+  { value: 'buy', label: 'Buy' },
+  { value: 'rent', label: 'Rent' },
+  { value: 'commercial', label: 'Commercial' },
+];
+
 const BHKS = [
   { value: '', label: 'Any' },
   { value: '1', label: '1 BHK' },
   { value: '2', label: '2 BHK' },
   { value: '3', label: '3 BHK' },
   { value: '4', label: '4+ BHK' },
+];
+
+const BATHS = [
+  { value: '', label: 'Any' },
+  { value: '1', label: '1+' },
+  { value: '2', label: '2+' },
+  { value: '3', label: '3+' },
+  { value: '4', label: '4+' },
 ];
 
 const SORTS = [
@@ -31,38 +46,38 @@ function FilterForm({ filters, setFilters, set, apply, reset, activeCount }) {
       <div>
         <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Looking to</label>
         <div className="flex rounded-xl overflow-hidden border border-gray-200 bg-white">
-          {['', 'buy', 'rent'].map((v) => (
+          {INTENTS.map(({ value, label }) => (
             <button
-              key={v}
+              key={value}
               type="button"
-              onClick={() => setFilters((f) => ({ ...f, intent: v }))}
+              onClick={() => setFilters((f) => ({ ...f, intent: value }))}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  setFilters((f) => ({ ...f, intent: v }));
+                  setFilters((f) => ({ ...f, intent: value }));
                 }
               }}
               className={`flex-1 py-2.5 text-sm font-semibold capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
-                filters.intent === v ? 'bg-brand-500 text-white' : 'text-gray-600 hover:bg-gray-50'
+                filters.intent === value ? 'bg-brand-500 text-white' : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
-              {v || 'All'}
+              {label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* City */}
+      {/* Locality search */}
       <div>
-        <label className="block text-xs font-semibold text-gray-500 uppercase mb-2" htmlFor="filter-city">City / Locality</label>
+        <label className="block text-xs font-semibold text-gray-500 uppercase mb-2" htmlFor="filter-query">Locality / Area / Landmark</label>
         <input
-          id="filter-city"
-          value={filters.city}
-          onChange={set('city')}
+          id="filter-query"
+          value={filters.query}
+          onChange={set('query')}
           onKeyDown={(e) => e.key === 'Enter' && apply()}
-          placeholder="e.g. Mumbai, Pune..."
+          placeholder="e.g. Alkapuri, Gotri..."
           className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 bg-white"
-          name="city"
+          name="query"
           autoComplete="address-level2"
         />
       </div>
@@ -108,6 +123,33 @@ function FilterForm({ filters, setFilters, set, apply, reset, activeCount }) {
         </div>
       </div>
 
+      {/* Bathrooms */}
+      <div>
+        <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Bathrooms</label>
+        <div className="flex flex-wrap gap-2">
+          {BATHS.map((b) => (
+            <button
+              key={b.value}
+              type="button"
+              onClick={() => setFilters((f) => ({ ...f, bathrooms: b.value }))}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setFilters((f) => ({ ...f, bathrooms: b.value }));
+                }
+              }}
+              className={`px-3 py-1.5 rounded-full border text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+                filters.bathrooms === b.value
+                  ? 'bg-brand-500 text-white border-brand-500'
+                  : 'border-gray-200 text-gray-600 hover:border-brand-500'
+              }`}
+            >
+              {b.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Price range */}
       <div>
         <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Price Range (Rs)</label>
@@ -130,6 +172,33 @@ function FilterForm({ filters, setFilters, set, apply, reset, activeCount }) {
             placeholder="Max"
             className="w-1/2 border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 bg-white"
             name="maxPrice"
+            autoComplete="off"
+          />
+        </div>
+      </div>
+
+      {/* Area range */}
+      <div>
+        <label className="block text-xs font-semibold text-gray-500 uppercase mb-2">Area Range (sq.ft)</label>
+        <div className="flex gap-2">
+          <input
+            type="number"
+            id="filter-min-area"
+            value={filters.minArea}
+            onChange={set('minArea')}
+            placeholder="Min"
+            className="w-1/2 border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 bg-white"
+            name="minArea"
+            autoComplete="off"
+          />
+          <input
+            type="number"
+            id="filter-max-area"
+            value={filters.maxArea}
+            onChange={set('maxArea')}
+            placeholder="Max"
+            className="w-1/2 border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 bg-white"
+            name="maxArea"
             autoComplete="off"
           />
         </div>
@@ -181,10 +250,13 @@ export function usePropertyFilters() {
   const [filters, setFilters] = useState({
     intent: searchParams.get('intent') || '',
     type: searchParams.get('type') || '',
-    city: searchParams.get('q') || '',
+    query: searchParams.get('q') || '',
     bedrooms: searchParams.get('bedrooms') || '',
+    bathrooms: searchParams.get('bathrooms') || '',
     minPrice: searchParams.get('minPrice') || '',
     maxPrice: searchParams.get('maxPrice') || '',
+    minArea: searchParams.get('minArea') || '',
+    maxArea: searchParams.get('maxArea') || '',
     sort: searchParams.get('sort') || 'newest',
   });
 
@@ -193,10 +265,13 @@ export function usePropertyFilters() {
     setFilters({
       intent: searchParams.get('intent') || '',
       type: searchParams.get('type') || '',
-      city: searchParams.get('q') || '',
+      query: searchParams.get('q') || '',
       bedrooms: searchParams.get('bedrooms') || '',
+      bathrooms: searchParams.get('bathrooms') || '',
       minPrice: searchParams.get('minPrice') || '',
       maxPrice: searchParams.get('maxPrice') || '',
+      minArea: searchParams.get('minArea') || '',
+      maxArea: searchParams.get('maxArea') || '',
       sort: searchParams.get('sort') || 'newest',
     });
   }, [searchParams.toString()]);
@@ -205,14 +280,25 @@ export function usePropertyFilters() {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([k, v]) => {
       if (!v) return;
-      if (k === 'city') params.set('q', v);
+      if (k === 'query') params.set('q', v);
       else params.set(k, v);
     });
     navigate(`/properties?${params.toString()}`);
   }
 
   function reset() {
-    setFilters({ intent: '', type: '', city: '', bedrooms: '', minPrice: '', maxPrice: '', sort: 'newest' });
+    setFilters({
+      intent: '',
+      type: '',
+      query: '',
+      bedrooms: '',
+      bathrooms: '',
+      minPrice: '',
+      maxPrice: '',
+      minArea: '',
+      maxArea: '',
+      sort: 'newest',
+    });
     navigate('/properties');
   }
 

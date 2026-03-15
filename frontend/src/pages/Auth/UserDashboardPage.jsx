@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { toast } from 'react-hot-toast';
@@ -6,11 +6,14 @@ import { Building2, LogOut, Plus } from 'lucide-react';
 import Header from '../../components/Header/Header.jsx';
 
 export default function UserDashboardPage() {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, getToken } = useAuth();
   const navigate = useNavigate();
 
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     fetchUserProperties();
@@ -23,10 +26,14 @@ export default function UserDashboardPage() {
     default: 'bg-gray-100 text-gray-600',
   };
 
-  const fetchUserProperties = async () => {
+  const fetchUserProperties = async (cursor = null, append = false) => {
     try {
-      const token = await currentUser.getIdToken();
-      const response = await fetch('/api/properties/user/my-properties', {
+      const token = await getToken();
+      if (!token) throw new Error('Not authenticated');
+      const qs = new URLSearchParams();
+      if (cursor) qs.set('cursor', cursor);
+      qs.set('limit', '8');
+      const response = await fetch(`/api/properties/user/my-properties?${qs.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -37,12 +44,21 @@ export default function UserDashboardPage() {
       }
 
       const data = await response.json();
-      setProperties(data);
+      setProperties((prev) => (append ? [...prev, ...data.properties] : data.properties));
+      setNextCursor(data.nextCursor || null);
+      setHasMore(Boolean(data.hasMore));
     } catch (error) {
       toast.error('Failed to load your properties: ' + error.message);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
+  };
+
+  const handleLoadMore = () => {
+    if (!hasMore || loadingMore) return;
+    setLoadingMore(true);
+    fetchUserProperties(nextCursor, true);
   };
 
   const handleLogout = async () => {
@@ -133,9 +149,14 @@ export default function UserDashboardPage() {
                     <li key={property.id} className="px-6 py-5">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                          <p className="text-sm font-semibold text-gray-900">{property.title}</p>
+                          <button
+                            onClick={() => navigate(`/dashboard/properties/${property.id}`)}
+                            className="text-sm font-semibold text-gray-900 hover:text-brand-600 transition-colors text-left"
+                          >
+                            {property.title}
+                          </button>
                           <p className="mt-1 text-xs text-gray-500 tabular-nums">
-                            INR {priceLabel} � {property.bedrooms} bed � {property.area} sqft
+                            INR {priceLabel}  - 7 {property.bedrooms} bed  - 7 {property.area} sqft
                           </p>
                         </div>
                         <div className="flex flex-wrap items-center gap-3">
@@ -145,6 +166,12 @@ export default function UserDashboardPage() {
                             {property.status}
                           </span>
                           <span className="text-xs text-gray-500">Posted {postedDate}</span>
+                          <button
+                            onClick={() => navigate(`/dashboard/properties/${property.id}`)}
+                            className="text-xs font-semibold text-brand-600 hover:text-brand-700"
+                          >
+                            View & Edit
+                          </button>
                         </div>
                       </div>
                     </li>
@@ -153,8 +180,21 @@ export default function UserDashboardPage() {
               </ul>
             )}
           </div>
+
+          {!loading && hasMore && (
+            <div className="mt-6 flex justify-center">
+              <button
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                className="inline-flex items-center justify-center bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors disabled:opacity-60"
+              >
+                {loadingMore ? 'Loading...' : 'Load More'}
+              </button>
+            </div>
+          )}
         </section>
       </div>
     </>
   );
 }
+

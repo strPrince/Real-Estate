@@ -61,7 +61,6 @@ export default function AdminDashboard() {
     return sortedProperties.filter((p) =>
       [
         p.title,
-        p.location?.city,
         p.location?.locality,
         p.type,
         p.intent,
@@ -131,6 +130,7 @@ export default function AdminDashboard() {
         if (target.featured) next.featured = Math.max(0, (prev.featured || 0) - 1);
         if (target.intent === 'buy') next.forSale = Math.max(0, (prev.forSale || 0) - 1);
         if (target.intent === 'rent') next.forRent = Math.max(0, (prev.forRent || 0) - 1);
+        if (target.intent === 'commercial') next.commercial = Math.max(0, (prev.commercial || 0) - 1);
         return next;
       });
       toast.success('Property deleted');
@@ -163,7 +163,7 @@ export default function AdminDashboard() {
           type="text"
           value={searchQuery}
           onChange={(e) => handleSearch(e.target.value)}
-          placeholder="Search by title, city, locality, type, status..."
+          placeholder="Search by title, locality, type, intent, status..."
           className="w-full pl-11 pr-10 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 shadow-sm transition-colors"
         />
         {searchQuery && (
@@ -268,12 +268,13 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="text-gray-700 capitalize">{p.type}</div>
-                        <div className="text-xs text-gray-400 capitalize">{p.intent === 'buy' ? 'For Sale' : 'For Rent'}</div>
+                        <div className="text-xs text-gray-400 capitalize">
+                          {p.intent === 'rent' ? 'For Rent' : p.intent === 'commercial' ? 'Commercial' : 'For Sale'}
+                        </div>
                       </td>
                       <td className="px-5 py-3.5 text-brand-600 font-semibold whitespace-nowrap">{formatPrice(p.price)}</td>
                       <td className="px-5 py-3.5">
-                        <div className="text-gray-700">{p.location?.city || '—'}</div>
-                        {p.location?.locality && <div className="text-xs text-gray-400">{p.location.locality}</div>}
+                        <div className="text-gray-700">{p.location?.locality || p.location?.city || '—'}</div>
                       </td>
                       <td className="px-5 py-3.5">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${STATUS_COLORS[p.status] || 'bg-gray-100 text-gray-600'}`}>

@@ -36,10 +36,13 @@ export const getProperties = (params = {}) => {
   const query = new URLSearchParams();
   if (params.intent)   query.set('intent',   params.intent);
   if (params.type)     query.set('type',      params.type);
-  if (params.city)     query.set('city',      params.city);
+  if (params.q)        query.set('q',         params.q);
   if (params.bedrooms) query.set('bedrooms',  params.bedrooms);
+  if (params.bathrooms) query.set('bathrooms', params.bathrooms);
   if (params.minPrice) query.set('minPrice',  params.minPrice);
   if (params.maxPrice) query.set('maxPrice',  params.maxPrice);
+  if (params.minArea)  query.set('minArea',   params.minArea);
+  if (params.maxArea)  query.set('maxArea',   params.maxArea);
   if (params.featured) query.set('featured',  params.featured);
   if (params.sort)     query.set('sort',       params.sort);
   if (params.limit)    query.set('limit',      params.limit);

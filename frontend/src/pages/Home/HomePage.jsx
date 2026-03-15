@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Header from '../../components/Header/Header.jsx';
 import Footer from '../../components/Footer/Footer.jsx';
 import Hero from '../../components/Hero/Hero.jsx';
@@ -11,11 +11,30 @@ import LocalityMap from '../../components/LocalityMap/LocalityMap.jsx';
 import { getProperties } from '../../api.js';
 import { Link } from 'react-router-dom';
 import { LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext.jsx';
+import localities from '../../data/localities.json';
 
 export default function HomePage() {
   const [featured, setFeatured] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { currentUser } = useAuth();
   const shouldReduceMotion = false; // useReducedMotion();
+
+  const localityStats = useMemo(() => {
+    if (!localities.length) return null;
+    const toNum = (value) => {
+      const n = parseInt(String(value || '').replace(/[^0-9]/g, ''), 10);
+      return Number.isFinite(n) ? n : 0;
+    };
+    const totals = localities.map((l) => toNum(l.properties));
+    const totalListings = totals.reduce((acc, v) => acc + v, 0);
+    const top = localities.reduce((a, b) => (toNum(a.properties) > toNum(b.properties) ? a : b), localities[0]);
+    return {
+      totalListings,
+      topLocality: top?.name,
+      premiumCount: localities.filter((l) => l.type?.toLowerCase() === 'premium').length,
+    };
+  }, []);
 
   const pageMotion = shouldReduceMotion
     ? {}
@@ -49,11 +68,13 @@ export default function HomePage() {
     if (meta) {
       meta.setAttribute('content', 'Discover top properties for sale and rent in Vadodara with Property Master Vadodara. Browse featured listings and get personalized assistance.');
     }
-    getProperties({ featured: true, limit: 6 })
+    setLoading(true);
+    const limit = currentUser ? 6 : 3;
+    getProperties({ featured: true, limit })
       .then((data) => setFeatured(data.properties || []))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [currentUser]);
 
   return (
     <>
@@ -63,6 +84,28 @@ export default function HomePage() {
           <m.div {...reveal}>
             <Hero />
           </m.div>
+
+          {/* Trust strip */}
+          <m.section {...reveal} className="bg-white/80 border-y border-gray-100">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-600">
+                {[
+                  { title: 'Verified Listings', desc: 'Only screened properties & builders' },
+                  { title: 'Transparent Pricing', desc: 'No hidden surprises, ever' },
+                  { title: 'Local Experts', desc: 'Vadodara specialists at every step' },
+                ].map((item) => (
+                  <div key={item.title} className="flex items-start gap-3">
+                    <span className="mt-1 h-2 w-2 rounded-full bg-brand-500" />
+                    <div>
+                      <div className="text-gray-900 font-semibold">{item.title}</div>
+                      <div className="text-xs text-gray-500">{item.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </m.section>
+
           <m.div {...reveal}>
             <FeaturedPropertyPreview properties={featured} loading={loading} />
           </m.div>
@@ -188,7 +231,37 @@ export default function HomePage() {
                   Pinpoint the neighborhoods that match your lifestyle and explore listings with local insights.
                 </p>
               </div>
-              <LocalityMap />
+              <div className="grid grid-cols-1 lg:grid-cols-[1.25fr_0.75fr] gap-6 items-start">
+                <LocalityMap />
+                <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gray-400">
+                    Locality stats
+                  </div>
+                  <div className="mt-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500">Total listings</span>
+                      <span className="text-lg font-bold text-gray-900">
+                        {localityStats?.totalListings ? `${localityStats.totalListings}+` : '—'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500">Top demand</span>
+                      <span className="text-sm font-semibold text-gray-800">
+                        {localityStats?.topLocality || '—'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500">Premium zones</span>
+                      <span className="text-sm font-semibold text-gray-800">
+                        {localityStats?.premiumCount ?? '—'}
+                      </span>
+                    </div>
+                    <div className="mt-4 rounded-xl bg-brand-50 border border-brand-100 px-4 py-3 text-xs text-brand-700">
+                      Tip: Click a pin to see locality details and listing volume.
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </m.section>
 

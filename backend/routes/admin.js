@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { db } from '../firebase.js';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
 
 // GET /api/admin/stats
 // Returns aggregate stats plus full property list for admin dashboards.
-router.get('/stats', requireAuth, async (req, res) => {
+router.get('/stats', requireAuth, requireRole('admin'), async (req, res) => {
   try {
     const snapshot = await db.collection('properties').get();
     const properties = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -20,6 +20,7 @@ router.get('/stats', requireAuth, async (req, res) => {
       featured: 0,
       forSale: 0,
       forRent: 0,
+      commercial: 0,
     };
 
     for (const p of properties) {
@@ -32,6 +33,7 @@ router.get('/stats', requireAuth, async (req, res) => {
       if (p.featured) stats.featured += 1;
       if (p.intent === 'buy') stats.forSale += 1;
       if (p.intent === 'rent') stats.forRent += 1;
+      if (p.intent === 'commercial') stats.commercial += 1;
     }
 
     res.json({ stats, properties });

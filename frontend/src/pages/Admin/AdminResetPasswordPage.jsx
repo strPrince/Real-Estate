@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword, updatePassword, signOut } from 'firebase/auth';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { auth } from '../../firebase.js';
 import { ShieldCheck, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function AdminResetPasswordPage() {
-  const { currentUser, changePassword } = useAuth();
+  const { currentUser, changePassword, login, logout } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [oldPass, setOldPass] = useState('');
@@ -39,10 +37,9 @@ export default function AdminResetPasswordPage() {
         setConfirmPass('');
         navigate('/admin/dashboard');
       } else {
-        await signInWithEmailAndPassword(auth, email, oldPass);
-        if (!auth.currentUser) throw new Error('Login failed');
-        await updatePassword(auth.currentUser, newPass);
-        await signOut(auth);
+        await login(email, oldPass);
+        await changePassword(oldPass, newPass);
+        await logout();
         toast.success('Password updated. Please log in.');
         setEmail('');
         setOldPass('');

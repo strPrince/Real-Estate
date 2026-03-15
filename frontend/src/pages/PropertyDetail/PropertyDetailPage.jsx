@@ -14,6 +14,7 @@ import SkeletonCard from '../../components/SkeletonCard/SkeletonCard.jsx';
 import PropertyCard from '../../components/PropertyCard/PropertyCard.jsx';
 import { getCachedProperties, getProperty, submitInquiry } from '../../api.js';
 import { LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -32,7 +33,6 @@ const getRelatedProperties = (current, list) => {
       let score = 0;
       if (item.type && current.type && item.type === current.type) score += 3;
       if (item.intent && current.intent && item.intent === current.intent) score += 2;
-      if (item.location?.city && current.location?.city && item.location.city === current.location.city) score += 2;
       if (item.location?.locality && current.location?.locality && item.location.locality === current.location.locality) score += 3;
       if (item.bedrooms && current.bedrooms && item.bedrooms === current.bedrooms) score += 1;
       if (item.bathrooms && current.bathrooms && item.bathrooms === current.bathrooms) score += 1;
@@ -60,6 +60,8 @@ const getRelatedProperties = (current, list) => {
 
 export default function PropertyDetailPage() {
   const { id } = useParams();
+  const { currentUser } = useAuth();
+  const isLocked = !currentUser;
   const shouldReduceMotion = false; // useReducedMotion();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -151,7 +153,16 @@ export default function PropertyDetailPage() {
           <div className="h-96 bg-gray-200 rounded-xl animate-pulse" />
           <SkeletonCard />
         </div>
-        <SkeletonCard />
+        <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 space-y-4 animate-pulse">
+          <div className="h-4 w-32 bg-gray-200 rounded" />
+          <div className="h-3 w-48 bg-gray-100 rounded" />
+          <div className="h-10 w-full bg-gray-200 rounded-xl" />
+          <div className="h-10 w-full bg-gray-200 rounded-xl" />
+          <div className="h-10 w-full bg-gray-200 rounded-xl" />
+          <div className="h-24 w-full bg-gray-100 rounded-xl" />
+          <div className="h-11 w-full bg-gray-200 rounded-xl" />
+          <div className="h-11 w-full bg-gray-100 rounded-xl" />
+        </div>
       </div>
       <Footer />
     </>
@@ -174,6 +185,12 @@ export default function PropertyDetailPage() {
   const lat = property.location?.lat || 19.076;
   const lng = property.location?.lng || 72.8777;
   const relatedProperties = getRelatedProperties(property, getCachedProperties()).slice(0, 3);
+  const descriptionPreview = isLocked && property.description
+    ? `${property.description.split(/\s+/).slice(0, 40).join(' ')}...`
+    : property.description;
+  const amenitiesPreview = isLocked
+    ? (property.amenities || []).slice(0, 3)
+    : (property.amenities || []);
 
   return (
     <>
@@ -203,7 +220,7 @@ export default function PropertyDetailPage() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
                   <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/85 backdrop-blur px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-gray-600">
-                    {property.intent === 'rent' ? 'For Rent' : 'For Sale'}
+                    {property.intent === 'rent' ? 'For Rent' : property.intent === 'commercial' ? 'Commercial' : 'For Sale'}
                   </div>
                   {images.length > 1 && (
                     <div className="absolute right-4 bottom-4 rounded-full bg-black/55 text-white text-xs font-semibold px-3 py-1">
@@ -257,7 +274,7 @@ export default function PropertyDetailPage() {
                       <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-balance">{property.title}</h1>
                       <p className="flex items-center gap-1 text-gray-500">
                         <MapPin className="w-4 h-4" />
-                        {[property.location?.locality, property.location?.city].filter(Boolean).join(', ') || 'India'}
+                        {property.location?.locality || property.location?.city || 'Vadodara'}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -326,18 +343,28 @@ export default function PropertyDetailPage() {
                   {property.description && (
                     <div>
                       <h2 className="font-semibold text-xl text-gray-900 mb-3">Description</h2>
-                      <p className="text-gray-600 text-base leading-relaxed whitespace-pre-line">{property.description}</p>
+                      <p className="text-gray-600 text-base leading-relaxed whitespace-pre-line">{descriptionPreview}</p>
+                      {isLocked && (
+                        <p className="mt-3 text-sm text-gray-400">
+                          Log in to view the full description.
+                        </p>
+                      )}
                     </div>
                   )}
 
-                  {property.amenities?.length > 0 && (
+                  {amenitiesPreview.length > 0 && (
                     <div>
                       <h2 className="font-semibold text-xl text-gray-900 mb-4">Amenities</h2>
                       <div className="flex flex-wrap gap-3">
-                        {property.amenities.map((a) => (
+                        {amenitiesPreview.map((a) => (
                           <span key={a} className="bg-brand-100 text-brand-600 text-sm px-4 py-2 rounded-full font-semibold">{a}</span>
                         ))}
                       </div>
+                      {isLocked && (
+                        <p className="mt-3 text-sm text-gray-400">
+                          Log in to see all amenities.
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -346,20 +373,42 @@ export default function PropertyDetailPage() {
               <m.div {...reveal} className="bg-white rounded-[28px] border border-gray-200/80 shadow-[0_18px_45px_-30px_rgba(15,23,42,0.45)] overflow-hidden">
                 <div className="p-6 border-b border-gray-200/70 bg-[#FAF7F4]">
                   <h2 className="font-semibold text-xl text-gray-900">Location</h2>
-                  {property.location?.address && (
+                  {!isLocked && property.location?.address && (
                     <p className="text-sm text-gray-500 mt-1">{property.location.address}</p>
                   )}
                 </div>
-                <div className="h-64 sm:h-80">
-                  <MapContainer center={[lat, lng]} zoom={14} style={{ height: '100%', width: '100%' }}>
-                    <TileLayer
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      attribution="&copy; OpenStreetMap contributors"
-                    />
-                    <Marker position={[lat, lng]}>
-                      <Popup>{property.title}</Popup>
-                    </Marker>
-                  </MapContainer>
+                <div className="h-64 sm:h-80 relative">
+                  {isLocked ? (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                      <div className="text-center px-6">
+                        <p className="text-sm text-gray-500">Log in to view the exact map location.</p>
+                        <div className="mt-4 flex items-center justify-center gap-3">
+                          <Link
+                            to="/login"
+                            className="px-4 py-2 rounded-lg bg-brand-500 text-white text-sm font-semibold"
+                          >
+                            Login
+                          </Link>
+                          <Link
+                            to="/signup"
+                            className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-white"
+                          >
+                            Sign Up
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <MapContainer center={[lat, lng]} zoom={14} style={{ height: '100%', width: '100%' }}>
+                      <TileLayer
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        attribution="&copy; OpenStreetMap contributors"
+                      />
+                      <Marker position={[lat, lng]}>
+                        <Popup>{property.title}</Popup>
+                      </Marker>
+                    </MapContainer>
+                  )}
                 </div>
               </m.div>
             </div>
@@ -373,73 +422,97 @@ export default function PropertyDetailPage() {
                   </div>
                   <p className="text-xs text-gray-500 mt-1">We usually respond within a few hours.</p>
                 </div>
-                <form onSubmit={handleInquiry} className="space-y-4">
-                  <input
-                    required
-                    value={form.name}
-                    onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                    placeholder="Your Name *"
-                    className="w-full border border-gray-200/80 rounded-xl px-4 py-3 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 bg-white"
-                    name="name"
-                    autoComplete="name"
-                  />
-                  <input
-                    required
-                    type="email"
-                    value={form.email}
-                    onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                    placeholder="Email Address *"
-                    className="w-full border border-gray-200/80 rounded-xl px-4 py-3 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 bg-white"
-                    name="email"
-                    autoComplete="email"
-                  />
-                  <input
-                    required
-                    type="tel"
-                    value={form.phone}
-                    onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                    placeholder="Phone Number *"
-                    className="w-full border border-gray-200/80 rounded-xl px-4 py-3 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 bg-white"
-                    name="phone"
-                    autoComplete="tel"
-                  />
-                  <textarea
-                    required
-                    rows={4}
-                    value={form.message}
-                    onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
-                    placeholder="Hi, I'm interested in this property. Please contact me."
-                    className="w-full border border-gray-200/80 rounded-xl px-4 py-3 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 resize-none bg-white"
-                    name="message"
-                  />
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full bg-brand-500 hover:bg-brand-600 disabled:opacity-60 text-white py-3.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-[0_16px_40px_-20px_rgba(255,122,0,0.7)] hover:shadow-[0_18px_45px_-18px_rgba(255,122,0,0.8)]"
-                  >
-                    {submitting ? (
-                      <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <Mail className="w-5 h-5" />
-                    )}
-                    {submitting ? 'Sending...' : 'Send Inquiry'}
-                  </button>
-                </form>
+                {isLocked ? (
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500">
+                      Log in to contact the agent and view full details.
+                    </p>
+                    <div className="mt-4 flex items-center justify-center gap-3">
+                      <Link
+                        to="/login"
+                        className="px-4 py-2 rounded-lg bg-brand-500 text-white text-sm font-semibold"
+                      >
+                        Login
+                      </Link>
+                      <Link
+                        to="/signup"
+                        className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-white"
+                      >
+                        Sign Up
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <form onSubmit={handleInquiry} className="space-y-4">
+                      <input
+                        required
+                        value={form.name}
+                        onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                        placeholder="Your Name *"
+                        className="w-full border border-gray-200/80 rounded-xl px-4 py-3 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 bg-white"
+                        name="name"
+                        autoComplete="name"
+                      />
+                      <input
+                        required
+                        type="email"
+                        value={form.email}
+                        onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                        placeholder="Email Address *"
+                        className="w-full border border-gray-200/80 rounded-xl px-4 py-3 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 bg-white"
+                        name="email"
+                        autoComplete="email"
+                      />
+                      <input
+                        required
+                        type="tel"
+                        value={form.phone}
+                        onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                        placeholder="Phone Number *"
+                        className="w-full border border-gray-200/80 rounded-xl px-4 py-3 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 bg-white"
+                        name="phone"
+                        autoComplete="tel"
+                      />
+                      <textarea
+                        required
+                        rows={4}
+                        value={form.message}
+                        onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
+                        placeholder="Hi, I'm interested in this property. Please contact me."
+                        className="w-full border border-gray-200/80 rounded-xl px-4 py-3 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 resize-none bg-white"
+                        name="message"
+                      />
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="w-full bg-brand-500 hover:bg-brand-600 disabled:opacity-60 text-white py-3.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-[0_16px_40px_-20px_rgba(255,122,0,0.7)] hover:shadow-[0_18px_45px_-18px_rgba(255,122,0,0.8)]"
+                      >
+                        {submitting ? (
+                          <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Mail className="w-5 h-5" />
+                        )}
+                        {submitting ? 'Sending...' : 'Send Inquiry'}
+                      </button>
+                    </form>
 
-                <a
-                  href={`https://wa.me/919876543210?text=${encodeURIComponent(`Hi, I'm interested in "${property.title}" - ${window.location.href}`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white py-3.5 rounded-xl font-bold text-sm transition-all duration-200 shadow-md hover:shadow-lg"
-                >
-                  <Phone className="w-5 h-5" /> WhatsApp Us
-                </a>
+                    <a
+                      href={`https://wa.me/919876543210?text=${encodeURIComponent(`Hi, I'm interested in "${property.title}" - ${window.location.href}`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-4 w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white py-3.5 rounded-xl font-bold text-sm transition-all duration-200 shadow-md hover:shadow-lg"
+                    >
+                      <Phone className="w-5 h-5" /> WhatsApp Us
+                    </a>
+                  </>
+                )}
               </m.div>
             </div>
           </div>
         </m.div>
 
-        {relatedProperties.length > 0 && (
+        {!isLocked && relatedProperties.length > 0 && (
           <m.section {...reveal} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
             <div className="bg-white rounded-[28px] border border-white/80 shadow-[0_20px_50px_-30px_rgba(15,23,42,0.45)] p-6 sm:p-8">
               <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">

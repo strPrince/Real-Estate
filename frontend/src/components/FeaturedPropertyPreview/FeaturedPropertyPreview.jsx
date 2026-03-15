@@ -38,11 +38,18 @@ export default function FeaturedPropertyPreview({ properties = [], loading = fal
   };
 
   const locationLabel = activeProperty?.location
-    ? [activeProperty.location.locality, activeProperty.location.city].filter(Boolean).join(', ') || 'India'
-    : 'India';
+    ? activeProperty.location.locality || activeProperty.location.city || 'Vadodara'
+    : 'Vadodara';
 
   const areaLabel = activeProperty?.area ? `${activeProperty.area} sqft` : null;
-  const intentLabel = activeProperty?.intent === 'rent' ? 'For Rent' : 'For Sale';
+  const pricePerSqft = activeProperty?.area && activeProperty?.price
+    ? `Rs ${Math.round(activeProperty.price / activeProperty.area).toLocaleString('en-IN')}/sqft`
+    : null;
+  const intentLabel = activeProperty?.intent === 'rent'
+    ? 'For Rent'
+    : activeProperty?.intent === 'commercial'
+      ? 'Commercial'
+      : 'For Sale';
   const titleLabel = activeProperty?.title || 'Featured property';
   const fadeMotion = shouldReduceMotion
     ? {}
@@ -179,6 +186,11 @@ export default function FeaturedPropertyPreview({ properties = [], loading = fal
                         {activeProperty.priceUnit === 'per_month' && (
                           <span className="text-sm font-normal text-gray-500">/mo</span>
                         )}
+                        {pricePerSqft && (
+                          <div className="text-[11px] font-semibold text-gray-400 mt-1">
+                            {pricePerSqft}
+                          </div>
+                        )}
                       </div>
                       <Link
                         to={`/properties/${activeProperty.id}`}
@@ -268,7 +280,7 @@ export default function FeaturedPropertyPreview({ properties = [], loading = fal
                       alt={titleLabel}
                       loading="lazy"
                       decoding="async"
-                      className="h-full w-full object-cover"
+                      className={`h-full w-full object-cover transition duration-300 ${imgLoaded ? 'blur-0 scale-100' : 'blur-sm scale-105'}`}
                       onLoad={() => setImgLoaded(true)}
                       onError={(e) => {
                         e.target.src = PLACEHOLDER;

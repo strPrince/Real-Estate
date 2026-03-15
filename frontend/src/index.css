@@ -132,6 +132,22 @@ body {
   z-index: 0;
 }
 
+/* Locality popup styling */
+.leaflet-popup.locality-popup .leaflet-popup-content-wrapper {
+  border-radius: 16px;
+  border: 1px solid var(--color-border-100);
+  box-shadow: 0 16px 40px -20px rgba(15, 23, 42, 0.35);
+  background: #ffffff;
+}
+
+.leaflet-popup.locality-popup .leaflet-popup-content {
+  margin: 12px 14px;
+}
+
+.leaflet-popup.locality-popup .leaflet-popup-tip {
+  box-shadow: 0 10px 30px -20px rgba(15, 23, 42, 0.35);
+}
+
 /* Infinite Scroll Animation */
 @keyframes infiniteScroll {
   0% {

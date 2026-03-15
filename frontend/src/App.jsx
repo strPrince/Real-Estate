@@ -45,6 +45,7 @@ function AnimatedRoutes() {
         <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><UserDashboardPage /></ProtectedRoute>} />
         <Route path="/post-property" element={<ProtectedRoute><PostPropertyPage /></ProtectedRoute>} />
+        <Route path="/dashboard/properties/:id" element={<ProtectedRoute><PostPropertyPage /></ProtectedRoute>} />
 
         {/* Admin auth */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
@@ -54,7 +55,7 @@ function AnimatedRoutes() {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute redirectTo="/admin/login">
+            <ProtectedRoute redirectTo="/admin/login" requiredRole="admin">
               <AdminLayout />
             </ProtectedRoute>
           }

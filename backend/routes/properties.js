@@ -1,14 +1,74 @@
 import { Router } from 'express';
+import multer from 'multer';
+import os from 'os';
+import { promises as fsPromises } from 'fs';
 import { db } from '../firebase.js';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
 
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, os.tmpdir()),
+    filename: (_req, file, cb) => {
+      const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+      cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}-${safe}`);
+    },
+  }),
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+    files: 10,
+  },
+});
+
+const DEFAULT_CITY = 'Vadodara';
+
+const normalizeUserStatus = (status) => {
+  const value = String(status || '').toLowerCase();
+  if (value === 'available' || value === 'active') return 'active';
+  if (value === 'sold' || value === 'rented') return value;
+  return 'active';
+};
+
+const normalizeUserType = (propertyType) => {
+  const value = String(propertyType || '').toLowerCase();
+  if (value === 'plot') return 'plot';
+  if (value === 'commercial') return 'commercial';
+  if (value === 'pg') return 'pg';
+  return 'residential';
+};
+
+const normalizeUserIntent = (intent) => {
+  const value = String(intent || '').toLowerCase();
+  if (value === 'rent') return 'rent';
+  if (value === 'commercial') return 'commercial';
+  return 'buy';
+};
+
+const sanitizePublicProperty = (property) => {
+  if (!property) return property;
+  const { userId, userName, ...rest } = property;
+  return rest;
+};
+
 // ── GET /api/properties
-// Query params: intent, type, city, minPrice, maxPrice, bedrooms, sort, featured, limit
+// Query params: intent, type, q, minPrice, maxPrice, bedrooms, bathrooms, minArea, maxArea, sort, featured, limit
 router.get('/', async (req, res) => {
   try {
-    const { intent, type, city, minPrice, maxPrice, bedrooms, sort, featured, cursor } = req.query;
+    const {
+      intent,
+      type,
+      q,
+      minPrice,
+      maxPrice,
+      bedrooms,
+      bathrooms,
+      minArea,
+      maxArea,
+      sort,
+      featured,
+      cursor,
+    } = req.query;
     const pageLimit = Math.min(parseInt(req.query.limit) || 12, 50);
     const page = Math.max(parseInt(req.query.page) || 1, 1);
 
@@ -18,24 +78,51 @@ router.get('/', async (req, res) => {
     if (type) baseQuery = baseQuery.where('type', '==', type);
     if (featured === 'true') baseQuery = baseQuery.where('featured', '==', true);
 
-    // Firestore only allows one inequality filter at a time.
-    // City is an equality filter so safe to chain.
-    if (city) baseQuery = baseQuery.where('location.city', '==', city);
-
     const needsInMemory =
-      Boolean(minPrice) || Boolean(maxPrice) || Boolean(bedrooms) || Boolean(city);
+      Boolean(q) ||
+      Boolean(minPrice) ||
+      Boolean(maxPrice) ||
+      Boolean(bedrooms) ||
+      Boolean(bathrooms) ||
+      Boolean(minArea) ||
+      Boolean(maxArea);
 
     if (needsInMemory) {
       const snapshot = await baseQuery.get();
       let properties = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-      // City/locality filter (case-insensitive, matches either city or locality)
-      if (city) {
-        const needle = String(city).trim().toLowerCase();
+      const normalize = (value) => String(value || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      const isSubsequence = (needle, haystack) => {
+        let i = 0;
+        for (let j = 0; j < haystack.length && i < needle.length; j += 1) {
+          if (haystack[j] === needle[i]) i += 1;
+        }
+        return i === needle.length;
+      };
+
+      const tokens = normalize(q).split(' ').filter(Boolean);
+
+      if (tokens.length) {
         properties = properties.filter((p) => {
-          const c = p.location?.city?.toLowerCase() || '';
-          const l = p.location?.locality?.toLowerCase() || '';
-          return c.includes(needle) || l.includes(needle);
+          const hay = normalize([
+            p.title,
+            p.location?.locality,
+            p.location?.address,
+            p.type,
+            p.propertyType,
+            p.intent,
+            p.status,
+            Array.isArray(p.amenities) ? p.amenities.join(' ') : '',
+            p.bedrooms,
+            p.bathrooms,
+            p.area,
+          ].filter(Boolean).join(' '));
+          return tokens.every((t) => hay.includes(t) || isSubsequence(t, hay));
         });
       }
 
@@ -43,6 +130,9 @@ router.get('/', async (req, res) => {
       if (minPrice) properties = properties.filter((p) => p.price >= parseInt(minPrice));
       if (maxPrice) properties = properties.filter((p) => p.price <= parseInt(maxPrice));
       if (bedrooms) properties = properties.filter((p) => (p.bedrooms || 0) >= parseInt(bedrooms));
+      if (bathrooms) properties = properties.filter((p) => (p.bathrooms || 0) >= parseInt(bathrooms));
+      if (minArea) properties = properties.filter((p) => (p.area || 0) >= parseInt(minArea));
+      if (maxArea) properties = properties.filter((p) => (p.area || 0) <= parseInt(maxArea));
 
       // Sort in memory
       if (sort === 'price_asc') {
@@ -55,7 +145,7 @@ router.get('/', async (req, res) => {
 
       const cursorIndex = cursor ? properties.findIndex((p) => p.id === cursor) : -1;
       const start = cursorIndex >= 0 ? cursorIndex + 1 : 0;
-      const pageItems = properties.slice(start, start + pageLimit);
+      const pageItems = properties.slice(start, start + pageLimit).map(sanitizePublicProperty);
 
       const nextCursor = pageItems.length ? pageItems[pageItems.length - 1].id : null;
       const hasMore = start + pageLimit < properties.length;
@@ -75,7 +165,9 @@ router.get('/', async (req, res) => {
     query = query.limit(pageLimit);
 
     const snapshot = await query.get();
-    const properties = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const properties = snapshot.docs
+      .map((doc) => ({ id: doc.id, ...doc.data() }))
+      .map(sanitizePublicProperty);
 
     const lastDoc = snapshot.docs[snapshot.docs.length - 1];
     const nextCursor = lastDoc ? lastDoc.id : null;
@@ -90,20 +182,46 @@ router.get('/', async (req, res) => {
 // ── GET /api/properties/user/my-properties  (authenticated users only)
 router.get('/user/my-properties', requireAuth, async (req, res) => {
   try {
-    const snapshot = await db.collection('user_properties')
+    const pageLimit = Math.min(parseInt(req.query.limit) || 10, 50);
+    const { cursor } = req.query;
+
+    let query = db.collection('properties')
       .where('userId', '==', req.user.uid)
-      .orderBy('createdAt', 'desc')
-      .get();
-    
-    const properties = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    
-    res.json(properties);
+      .orderBy('createdAt', 'desc');
+
+    if (cursor) {
+      const cursorDoc = await db.collection('properties').doc(cursor).get();
+      if (cursorDoc.exists) query = query.startAfter(cursorDoc);
+    }
+
+    query = query.limit(pageLimit);
+
+    const snapshot = await query.get();
+    const properties = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const lastDoc = snapshot.docs[snapshot.docs.length - 1];
+    const nextCursor = lastDoc ? lastDoc.id : null;
+    const hasMore = snapshot.size === pageLimit;
+
+    res.json({ properties, nextCursor, hasMore, pageSize: pageLimit });
   } catch (err) {
     console.error('GET /properties/user/my-properties error:', err);
     res.status(500).json({ error: 'Failed to fetch your properties' });
+  }
+});
+
+// ── GET /api/properties/user/:id  (authenticated users only)
+router.get('/user/:id', requireAuth, async (req, res) => {
+  try {
+    const doc = await db.collection('properties').doc(req.params.id).get();
+    if (!doc.exists) return res.status(404).json({ error: 'Property not found' });
+    const data = doc.data();
+    if (data.userId !== req.user.uid) {
+      return res.status(403).json({ error: 'Forbidden - not your property' });
+    }
+    res.json({ id: doc.id, ...data });
+  } catch (err) {
+    console.error('GET /properties/user/:id error:', err);
+    res.status(500).json({ error: 'Failed to fetch property' });
   }
 });
 
@@ -112,7 +230,8 @@ router.get('/:id', async (req, res) => {
   try {
     const doc = await db.collection('properties').doc(req.params.id).get();
     if (!doc.exists) return res.status(404).json({ error: 'Property not found' });
-    res.json({ id: doc.id, ...doc.data() });
+    const data = sanitizePublicProperty({ id: doc.id, ...doc.data() });
+    res.json(data);
   } catch (err) {
     console.error('GET /properties/:id error:', err);
     res.status(500).json({ error: 'Failed to fetch property' });
@@ -143,32 +262,45 @@ router.post('/user-post', requireAuth, async (req, res) => {
     }
     
     // Create property data with user info
+    let amenities = [];
+    if (payload.amenities) {
+      try {
+        const parsed = JSON.parse(payload.amenities);
+        if (Array.isArray(parsed)) amenities = parsed;
+      } catch {
+        amenities = String(payload.amenities)
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+    }
+
     const data = {
       title: payload.title,
       description: payload.description || '',
       price: payload.price ? Number(payload.price) : 0,
       location: {
-        city: payload.location,
-        locality: payload.location
+        city: DEFAULT_CITY,
+        locality: payload.location,
       },
       area: payload.area ? Number(payload.area) : 0,
       bedrooms: payload.bedrooms ? Number(payload.bedrooms) : 0,
       bathrooms: payload.bathrooms ? Number(payload.bathrooms) : 0,
       propertyType: payload.propertyType || 'apartment',
-      status: payload.status || 'pending', // User posts start as pending approval
+      status: normalizeUserStatus(payload.status), // User posts visible by default
       images: imageUrls,
-      amenities: [],
+      amenities,
       userId: req.user.uid, // From auth middleware
       userName: payload.userName || 'Unknown User',
       featured: false,
-      intent: 'sale', // Default to sale, can be changed by admin
-      type: payload.propertyType || 'apartment',
+      intent: normalizeUserIntent(payload.intent), // Default to buy
+      type: normalizeUserType(payload.propertyType),
       createdAt: now,
       updatedAt: now,
     };
     
-    // Add property to database
-    const ref = await db.collection('user_properties').add(data);
+    // Add property to main properties collection
+    const ref = await db.collection('properties').add(data);
     
     res.status(201).json({ 
       id: ref.id, 
@@ -178,16 +310,102 @@ router.post('/user-post', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('POST /properties/user-post error:', err);
     res.status(500).json({ error: 'Failed to submit property' });
+  } finally {
+    if (Array.isArray(req.files)) {
+      await Promise.all(req.files.map((file) => (
+        file?.path ? fsPromises.unlink(file.path).catch(() => {}) : Promise.resolve()
+      )));
+    }
+  }
+});
+
+// ── PUT /api/properties/user/:id  (authenticated users only)
+router.put('/user/:id', requireAuth, upload.array('images', 10), async (req, res) => {
+  try {
+    const docRef = db.collection('properties').doc(req.params.id);
+    const doc = await docRef.get();
+    if (!doc.exists) return res.status(404).json({ error: 'Property not found' });
+
+    const existing = doc.data();
+    if (existing.userId !== req.user.uid) {
+      return res.status(403).json({ error: 'Forbidden - not your property' });
+    }
+
+    const payload = req.body || {};
+
+    let amenities = [];
+    if (payload.amenities) {
+      try {
+        const parsed = JSON.parse(payload.amenities);
+        if (Array.isArray(parsed)) amenities = parsed;
+      } catch {
+        amenities = String(payload.amenities)
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+    }
+
+    let existingImages = [];
+    if (payload.existingImages) {
+      try {
+        const parsed = JSON.parse(payload.existingImages);
+        if (Array.isArray(parsed)) existingImages = parsed;
+      } catch {
+        existingImages = [];
+      }
+    } else if (Array.isArray(existing.images)) {
+      existingImages = existing.images;
+    }
+
+    let newImageUrls = [];
+    if (req.files && req.files.length > 0) {
+      newImageUrls = req.files.map((file) => `/uploads/${file.originalname}`);
+    }
+
+    const now = new Date().toISOString();
+    const data = {
+      title: payload.title || existing.title || '',
+      description: payload.description || existing.description || '',
+      price: payload.price ? Number(payload.price) : (existing.price || 0),
+      location: {
+        city: existing.location?.city || DEFAULT_CITY,
+        locality: payload.location || existing.location?.locality || '',
+      },
+      area: payload.area ? Number(payload.area) : (existing.area || 0),
+      bedrooms: payload.bedrooms ? Number(payload.bedrooms) : (existing.bedrooms || 0),
+      bathrooms: payload.bathrooms ? Number(payload.bathrooms) : (existing.bathrooms || 0),
+      propertyType: payload.propertyType || existing.propertyType || 'apartment',
+      status: normalizeUserStatus(payload.status || existing.status),
+      images: [...existingImages, ...newImageUrls],
+      amenities,
+      userName: payload.userName || existing.userName || 'Unknown User',
+      intent: normalizeUserIntent(payload.intent || existing.intent),
+      type: normalizeUserType(payload.propertyType || existing.type),
+      updatedAt: now,
+    };
+
+    await docRef.update(data);
+    res.json({ id: doc.id, ...existing, ...data });
+  } catch (err) {
+    console.error('PUT /properties/user/:id error:', err);
+    res.status(500).json({ error: 'Failed to update property' });
+  } finally {
+    if (Array.isArray(req.files)) {
+      await Promise.all(req.files.map((file) => (
+        file?.path ? fsPromises.unlink(file.path).catch(() => {}) : Promise.resolve()
+      )));
+    }
   }
 });
 
 // ── POST /api/properties  (admin only)
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
   try {
     const payload = req.body || {};
-    if (!payload.title || !payload.intent || !payload.type || !payload.location?.city) {
+    if (!payload.title || !payload.intent || !payload.type || !payload.location?.locality) {
       return res.status(400).json({
-        error: 'Missing required fields: title, intent, type, location.city',
+        error: 'Missing required fields: title, intent, type, location.locality',
         receivedKeys: Object.keys(payload || {}),
         contentType: req.headers['content-type'] || '',
       });
@@ -195,6 +413,10 @@ router.post('/', requireAuth, async (req, res) => {
     const now = new Date().toISOString();
     const data = {
       ...payload,
+      location: {
+        ...payload.location,
+        city: payload.location?.city || DEFAULT_CITY,
+      },
       price: payload.price !== '' && payload.price !== undefined ? Number(payload.price) : 0,
       bedrooms: payload.bedrooms !== '' && payload.bedrooms !== undefined ? Number(payload.bedrooms) : 0,
       bathrooms: payload.bathrooms !== '' && payload.bathrooms !== undefined ? Number(payload.bathrooms) : 0,
@@ -215,11 +437,14 @@ router.post('/', requireAuth, async (req, res) => {
 });
 
 // ── PUT /api/properties/:id  (admin only)
-router.put('/:id', requireAuth, async (req, res) => {
+router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
   try {
     const payload = req.body || {};
     const data = {
       ...payload,
+      location: payload.location
+        ? { ...payload.location, city: payload.location?.city || DEFAULT_CITY }
+        : payload.location,
       price: payload.price !== '' && payload.price !== undefined ? Number(payload.price) : 0,
       bedrooms: payload.bedrooms !== '' && payload.bedrooms !== undefined ? Number(payload.bedrooms) : 0,
       bathrooms: payload.bathrooms !== '' && payload.bathrooms !== undefined ? Number(payload.bathrooms) : 0,
@@ -238,7 +463,7 @@ router.put('/:id', requireAuth, async (req, res) => {
 });
 
 // ── DELETE /api/properties/:id  (admin only)
-router.delete('/:id', requireAuth, async (req, res) => {
+router.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
   try {
     await db.collection('properties').doc(req.params.id).delete();
     res.json({ message: 'Property deleted successfully' });

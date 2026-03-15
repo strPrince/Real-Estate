@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth } from '../../firebase.js';
+import { useAuth } from '../../context/AuthContext.jsx';
 import { toast } from 'react-hot-toast';
 import Header from '../../components/Header/Header.jsx';
 
@@ -11,6 +10,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const { signup } = useAuth();
   const navigate = useNavigate();
 
   const inputClass =
@@ -30,8 +30,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(userCredential.user, { displayName: name });
+      await signup(email, password, name);
       toast.success('Account created successfully!');
       navigate('/account');
     } catch (error) {

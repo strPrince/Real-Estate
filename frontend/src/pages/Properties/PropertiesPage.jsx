@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header/Header.jsx';
 import Footer from '../../components/Footer/Footer.jsx';
 import { FilterButton, FilterPanel, usePropertyFilters } from '../../components/FilterBar/FilterBar.jsx';
@@ -8,9 +8,12 @@ import SkeletonCard from '../../components/SkeletonCard/SkeletonCard.jsx';
 import { getProperties } from '../../api.js';
 import { AlertCircle } from 'lucide-react';
 import { LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 export default function PropertiesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [properties, setProperties] = useState([]);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -36,7 +39,6 @@ export default function PropertiesPage() {
       };
   const pageLimit = 12;
   const cursor = searchParams.get('cursor') || '';
-  const query = searchParams.get('q') || '';
   const cursorStackRef = useRef([]);
 
   const filterKey = useMemo(() => {
@@ -47,20 +49,61 @@ export default function PropertiesPage() {
 
   const filterState = usePropertyFilters();
 
+  const activeFilters = useMemo(() => {
+    const filters = [];
+    const pretty = (value) => String(value || '')
+      .replace(/[_-]/g, ' ')
+      .replace(/\b\w/g, (m) => m.toUpperCase());
+    const intent = searchParams.get('intent');
+    const type = searchParams.get('type');
+    const q = searchParams.get('q');
+    const bedrooms = searchParams.get('bedrooms');
+    const bathrooms = searchParams.get('bathrooms');
+    const minPrice = searchParams.get('minPrice');
+    const maxPrice = searchParams.get('maxPrice');
+    const minArea = searchParams.get('minArea');
+    const maxArea = searchParams.get('maxArea');
+
+    if (intent) filters.push({ key: 'intent', label: `Intent: ${pretty(intent)}` });
+    if (type) filters.push({ key: 'type', label: `Type: ${pretty(type)}` });
+    if (q) filters.push({ key: 'q', label: `Search: ${q}` });
+    if (bedrooms) filters.push({ key: 'bedrooms', label: `Bedrooms: ${bedrooms}+` });
+    if (bathrooms) filters.push({ key: 'bathrooms', label: `Bathrooms: ${bathrooms}+` });
+    if (minPrice || maxPrice) {
+      const min = minPrice ? Number(minPrice).toLocaleString('en-IN') : '0';
+      const max = maxPrice ? Number(maxPrice).toLocaleString('en-IN') : 'Any';
+      filters.push({ key: 'price', label: `Price: ${min} – ${max}` });
+    }
+    if (minArea || maxArea) {
+      const min = minArea ? `${minArea} sqft` : '0';
+      const max = maxArea ? `${maxArea} sqft` : 'Any';
+      filters.push({ key: 'area', label: `Area: ${min} – ${max}` });
+    }
+    return filters;
+  }, [searchParams]);
+
   const apiParamsKey = useMemo(() => {
     const params = new URLSearchParams();
     const intent = searchParams.get('intent') || '';
     const type = searchParams.get('type') || '';
+    const q = searchParams.get('q') || '';
     const bedrooms = searchParams.get('bedrooms') || '';
+    const bathrooms = searchParams.get('bathrooms') || '';
     const minPrice = searchParams.get('minPrice') || '';
     const maxPrice = searchParams.get('maxPrice') || '';
+    const minArea = searchParams.get('minArea') || '';
+    const maxArea = searchParams.get('maxArea') || '';
     const sort = searchParams.get('sort') || 'newest';
     const cursorParam = searchParams.get('cursor') || '';
     if (intent) params.set('intent', intent);
     if (type) params.set('type', type);
+    if (q) params.set('q', q);
     if (bedrooms) params.set('bedrooms', bedrooms);
+    if (bathrooms) params.set('bathrooms', bathrooms);
     if (minPrice) params.set('minPrice', minPrice);
     if (maxPrice) params.set('maxPrice', maxPrice);
+    if (minArea) params.set('minArea', minArea);
+    if (maxArea) params.set('maxArea', maxArea);
     if (sort) params.set('sort', sort);
     if (cursorParam) params.set('cursor', cursorParam);
     params.set('limit', String(pageLimit));
@@ -82,9 +125,13 @@ export default function PropertiesPage() {
     const params = {
       intent: searchParams.get('intent') || '',
       type: searchParams.get('type') || '',
+      q: searchParams.get('q') || '',
       bedrooms: searchParams.get('bedrooms') || '',
+      bathrooms: searchParams.get('bathrooms') || '',
       minPrice: searchParams.get('minPrice') || '',
       maxPrice: searchParams.get('maxPrice') || '',
+      minArea: searchParams.get('minArea') || '',
+      maxArea: searchParams.get('maxArea') || '',
       sort: searchParams.get('sort') || 'newest',
       limit: pageLimit,
       cursor: cursor || '',
@@ -106,8 +153,18 @@ export default function PropertiesPage() {
     cursorStackRef.current = [];
   }, [filterKey]);
 
+  useEffect(() => {
+    if (!currentUser && searchParams.get('cursor')) {
+      navigate('/login', { replace: true });
+    }
+  }, [currentUser, searchParams, navigate]);
+
   function goNext(nextCursor) {
     if (!nextCursor) return;
+    if (!currentUser) {
+      navigate('/login', { replace: true });
+      return;
+    }
     const params = new URLSearchParams(searchParams);
     cursorStackRef.current.push(cursor);
     params.set('cursor', nextCursor);
@@ -132,34 +189,7 @@ export default function PropertiesPage() {
     setFilterOpen(false);
   }
 
-  const normalize = (value) => (value || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-
-  const isSubsequence = (needle, haystack) => {
-    let i = 0;
-    for (let j = 0; j < haystack.length && i < needle.length; j += 1) {
-      if (haystack[j] === needle[i]) i += 1;
-    }
-    return i === needle.length;
-  };
-
-  const filteredProperties = useMemo(() => {
-    const q = normalize(query);
-    if (!q) return properties;
-    const tokens = q.split(' ').filter(Boolean);
-    return properties.filter((p) => {
-      const hay = normalize([
-        p.title,
-        p.location?.locality,
-        p.location?.city,
-        p.location?.address,
-      ].filter(Boolean).join(' '));
-      return tokens.every((t) => hay.includes(t) || isSubsequence(t, hay));
-    });
-  }, [properties, query]);
+  const filteredProperties = properties;
 
   const cardMotion = shouldReduceMotion
     ? {}
@@ -184,7 +214,8 @@ export default function PropertiesPage() {
                 </span>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-3 text-balance">
                   {searchParams.get('intent') === 'rent' ? 'Properties for Rent' :
-                   searchParams.get('intent') === 'buy' ? 'Properties for Sale' : 'All Properties'}
+                   searchParams.get('intent') === 'buy' ? 'Properties for Sale' :
+                   searchParams.get('intent') === 'commercial' ? 'Commercial Properties' : 'All Properties'}
                 </h1>
                 {!loading && !error && (
                   <p className="text-gray-400 mt-1 text-sm">
@@ -198,6 +229,28 @@ export default function PropertiesPage() {
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Grid */}
             <div className="flex-1 min-w-0">
+              {activeFilters.length > 0 && (
+                <div className="mb-5 rounded-2xl border border-gray-200 bg-white px-4 py-3 flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] uppercase tracking-[0.25em] text-gray-400 font-semibold mr-1">
+                    Active
+                  </span>
+                  {activeFilters.map((f) => (
+                    <span
+                      key={f.key}
+                      className="px-3 py-1.5 rounded-full text-xs font-semibold bg-brand-50 text-brand-600 border border-brand-100"
+                    >
+                      {f.label}
+                    </span>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="ml-auto text-xs font-semibold text-gray-500 hover:text-gray-800"
+                  >
+                    Clear all
+                  </button>
+                </div>
+              )}
               {error && (
                 <div className="flex items-center gap-2 text-red-600 bg-red-50 px-6 py-4 rounded-xl mb-6 shadow-sm">
                   <AlertCircle className="w-5 h-5 shrink-0" />
@@ -213,6 +266,13 @@ export default function PropertiesPage() {
                 <div className="text-center py-24 text-gray-400">
                   <p className="text-xl font-semibold mb-2">No properties found</p>
                   <p className="text-sm">Try adjusting your filters or search</p>
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="mt-5 inline-flex items-center justify-center px-5 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:text-gray-900 transition-colors text-sm font-semibold"
+                  >
+                    Reset filters
+                  </button>
                 </div>
               ) : (
                 <>

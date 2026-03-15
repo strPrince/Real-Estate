@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, MapPin, Home, Briefcase, SlidersHorizontal, X, TrendingUp, Shield, Award } from 'lucide-react';
+import { Search, MapPin, Home, Briefcase, Building2, SlidersHorizontal, X, TrendingUp, Shield, Award } from 'lucide-react';
 import { AnimatePresence, LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
 
 const BHKS = [
@@ -74,9 +74,17 @@ export default function Hero() {
     ? {}
     : { variants: fadeUp, initial: 'hidden', animate: 'visible' };
 
+  const quickFilters = [
+    { label: 'Residential', type: 'residential' },
+    { label: 'Commercial', type: 'commercial' },
+    { label: 'Plot', type: 'plot' },
+    { label: 'Under 25L', maxPrice: '2500000' },
+    { label: 'Under 50L', maxPrice: '5000000' },
+  ];
+
   return (
     <LazyMotion features={domAnimation}>
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[85vh] sm:min-h-screen flex items-center justify-center overflow-hidden">
         <AnimatePresence initial={false} mode="sync">
           <m.div
             key={heroIndex}
@@ -97,7 +105,7 @@ export default function Hero() {
         {/* Subtle bottom vignette for text legibility */}
         <div className="absolute inset-x-0 bottom-0 h-48 bg-linear-to-t from-black/40 to-transparent" />
 
-        <div className="relative z-10 w-full max-w-6xl mx-auto px-4 text-center lg:text-left space-y-6 pt-8 pb-14">
+        <div className="relative z-10 w-full max-w-6xl mx-auto px-4 text-center lg:text-left space-y-6 pt-6 sm:pt-8 pb-10 sm:pb-14">
 
           {/* Eyebrow pill */}
           <m.div
@@ -140,7 +148,8 @@ export default function Hero() {
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-5 mb-4 pb-3.5 border-b border-gray-100">
               {[
                 { value: 'buy', label: 'Buy', icon: Home },
-                { value: 'rent', label: 'Rent', icon: Briefcase }
+                { value: 'rent', label: 'Rent', icon: Briefcase },
+                { value: 'commercial', label: 'Commercial', icon: Building2 },
               ].map(({ value, label, icon: Icon }) => (
                 <button
                   key={value}
@@ -194,7 +203,7 @@ export default function Hero() {
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="City or locality..."
+                    placeholder="Locality or landmark..."
                     className="flex-1 text-[13px] outline-none text-gray-900 placeholder-gray-400 bg-transparent"
                     name="location"
                     autoComplete="address-level2"
@@ -226,6 +235,36 @@ export default function Hero() {
                 </button>
               </div>
             </div>
+
+            {/* Quick filters */}
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-400 mr-1">
+                Quick Filters
+              </span>
+              {quickFilters.map((qf) => {
+                const isActive = (qf.type && propertyType === qf.type) || (qf.maxPrice && maxPrice === qf.maxPrice);
+                return (
+                  <button
+                    key={qf.label}
+                    type="button"
+                    onClick={() => {
+                      if (qf.type) setPropertyType(qf.type);
+                      if (qf.maxPrice) {
+                        setMinPrice('');
+                        setMaxPrice(qf.maxPrice);
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded-full border text-[11px] font-semibold transition-colors ${
+                      isActive
+                        ? 'bg-brand-500 text-white border-brand-500'
+                        : 'border-gray-200 text-gray-600 hover:border-brand-500 hover:text-gray-800'
+                    }`}
+                  >
+                    {qf.label}
+                  </button>
+                );
+              })}
+            </div>
           </m.form>
 
         </div>
@@ -233,5 +272,3 @@ export default function Hero() {
     </LazyMotion>
   );
 }
-
-
