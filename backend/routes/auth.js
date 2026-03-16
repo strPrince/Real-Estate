@@ -4,6 +4,8 @@ import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
 import { db } from '../firebase.js';
 import { requireAuth } from '../middleware/auth.js';
+import nodemailer from 'nodemailer';
+import { fileURLToPath } from 'url';
 
 const router = Router();
 
@@ -337,12 +339,91 @@ router.post('/forgot-password', async (req, res) => {
 
     const resetUrl = `${req.headers.origin || 'http://localhost:5173'}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
     
-    // Simulate email sending
-    console.log('\n=== SIMULATED EMAIL ===');
-    console.log(`To: ${email}`);
-    console.log(`Subject: Reset Your Password`);
-    console.log(`Body: Click here to reset your password: ${resetUrl}`);
-    console.log('=======================\n');
+    // Set up Nodemailer transport
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+      port: process.env.EMAIL_PORT || 587,
+      auth: {
+        user: process.env.EMAIL_USER || 'your-email@gmail.com',
+        pass: process.env.EMAIL_PASS || 'your-app-password',
+      },
+    });
+
+    const emailHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Reset Your Password</title>
+        <style>
+          body { font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 0; color: #222222; }
+          .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+          .header { background: linear-gradient(100deg, #ff7a00 0%, #ffb84d 55%, #ffd9b0 100%); padding: 32px 24px; text-align: center; }
+          .header .logo { width: 80px; height: auto; margin-bottom: 16px; }
+          .header h1 { color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.01em; }
+          .content { padding: 40px 32px; text-align: left; }
+          .content h2 { margin-top: 0; font-size: 22px; font-weight: 600; color: #222222; }
+          .content p { font-size: 16px; line-height: 1.6; color: #6b6b6b; margin-bottom: 24px; }
+          .btn-container { text-align: center; margin: 36px 0; }
+          .btn { display: inline-block; background-color: #ff7a00; color: #ffffff; padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: 600; text-decoration: none; box-shadow: 0 4px 14px 0 rgba(255,122,0,0.35); }
+          .btn:hover { background-color: #cc5c00; }
+          .footer { background-color: #fffaf5; padding: 24px; text-align: center; border-top: 1px solid #ece7df; }
+          .footer p { margin: 0; font-size: 14px; color: #6b6b6b; }
+          .footer a { color: #0077b6; text-decoration: none; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <img src="cid:brandlogo" alt="Property Master Logo" class="logo">
+            <h1>Property Master</h1>
+          </div>
+          <div class="content">
+            <h2>Password Reset Request</h2>
+            <p>Hello,</p>
+            <p>We received a request to reset the password for the Property Master account associated with ${email}. If you made this request, please click the button below to choose a new password.</p>
+            
+            <div class="btn-container">
+              <a href="${resetUrl}" class="btn" target="_blank">Reset Password</a>
+            </div>
+            
+            <p>This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email and your password will remain unchanged.</p>
+            <p>Thanks,<br>The Property Master Team</p>
+          </div>
+          <div class="footer">
+            <p>&copy; ${new Date().getFullYear()} Property Master. All rights reserved.</p>
+            <p>If you're having trouble clicking the button, copy and paste the URL below into your web browser:</p>
+            <p style="word-break: break-all; margin-top: 8px;"><a href="${resetUrl}">${resetUrl}</a></p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const logoPath = fileURLToPath(new URL('../../frontend/src/property-master.png', import.meta.url));
+
+    const mailOptions = {
+      from: '"Property Master" <' + (process.env.EMAIL_USER || 'noreply@propertymaster.com') + '>',
+      to: email,
+      subject: 'Reset Your Password - Property Master',
+      html: emailHtml,
+      attachments: [
+        {
+          filename: 'property-master.png',
+          path: logoPath,
+          cid: 'brandlogo'
+        }
+      ]
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email:', error);
+      } else {
+        console.log('Email sent: ' + info.response);
+      }
+    });
 
     res.json({ message: 'If an account with that email exists, we have sent a password reset link.' });
   } catch (err) {
