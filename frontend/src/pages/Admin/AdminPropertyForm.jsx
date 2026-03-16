@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 
 const PROPERTY_TYPES = ['residential', 'commercial', 'plot', 'pg'];
 const INTENTS = ['buy', 'rent', 'commercial'];
-const STATUSES = ['active', 'sold', 'rented'];
+const STATUSES = ['active', 'draft', 'sold', 'rented'];
 const DEFAULT_CITY = 'Vadodara';
 
 const AMENITIES_LIST = [

@@ -25,6 +25,7 @@ const DEFAULT_CITY = 'Vadodara';
 
 const normalizeUserStatus = (status) => {
   const value = String(status || '').toLowerCase();
+  if (value === 'draft') return 'draft';
   if (value === 'available' || value === 'active') return 'active';
   if (value === 'sold' || value === 'rented') return value;
   return 'active';

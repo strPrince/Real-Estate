@@ -10,7 +10,16 @@ export default function Header() {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to log out', error);
+    }
+  };
 
   const navLinks = [
     { label: 'Home', to: '/' },
@@ -174,6 +183,32 @@ export default function Header() {
                     <span className="absolute inset-0 bg-brand-50 opacity-0 group-hover:opacity-100 transition-all duration-300" />
                     <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/10 group-hover:w-full transition-all duration-300" />
                   </Link>
+                  <Link
+                    to="/help"
+                    onClick={() => setUserDropdownOpen(false)}
+                    className="block px-5 py-3 text-sm text-gray-700 rounded-lg transition-all duration-300 group relative overflow-hidden"
+                  >
+                    <span className="relative z-10 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0" />
+                      Help & Guide
+                    </span>
+                    <span className="absolute inset-0 bg-brand-50 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                    <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/10 group-hover:w-full transition-all duration-300" />
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setUserDropdownOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full text-left block px-5 py-3 text-sm text-red-600 rounded-lg transition-all duration-300 group relative overflow-hidden"
+                  >
+                    <span className="relative z-10 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0" />
+                      Logout
+                    </span>
+                    <span className="absolute inset-0 bg-red-50 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                    <span className="absolute left-0 top-0 bottom-0 w-0 bg-red-500/10 group-hover:w-full transition-all duration-300" />
+                  </button>
                 </div>
               )}
             </div>
@@ -299,6 +334,30 @@ export default function Header() {
                 </span>
                 <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/20 group-hover:w-full transition-all duration-400" />
               </Link>
+              <Link
+                to="/help"
+                onClick={() => setOpen(false)}
+                className="block py-3 pl-6 text-sm text-gray-400 hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-3 transition-all duration-400 hover:bg-white/5 relative overflow-hidden group"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  <span className="w-1 h-1 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                  Help & Guide
+                </span>
+                <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/20 group-hover:w-full transition-all duration-400" />
+              </Link>
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  handleLogout();
+                }}
+                className="w-full text-left block py-3 pl-6 text-sm text-red-400 hover:text-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-lg px-3 transition-all duration-400 hover:bg-white/5 relative overflow-hidden group"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  <span className="w-1 h-1 rounded-full bg-red-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                  Logout
+                </span>
+                <span className="absolute left-0 top-0 bottom-0 w-0 bg-red-500/20 group-hover:w-full transition-all duration-400" />
+              </button>
             </div>
           ) : (
             <div className="flex flex-col gap-3 pt-4 border-t border-gray-700">

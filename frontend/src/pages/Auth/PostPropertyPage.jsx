@@ -84,6 +84,7 @@ export default function PostPropertyPage() {
         });
         if (!response.ok) throw new Error('Failed to load property');
         const property = await response.json();
+        const normalizedStatus = property.status === 'active' ? 'available' : (property.status || 'available');
         setFormData({
           title: property.title || '',
           description: property.description || '',
@@ -94,7 +95,7 @@ export default function PostPropertyPage() {
           bathrooms: property.bathrooms ?? '',
           intent: property.intent || 'buy',
           propertyType: property.propertyType || property.type || 'apartment',
-          status: property.status || 'pending',
+          status: normalizedStatus,
           images: [],
           amenities: Array.isArray(property.amenities) ? property.amenities : [],
         });
@@ -350,6 +351,7 @@ export default function PostPropertyPage() {
                       className={selectClass}
                     >
                       <option value="available">Available</option>
+                      <option value="draft">Draft</option>
                       <option value="sold">Sold</option>
                       <option value="rented">Rented</option>
                     </select>

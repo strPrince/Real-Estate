@@ -4,6 +4,22 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
 
+const buildUserSummary = (doc) => {
+  const data = doc.data() || {};
+  const name = data.name || data.displayName || '';
+  return {
+    id: doc.id,
+    uid: doc.id,
+    email: data.email || '',
+    name,
+    displayName: name,
+    role: data.role || 'user',
+    createdAt: data.createdAt || null,
+    updatedAt: data.updatedAt || null,
+    lastLoginAt: data.lastLoginAt || null,
+  };
+};
+
 // GET /api/admin/stats
 // Returns aggregate stats plus full property list for admin dashboards.
 router.get('/stats', requireAuth, requireRole('admin'), async (req, res) => {
@@ -40,6 +56,50 @@ router.get('/stats', requireAuth, requireRole('admin'), async (req, res) => {
   } catch (err) {
     console.error('GET /admin/stats error:', err);
     res.status(500).json({ error: 'Failed to fetch admin stats' });
+  }
+});
+
+// GET /api/admin/users
+// Returns all users for admin management.
+router.get('/users', requireAuth, requireRole('admin'), async (_req, res) => {
+  try {
+    const snapshot = await db.collection('users').get();
+    const users = snapshot.docs.map(buildUserSummary)
+      .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    res.json({ users });
+  } catch (err) {
+    console.error('GET /admin/users error:', err);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+// GET /api/admin/users/:id/properties
+// Returns properties uploaded by a specific user (admin only).
+router.get('/users/:id/properties', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const pageLimit = Math.min(parseInt(req.query.limit) || 20, 100);
+    const { cursor } = req.query;
+    let query = db.collection('properties')
+      .where('userId', '==', req.params.id)
+      .orderBy('createdAt', 'desc');
+
+    if (cursor) {
+      const cursorDoc = await db.collection('properties').doc(cursor).get();
+      if (cursorDoc.exists) query = query.startAfter(cursorDoc);
+    }
+
+    query = query.limit(pageLimit);
+
+    const snapshot = await query.get();
+    const properties = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const lastDoc = snapshot.docs[snapshot.docs.length - 1];
+    const nextCursor = lastDoc ? lastDoc.id : null;
+    const hasMore = snapshot.size === pageLimit;
+
+    res.json({ properties, nextCursor, hasMore, pageSize: pageLimit });
+  } catch (err) {
+    console.error('GET /admin/users/:id/properties error:', err);
+    res.status(500).json({ error: 'Failed to fetch user properties' });
   }
 });
 

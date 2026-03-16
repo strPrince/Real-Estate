@@ -17,6 +17,8 @@ import AdminLayout from './layouts/AdminLayout.jsx';
 import AdminDashboard from './pages/Admin/AdminDashboard.jsx';
 import AdminPropertyForm from './pages/Admin/AdminPropertyForm.jsx';
 import AdminResetPasswordPage from './pages/Admin/AdminResetPasswordPage.jsx';
+import AdminUsersPage from './pages/Admin/AdminUsersPage.jsx';
+import AdminUserPropertiesPage from './pages/Admin/AdminUserPropertiesPage.jsx';
 import LoginPage from './pages/Auth/LoginPage.jsx';
 import SignupPage from './pages/Auth/SignupPage.jsx';
 import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage.jsx';
@@ -24,6 +26,7 @@ import ResetPasswordPage from './pages/Auth/ResetPasswordPage.jsx';
 import AccountPage from './pages/Auth/AccountPage.jsx';
 import UserDashboardPage from './pages/Auth/UserDashboardPage.jsx';
 import PostPropertyPage from './pages/Auth/PostPropertyPage.jsx';
+import HelpPage from './pages/Help/HelpPage.jsx';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -40,6 +43,7 @@ function AnimatedRoutes() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/policy" element={<PolicyPage />} />
+        <Route path="/help" element={<HelpPage />} />
 
         {/* User auth */}
         <Route path="/login" element={<LoginPage />} />
@@ -65,6 +69,8 @@ function AnimatedRoutes() {
           }
         >
           <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="users" element={<AdminUsersPage />} />
+          <Route path="users/:id" element={<AdminUserPropertiesPage />} />
           <Route path="properties/new" element={<AdminPropertyForm />} />
           <Route path="properties/:id/edit" element={<AdminPropertyForm />} />
         </Route>

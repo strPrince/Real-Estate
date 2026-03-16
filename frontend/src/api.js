@@ -107,6 +107,21 @@ export const getAdminStats = (token) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
+export const getAdminUsers = (token) =>
+  apiFetch('/admin/users', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const getAdminUserProperties = (userId, token, params = {}) => {
+  const query = new URLSearchParams();
+  if (params.limit) query.set('limit', params.limit);
+  if (params.cursor) query.set('cursor', params.cursor);
+  const qs = query.toString();
+  return apiFetch(`/admin/users/${userId}/properties${qs ? `?${qs}` : ''}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};
+
 export const createProperty = (data, token) =>
   apiFetch('/properties', {
     method: 'POST',

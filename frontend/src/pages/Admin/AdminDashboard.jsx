@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 
 const STATUS_COLORS = {
   active: 'bg-green-100 text-green-700',
+  draft: 'bg-slate-100 text-slate-600',
   sold: 'bg-gray-100 text-gray-600',
   rented: 'bg-brand-100 text-brand-600',
 };

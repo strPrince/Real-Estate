@@ -20,6 +20,10 @@ export default function UserDashboardPage() {
   }, []);
 
   const statusStyles = {
+    active: 'bg-success-500/10 text-success-500',
+    draft: 'bg-gray-100 text-gray-600',
+    sold: 'bg-gray-100 text-gray-600',
+    rented: 'bg-brand-100 text-brand-600',
     approved: 'bg-success-500/10 text-success-500',
     pending: 'bg-warning-500/10 text-warning-500',
     rejected: 'bg-error-500/10 text-error-500',

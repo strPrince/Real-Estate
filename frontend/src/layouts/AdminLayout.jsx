@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { LayoutDashboard, PlusCircle, LogOut, Menu, X, ShieldCheck, KeyRound } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, LogOut, Menu, X, ShieldCheck, KeyRound, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 import logo from '../property-master.png';
 
@@ -21,6 +21,7 @@ export default function AdminLayout() {
 
   const links = [
     { to: '/admin/dashboard', label: 'Dashboard', Icon: LayoutDashboard },
+    { to: '/admin/users', label: 'Users', Icon: Users },
     { to: '/admin/properties/new', label: 'Add Listing', Icon: PlusCircle },
     { to: '/admin/reset-password', label: 'Reset Password', Icon: KeyRound },
   ];
