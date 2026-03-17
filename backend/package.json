@@ -9,7 +9,9 @@
     "dev": "node --watch server.js",
     "generate-dummy": "node backend/generate-dummy-properties.js",
     "remove-90-percent": "node backend/remove-90-percent-collection.js",
-    "migrate-user-properties": "node migrate-user-properties.js"
+    "migrate-user-properties": "node migrate-user-properties.js",
+    "generate-indexes": "node generate_indexes.js",
+    "deploy-indexes": "npm run generate-indexes && cd .. && firebase deploy --only firestore:indexes"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

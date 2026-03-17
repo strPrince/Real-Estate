@@ -21,41 +21,92 @@ const buildUserSummary = (doc) => {
 };
 
 // GET /api/admin/stats
-// Returns aggregate stats plus full property list for admin dashboards.
+// Returns aggregate stats for admin dashboards.
 router.get('/stats', requireAuth, requireRole('admin'), async (req, res) => {
   try {
-    const snapshot = await db.collection('properties').get();
-    const properties = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const coll = db.collection('properties');
+    
+    // Use parallel count aggregations for maximum speed
+    const [
+      totalCount,
+      activeCount,
+      soldCount,
+      rentedCount,
+      featuredCount,
+      buyCount,
+      rentCount,
+      commercialCount
+    ] = await Promise.all([
+      coll.count().get(),
+      coll.where('status', '==', 'active').count().get(),
+      coll.where('status', '==', 'sold').count().get(),
+      coll.where('status', '==', 'rented').count().get(),
+      coll.where('featured', '==', true).count().get(),
+      coll.where('intent', '==', 'buy').count().get(),
+      coll.where('intent', '==', 'rent').count().get(),
+      coll.where('intent', '==', 'commercial').count().get(),
+    ]);
 
     const stats = {
-      total: properties.length,
-      active: 0,
-      sold: 0,
-      rented: 0,
-      inactive: 0,
-      featured: 0,
-      forSale: 0,
-      forRent: 0,
-      commercial: 0,
+      total: totalCount.data().count,
+      active: activeCount.data().count,
+      sold: soldCount.data().count,
+      rented: rentedCount.data().count,
+      inactive: totalCount.data().count - (activeCount.data().count + soldCount.data().count + rentedCount.data().count),
+      featured: featuredCount.data().count,
+      forSale: buyCount.data().count,
+      forRent: rentCount.data().count,
+      commercial: commercialCount.data().count,
     };
 
-    for (const p of properties) {
-      const status = p.status || 'active';
-      if (status === 'active') stats.active += 1;
-      else if (status === 'sold') stats.sold += 1;
-      else if (status === 'rented') stats.rented += 1;
-      else stats.inactive += 1;
-
-      if (p.featured) stats.featured += 1;
-      if (p.intent === 'buy') stats.forSale += 1;
-      if (p.intent === 'rent') stats.forRent += 1;
-      if (p.intent === 'commercial') stats.commercial += 1;
-    }
-
-    res.json({ stats, properties });
+    res.json({ stats });
   } catch (err) {
     console.error('GET /admin/stats error:', err);
     res.status(500).json({ error: 'Failed to fetch admin stats' });
+  }
+});
+
+// GET /api/admin/properties
+// Returns paginated list of properties with search/filter.
+router.get('/properties', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const { q, status, intent, type, limit = 20, cursor } = req.query;
+    const pageLimit = Math.min(parseInt(limit) || 20, 100);
+
+    let query = db.collection('properties').orderBy('createdAt', 'desc');
+
+    // Note: Firestore search is limited. For real search, use Algolia/Elasticsearch.
+    // Here we'll do basic filtering if provided.
+    if (status) query = query.where('status', '==', status);
+    if (intent) query = query.where('intent', '==', intent);
+    if (type) query = query.where('type', '==', type);
+
+    if (cursor) {
+      const cursorDoc = await db.collection('properties').doc(cursor).get();
+      if (cursorDoc.exists) query = query.startAfter(cursorDoc);
+    }
+
+    query = query.limit(pageLimit);
+
+    const snapshot = await query.get();
+    let properties = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+    // Simple in-memory search for 'q' if provided (since Firestore doesn't support partial match well)
+    if (q) {
+      const term = q.toLowerCase();
+      properties = properties.filter(p => 
+        p.title?.toLowerCase().includes(term) || 
+        p.location?.locality?.toLowerCase().includes(term)
+      );
+    }
+
+    const lastDoc = snapshot.docs[snapshot.docs.length - 1];
+    const nextCursor = lastDoc ? lastDoc.id : null;
+
+    res.json({ properties, nextCursor, hasMore: snapshot.size === pageLimit });
+  } catch (err) {
+    console.error('GET /admin/properties error:', err);
+    res.status(500).json({ error: 'Failed to fetch properties' });
   }
 });
 
@@ -70,6 +121,19 @@ router.get('/users', requireAuth, requireRole('admin'), async (_req, res) => {
   } catch (err) {
     console.error('GET /admin/users error:', err);
     res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+// GET /api/admin/users/:id
+// Returns details for a specific user (admin only).
+router.get('/users/:id', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const doc = await db.collection('users').doc(req.params.id).get();
+    if (!doc.exists) return res.status(404).json({ error: 'User not found' });
+    res.json(buildUserSummary(doc));
+  } catch (err) {
+    console.error('GET /admin/users/:id error:', err);
+    res.status(500).json({ error: 'Failed to fetch user' });
   }
 });
 
@@ -100,6 +164,22 @@ router.get('/users/:id/properties', requireAuth, requireRole('admin'), async (re
   } catch (err) {
     console.error('GET /admin/users/:id/properties error:', err);
     res.status(500).json({ error: 'Failed to fetch user properties' });
+  }
+});
+
+// GET /api/admin/users/:id/queries
+// Returns queries sent to a specific user (admin only).
+router.get('/users/:id/queries', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const snapshot = await db.collection('queries')
+      .where('ownerId', '==', req.params.id)
+      .orderBy('createdAt', 'desc')
+      .get();
+    const queries = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    res.json({ queries });
+  } catch (err) {
+    console.error('GET /admin/users/:id/queries error:', err);
+    res.status(500).json({ error: 'Failed to fetch user queries' });
   }
 });
 

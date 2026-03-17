@@ -7,6 +7,7 @@ import os from 'os';
 import propertiesRouter from './routes/properties.js';
 import uploadRouter from './routes/upload.js';
 import inquiriesRouter from './routes/inquiries.js';
+import queriesRouter from './routes/queries.js';
 import adminRouter from './routes/admin.js';
 import authRouter from './routes/auth.js';
 
@@ -67,6 +68,7 @@ app.get('/health', (req, res) => {
 app.use('/api/properties', propertiesRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api/inquiries', inquiriesRouter);
+app.use('/api/queries', queriesRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/auth', authRouter);
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, BedDouble, Bath, Maximize2, Share2, Star } from 'lucide-react';
+import { MapPin, BedDouble, Bath, Maximize2, Share2, Star, Check } from 'lucide-react';
+import { useCompare } from '../../context/CompareContext.jsx';
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=640&q=80';
 
@@ -9,6 +10,9 @@ export default function PropertyCard({ property, style }) {
     id, title, price, priceUnit, bedrooms, bathrooms, area,
     location, images, type, intent, featured,
   } = property;
+
+  const { selectedProperties, toggleProperty } = useCompare();
+  const isCompared = selectedProperties.some((p) => p.id === id);
 
   const thumb = images?.[0] || PLACEHOLDER;
   const intentLabel = intent === 'rent' ? 'For Rent' : intent === 'commercial' ? 'Commercial' : 'For Sale';
@@ -35,10 +39,18 @@ export default function PropertyCard({ property, style }) {
     }
   };
 
+  const handleToggleCompare = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleProperty(property);
+  };
+
   return (
      <Link
       to={`/properties/${id}`}
-      className="block rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-[0_1px_3px_rgba(15,23,42,0.06)] transition-transform duration-200 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+      className={`block rounded-2xl overflow-hidden bg-white border shadow-[0_1px_3px_rgba(15,23,42,0.06)] transition-all duration-200 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+        isCompared ? 'border-brand-500 ring-1 ring-brand-500' : 'border-gray-100'
+      }`}
       style={style}
     >
       {/* Image */}
@@ -53,11 +65,30 @@ export default function PropertyCard({ property, style }) {
           className="absolute inset-0 w-full h-full object-cover"
           onError={(e) => { e.target.src = PLACEHOLDER; }}
         />
-        {featured && (
-          <span className="absolute top-4 left-4 flex items-center gap-1 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full">
-            <Star className="w-3 h-3" aria-hidden="true" /> Featured
-          </span>
-        )}
+        <div className="absolute top-4 left-4 flex flex-col gap-2">
+          {featured && (
+            <span className="flex items-center gap-1 bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-1 rounded-full shadow-sm w-fit">
+              <Star className="w-2.5 h-2.5" aria-hidden="true" /> Featured
+            </span>
+          )}
+          <button
+            onClick={handleToggleCompare}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all shadow-sm ${
+              isCompared 
+                ? 'bg-brand-500 text-white border-transparent' 
+                : 'bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white border-transparent'
+            }`}
+          >
+            {isCompared ? (
+              <>
+                <Check className="w-3 h-3 stroke-[3]" />
+                <span>Comparing</span>
+              </>
+            ) : (
+              <span>+ Compare</span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Info */}

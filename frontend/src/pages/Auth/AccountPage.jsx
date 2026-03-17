@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { toast } from 'react-hot-toast';
 import Header from '../../components/Header/Header.jsx';
+import { User, ShieldCheck, LogOut, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 
 export default function AccountPage() {
   const { currentUser, logout, changePassword, updateProfile } = useAuth();
@@ -10,6 +11,9 @@ export default function AccountPage() {
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showOldPw, setShowOldPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -88,19 +92,22 @@ export default function AccountPage() {
             </p>
           </div>
 
-          <div className="mt-8 space-y-6">
-            <div className={cardClass}>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-brand-500 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-full">
-                Profile
-              </span>
-              <h2 className="mt-3 text-xl font-bold text-gray-900">Profile Information</h2>
-              <p className="mt-2 text-sm text-gray-600 text-pretty">
-                Keep your contact details up to date for a personalized experience.
-              </p>
-
-              <form onSubmit={handleUpdateProfile} className="mt-6 space-y-5">
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <div className={`${cardClass} h-full`}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center">
+                  <User className="w-5 h-5 text-brand-500" />
+                </div>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
+                  <h2 className="text-xl font-bold text-gray-900">Profile Information</h2>
+                  <p className="text-xs text-gray-500">Manage your personal details</p>
+                </div>
+              </div>
+
+              <form onSubmit={handleUpdateProfile} className="space-y-5">
+                <div>
+                  <label htmlFor="email" className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
+                    <Mail className="w-4 h-4 text-gray-400" />
                     Email address
                   </label>
                   <input
@@ -108,12 +115,13 @@ export default function AccountPage() {
                     id="email"
                     value={currentUser?.email || ''}
                     disabled
-                    className={`${inputClass} bg-gray-50 text-gray-500`}
+                    className={`${inputClass} bg-gray-50 text-gray-500 border-dashed cursor-not-allowed`}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="name" className="block text-sm font-semibold text-gray-700">
+                  <label htmlFor="name" className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
+                    <User className="w-4 h-4 text-gray-400" />
                     Full Name
                   </label>
                   <input
@@ -122,92 +130,150 @@ export default function AccountPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className={inputClass}
+                    placeholder="Enter your name"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="inline-flex items-center justify-center bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 shadow-[0_4px_14px_0_rgba(255,122,0,0.35)] disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full inline-flex items-center justify-center bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white px-6 py-3.5 rounded-xl font-bold transition-all hover:shadow-lg hover:shadow-brand-500/20 disabled:opacity-60 disabled:cursor-not-allowed gap-2"
                 >
-                  {loading ? 'Saving...' : 'Save Changes'}
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Saving Changes...</span>
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
                 </button>
               </form>
             </div>
 
-            <div className={cardClass}>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-brand-500 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-full">
-                Security
-              </span>
-              <h2 className="mt-3 text-xl font-bold text-gray-900">Change Password</h2>
-              <p className="mt-2 text-sm text-gray-600 text-pretty">
-                Use a strong password to keep your account safe.
-              </p>
-
-              <form onSubmit={handleChangePassword} className="mt-6 space-y-5">
+            <div className={`${cardClass} h-full`}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5 text-brand-500" />
+                </div>
                 <div>
-                  <label htmlFor="oldPassword" className="block text-sm font-semibold text-gray-700">
+                  <h2 className="text-xl font-bold text-gray-900">Security Settings</h2>
+                  <p className="text-xs text-gray-500">Keep your account safe</p>
+                </div>
+              </div>
+
+              <form onSubmit={handleChangePassword} className="space-y-5">
+                <div>
+                  <label htmlFor="oldPassword" className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
+                    <Lock className="w-4 h-4 text-gray-400" />
                     Current Password
                   </label>
-                  <input
-                    type="password"
-                    id="oldPassword"
-                    value={oldPassword}
-                    onChange={(e) => setOldPassword(e.target.value)}
-                    className={inputClass}
-                  />
+                  <div className="relative">
+                    <input
+                      type={showOldPw ? 'text' : 'password'}
+                      id="oldPassword"
+                      value={oldPassword}
+                      onChange={(e) => setOldPassword(e.target.value)}
+                      className={`${inputClass} pr-12`}
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowOldPw(!showOldPw)}
+                      className="absolute right-3 top-[calc(50%+4px)] -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 rounded-lg transition-colors"
+                      aria-label={showOldPw ? 'Hide password' : 'Show password'}
+                    >
+                      {showOldPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
 
-                <div>
-                  <label htmlFor="newPassword" className="block text-sm font-semibold text-gray-700">
-                    New Password
-                  </label>
-                  <input
-                    type="password"
-                    id="newPassword"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className={inputClass}
-                  />
-                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="newPassword" className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
+                      <Lock className="w-4 h-4 text-gray-400" />
+                      New Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showNewPw ? 'text' : 'password'}
+                        id="newPassword"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className={`${inputClass} pr-12`}
+                        placeholder="••••••••"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPw(!showNewPw)}
+                        className="absolute right-3 top-[calc(50%+4px)] -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 rounded-lg transition-colors"
+                        aria-label={showNewPw ? 'Hide password' : 'Show password'}
+                      >
+                        {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
 
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700">
-                    Confirm New Password
-                  </label>
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className={inputClass}
-                  />
+                  <div>
+                    <label htmlFor="confirmPassword" className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
+                      <Lock className="w-4 h-4 text-gray-400" />
+                      Confirm New
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showConfirmPw ? 'text' : 'password'}
+                        id="confirmPassword"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className={`${inputClass} pr-12`}
+                        placeholder="••••••••"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPw(!showConfirmPw)}
+                        className="absolute right-3 top-[calc(50%+4px)] -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 rounded-lg transition-colors"
+                        aria-label={showConfirmPw ? 'Hide password' : 'Show password'}
+                      >
+                        {showConfirmPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="inline-flex items-center justify-center bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 shadow-[0_4px_14px_0_rgba(255,122,0,0.35)] disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full inline-flex items-center justify-center bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white px-6 py-3.5 rounded-xl font-bold transition-all hover:shadow-lg hover:shadow-brand-500/20 disabled:opacity-60 disabled:cursor-not-allowed gap-2"
                 >
-                  {loading ? 'Changing...' : 'Change Password'}
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Updating Password...</span>
+                    </>
+                  ) : (
+                    'Update Password'
+                  )}
                 </button>
               </form>
             </div>
 
-            <div className={cardClass}>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-brand-500 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-full">
-                Sign Out
-              </span>
-              <h2 className="mt-3 text-xl font-bold text-gray-900">End your session</h2>
-              <p className="mt-2 text-sm text-gray-600 text-pretty">
-                Log out of your account on this device.
-              </p>
-              <div className="mt-6">
+            <div className={`${cardClass} md:col-span-2 border-red-100 bg-red-50/10`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center shrink-0">
+                    <LogOut className="w-6 h-6 text-red-500" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">Sign Out</h2>
+                    <p className="text-sm text-gray-500">End your current session on this device</p>
+                  </div>
+                </div>
                 <button
                   onClick={handleLogout}
-                  className="inline-flex items-center justify-center rounded-xl border border-error-500/30 text-error-500 px-5 py-2.5 text-sm font-semibold transition-colors hover:bg-error-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error-500 focus-visible:ring-offset-2"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-white border-2 border-red-500 text-red-500 px-8 py-3 text-sm font-bold uppercase tracking-wider transition-all hover:bg-red-500 hover:text-white hover:shadow-lg hover:shadow-red-500/20 active:scale-95"
                 >
-                  Sign out
+                  <LogOut className="w-4 h-4" />
+                  Log Out
                 </button>
               </div>
             </div>

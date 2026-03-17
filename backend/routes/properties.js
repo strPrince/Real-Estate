@@ -48,8 +48,7 @@ const normalizeUserIntent = (intent) => {
 
 const sanitizePublicProperty = (property) => {
   if (!property) return property;
-  const { userId, userName, ...rest } = property;
-  return rest;
+  return property;
 };
 
 // ── GET /api/properties

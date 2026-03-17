@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { getAdminStats, deleteProperty } from '../../api.js';
-import { PlusCircle, Pencil, Trash2, AlertCircle, Building2, Star, TrendingUp, CheckCircle2, ImageOff, Search, X } from 'lucide-react';
+import { getAdminStats, getAdminProperties, deleteProperty } from '../../api.js';
+import { PlusCircle, Pencil, Trash2, AlertCircle, Building2, Star, TrendingUp, CheckCircle2, ImageOff, Search, X, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const STATUS_COLORS = {
@@ -21,94 +21,96 @@ const formatPrice = (n) => {
 
 export default function AdminDashboard() {
   const { getToken } = useAuth();
-  const [allProperties, setAllProperties] = useState([]);
+  const [properties, setProperties] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [listLoading, setListLoading] = useState(false);
   const [error, setError] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  
+  // Search & Pagination state
   const [searchQuery, setSearchQuery] = useState('');
-  const [page, setPage] = useState(1);
-  const pageSize = 20;
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [cursor, setCursor] = useState(null);
+  const [cursorHistory, setCursorHistory] = useState([null]); // To support "Back"
+  const [hasMore, setHasMore] = useState(false);
+  const [pageIndex, setPageIndex] = useState(0);
 
+  // Debounce search
   useEffect(() => {
-    let isMounted = true;
-    async function load() {
-      setLoading(true);
-      setError(null);
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+      setCursor(null);
+      setCursorHistory([null]);
+      setPageIndex(0);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Load Stats
+  useEffect(() => {
+    async function loadStats() {
       try {
         const token = await getToken();
         const data = await getAdminStats(token);
-        if (!isMounted) return;
-        setAllProperties(data.properties || []);
         setStats(data.stats || {});
       } catch (err) {
-        if (!isMounted) return;
-        setError(err.message);
-      } finally {
-        if (isMounted) setLoading(false);
+        console.error('Failed to load stats', err);
       }
     }
-    load();
-    return () => { isMounted = false; };
+    loadStats();
   }, [getToken]);
 
-  const normalizedQuery = searchQuery.trim().toLowerCase();
-  const sortedProperties = useMemo(() => (
-    [...allProperties].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
-  ), [allProperties]);
-
-  const filteredProperties = useMemo(() => {
-    if (!normalizedQuery) return sortedProperties;
-    return sortedProperties.filter((p) =>
-      [
-        p.title,
-        p.location?.locality,
-        p.type,
-        p.intent,
-        p.status,
-        p.id,
-      ]
-        .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(normalizedQuery))
-    );
-  }, [normalizedQuery, sortedProperties]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [normalizedQuery]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredProperties.length / pageSize));
-  const safePage = Math.min(page, totalPages);
-  const startIndex = (safePage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const properties = filteredProperties.slice(startIndex, endIndex);
-  const totalCount = stats?.total ?? allProperties.length;
-  const statCards = [
-    { label: 'Showing', value: totalCount, icon: Building2, color: 'text-brand-500', bg: 'bg-brand-50' },
-    { label: 'Active', value: stats?.active ?? 0, icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50' },
-    { label: 'Featured', value: stats?.featured ?? 0, icon: Star, color: 'text-yellow-500', bg: 'bg-yellow-50' },
-    { label: 'For Sale', value: stats?.forSale ?? 0, icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-50' },
-  ];
+  // Load Properties (Server-side)
+  const fetchProperties = useCallback(async (currentCursor) => {
+    setListLoading(true);
+    try {
+      const token = await getToken();
+      const data = await getAdminProperties(token, {
+        q: debouncedQuery,
+        cursor: currentCursor,
+        limit: 20
+      });
+      setProperties(data.properties || []);
+      setHasMore(data.hasMore);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setListLoading(false);
+      setLoading(false);
+    }
+  }, [getToken, debouncedQuery]);
 
   useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [page, totalPages]);
+    fetchProperties(cursor);
+  }, [fetchProperties, cursor]);
 
-  function handleSearch(q) {
+  const handleSearch = (q) => {
     setSearchQuery(q);
-  }
+  };
 
-  function clearSearch() {
+  const clearSearch = () => {
     setSearchQuery('');
-  }
+  };
 
-  function goNext() {
-    if (safePage < totalPages) setPage((p) => p + 1);
-  }
+  const goNext = () => {
+    if (!hasMore || listLoading) return;
+    const nextCursor = properties[properties.length - 1]?.id;
+    if (nextCursor) {
+      setCursor(nextCursor);
+      setCursorHistory(prev => [...prev, nextCursor]);
+      setPageIndex(prev => prev + 1);
+    }
+  };
 
-  function goPrev() {
-    if (safePage > 1) setPage((p) => p - 1);
-  }
+  const goPrev = () => {
+    if (pageIndex <= 0 || listLoading) return;
+    const prevCursor = cursorHistory[pageIndex - 1];
+    setCursor(prevCursor);
+    setPageIndex(prev => prev - 1);
+    // Remove last from history? No, just navigate.
+  };
 
   async function handleDelete(id, title) {
     if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
@@ -116,31 +118,22 @@ export default function AdminDashboard() {
     try {
       const token = await getToken();
       await deleteProperty(id, token);
-      setAllProperties((prev) => prev.filter((p) => p.id !== id));
-      setStats((prev) => {
-        if (!prev) return prev;
-        const target = allProperties.find((p) => p.id === id);
-        if (!target) return prev;
-        const next = { ...prev };
-        next.total = Math.max(0, (prev.total ?? allProperties.length) - 1);
-        const status = target.status || 'active';
-        if (status === 'active') next.active = Math.max(0, (prev.active || 0) - 1);
-        else if (status === 'sold') next.sold = Math.max(0, (prev.sold || 0) - 1);
-        else if (status === 'rented') next.rented = Math.max(0, (prev.rented || 0) - 1);
-        else next.inactive = Math.max(0, (prev.inactive || 0) - 1);
-        if (target.featured) next.featured = Math.max(0, (prev.featured || 0) - 1);
-        if (target.intent === 'buy') next.forSale = Math.max(0, (prev.forSale || 0) - 1);
-        if (target.intent === 'rent') next.forRent = Math.max(0, (prev.forRent || 0) - 1);
-        if (target.intent === 'commercial') next.commercial = Math.max(0, (prev.commercial || 0) - 1);
-        return next;
-      });
+      setProperties((prev) => prev.filter((p) => p.id !== id));
       toast.success('Property deleted');
+      // Optionally refresh stats here
     } catch (err) {
       toast.error(err.message || 'Delete failed');
     } finally {
       setDeletingId(null);
     }
   }
+
+  const statCards = [
+    { label: 'Total', value: stats?.total ?? 0, icon: Building2, color: 'text-brand-500', bg: 'bg-brand-50' },
+    { label: 'Active', value: stats?.active ?? 0, icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50' },
+    { label: 'Featured', value: stats?.featured ?? 0, icon: Star, color: 'text-yellow-500', bg: 'bg-yellow-50' },
+    { label: 'For Sale', value: stats?.forSale ?? 0, icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-50' },
+  ];
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -157,6 +150,23 @@ export default function AdminDashboard() {
         </Link>
       </div>
 
+      {/* Stat Cards */}
+      {stats && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8">
+          {statCards.map(({ label, value, icon: Icon, color, bg }) => (
+            <div key={label} className="bg-white rounded-2xl border border-gray-200 p-3 sm:p-4 flex items-center gap-3 sm:gap-4 shadow-sm">
+              <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
+                <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${color}`} />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{value}</div>
+                <div className="text-[10px] sm:text-xs text-gray-500 truncate">{label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Search Bar */}
       <div className="relative mb-6">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -164,35 +174,23 @@ export default function AdminDashboard() {
           type="text"
           value={searchQuery}
           onChange={(e) => handleSearch(e.target.value)}
-          placeholder="Search by title, locality, type, intent, status..."
+          placeholder="Search by title or locality..."
           className="w-full pl-11 pr-10 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 shadow-sm transition-colors"
         />
-        {searchQuery && (
-          <button
-            onClick={clearSearch}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 rounded-lg transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
+        {(searchQuery || listLoading) && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+            {listLoading && <Loader2 className="w-4 h-4 text-brand-500 animate-spin" />}
+            {searchQuery && (
+              <button
+                onClick={clearSearch}
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-lg transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         )}
       </div>
-
-      {/* Stat Cards */}
-      {!loading && totalCount > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          {statCards.map(({ label, value, icon: Icon, color, bg }) => (
-            <div key={label} className="bg-white rounded-2xl border border-gray-200 p-4 flex items-center gap-4 shadow-sm">
-              <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
-                <Icon className={`w-5 h-5 ${color}`} />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">{value}</div>
-                <div className="text-xs text-gray-500">{label}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
 
       {error && (
         <div className="flex items-center gap-3 text-red-600 bg-red-50 rounded-xl px-5 py-4 mb-6 text-sm border border-red-100">
@@ -212,10 +210,6 @@ export default function AdminDashboard() {
                 </div>
                 <div className="h-3 bg-gray-200 rounded w-16" />
                 <div className="h-6 bg-gray-100 rounded-full w-16" />
-                <div className="flex gap-2">
-                  <div className="w-8 h-8 bg-gray-100 rounded-lg" />
-                  <div className="w-8 h-8 bg-gray-100 rounded-lg" />
-                </div>
               </div>
             ))}
           </div>
@@ -231,15 +225,17 @@ export default function AdminDashboard() {
           <p className="text-gray-500 mb-6">
             {searchQuery ? 'Try a different search term' : 'Get started by adding a new property listing'}
           </p>
-          {searchQuery
-            ? <button onClick={clearSearch} className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 hover:bg-gray-50 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors"><X className="w-4 h-4" /> Clear Search</button>
-            : <Link to="/admin/properties/new" className="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors"><PlusCircle className="w-4 h-4" /> Add Property</Link>
-          }
+          {searchQuery && (
+            <button onClick={clearSearch} className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 hover:bg-gray-50 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors">
+              <X className="w-4 h-4" /> Clear Search
+            </button>
+          )}
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
+          <div className={`bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden transition-opacity duration-200 ${listLoading ? 'opacity-50' : 'opacity-100'}`}>
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">
                   <tr>
@@ -298,7 +294,7 @@ export default function AdminDashboard() {
                             title="Delete property"
                           >
                             {deletingId === p.id
-                              ? <span className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin inline-block" />
+                              ? <Loader2 className="w-4 h-4 animate-spin" />
                               : <Trash2 className="w-4 h-4" />}
                           </button>
                         </div>
@@ -308,30 +304,87 @@ export default function AdminDashboard() {
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile Card List View */}
+            <div className="md:hidden divide-y divide-gray-100">
+              {properties.map((p) => (
+                <div key={p.id} className="p-4 flex flex-col gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-200">
+                      {p.images?.[0]
+                        ? <img src={p.images[0]} alt={p.title} className="w-full h-full object-cover" />
+                        : <div className="w-full h-full flex items-center justify-center"><ImageOff className="w-6 h-6 text-gray-400" /></div>}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-bold text-gray-900 truncate mb-0.5">{p.title}</div>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${STATUS_COLORS[p.status] || 'bg-gray-100 text-gray-600'}`}>
+                          {p.status || 'active'}
+                        </span>
+                        {p.featured && <span className="flex items-center gap-1 text-[10px] font-bold text-yellow-600"><Star className="w-2.5 h-2.5 fill-yellow-500" /> Featured</span>}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <div className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-0.5">Price</div>
+                      <div className="text-brand-600 font-bold">{formatPrice(p.price)}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-0.5">Location</div>
+                      <div className="text-gray-700 font-medium truncate">{p.location?.locality || '—'}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-0.5">Type</div>
+                      <div className="text-gray-700 capitalize font-medium">{p.type}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-0.5">Intent</div>
+                      <div className="text-gray-700 capitalize font-medium">{p.intent}</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2">
+                    <Link
+                      to={`/admin/properties/${p.id}/edit`}
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gray-50 text-gray-700 rounded-xl text-sm font-bold border border-gray-200 hover:bg-gray-100"
+                    >
+                      <Pencil className="w-4 h-4" /> Edit
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(p.id, p.title)}
+                      disabled={deletingId === p.id}
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-red-50 text-red-600 rounded-xl text-sm font-bold border border-red-100 hover:bg-red-100"
+                    >
+                      {deletingId === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-                    <div className="flex items-center justify-between gap-4 mt-5">
+          <div className="flex items-center justify-between gap-4 mt-5">
             <button
               type="button"
               onClick={goPrev}
-              disabled={safePage <= 1}
+              disabled={pageIndex === 0 || listLoading}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              Previous
+              <ChevronLeft className="w-4 h-4" /> Previous
             </button>
-            <span className="text-sm text-gray-500">
-              {searchQuery
-                ? `Showing ${filteredProperties.length} result${filteredProperties.length !== 1 ? 's' : ''} for "${searchQuery}"`
-                : `Page ${safePage} of ${totalPages} - ${filteredProperties.length} total`
-              }
+            <span className="text-sm text-gray-500 font-medium">
+              Page {pageIndex + 1}
             </span>
             <button
               type="button"
               onClick={goNext}
-              disabled={safePage >= totalPages}
+              disabled={!hasMore || listLoading}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              Next
+              Next <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </>
@@ -339,6 +392,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-
-
-

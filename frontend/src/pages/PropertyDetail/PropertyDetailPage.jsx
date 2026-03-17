@@ -12,7 +12,7 @@ import Header from '../../components/Header/Header.jsx';
 import Footer from '../../components/Footer/Footer.jsx';
 import SkeletonCard from '../../components/SkeletonCard/SkeletonCard.jsx';
 import PropertyCard from '../../components/PropertyCard/PropertyCard.jsx';
-import { getCachedProperties, getProperty, submitInquiry } from '../../api.js';
+import { getCachedProperties, getProperty, submitInquiry, submitQuery } from '../../api.js';
 import { LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext.jsx';
 
@@ -117,12 +117,21 @@ export default function PropertyDetailPage() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await submitInquiry({
-        ...form,
-        propertyId: id,
-        propertyTitle: property.title,
-        propertyLink: `${window.location.origin}/properties/${id}`,
-      });
+      if (property.userId) {
+        await submitQuery({
+          ...form,
+          propertyId: id,
+          propertyTitle: property.title,
+          ownerId: property.userId,
+        });
+      } else {
+        await submitInquiry({
+          ...form,
+          propertyId: id,
+          propertyTitle: property.title,
+          propertyLink: `${window.location.origin}/properties/${id}`,
+        });
+      }
       toast.success('Inquiry sent! We will contact you soon.');
       setForm({ name: '', email: '', phone: '', message: '' });
     } catch (err) {
@@ -420,6 +429,11 @@ export default function PropertyDetailPage() {
                     <h2 className="font-bold text-lg text-gray-900">Interested? Contact Us</h2>
                     <span className="text-[11px] uppercase tracking-wider font-semibold text-brand-600">Priority</span>
                   </div>
+                  {property.userName && property.userName !== 'Unknown User' && (
+                    <p className="text-sm text-gray-600 mt-2 font-medium">
+                      Posted by: <span className="text-gray-900">{property.userName}</span>
+                    </p>
+                  )}
                   <p className="text-xs text-gray-500 mt-1">We usually respond within a few hours.</p>
                 </div>
                 {isLocked ? (

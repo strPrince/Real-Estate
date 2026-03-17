@@ -1,8 +1,10 @@
 {
   "name": "real-estate",
   "version": "1.0.0",
+  "type": "module",
   "description": "Real Estate App with React + Vite frontend and Express + Node backend",
   "scripts": {
+    "test:perf": "node tests/performance/api-benchmarks.js",
     "install:all": "cd backend && npm install && cd ../frontend && npm install",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { Home, Eye, EyeOff, Building2, ShieldCheck } from 'lucide-react';
+import { Home, Eye, EyeOff, Building2, ShieldCheck, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import logo from '../../property-master.png';
 
@@ -92,7 +92,7 @@ export default function AdminLoginPage() {
                 disabled={loading}
                 className="w-full bg-linear-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 disabled:opacity-60 text-white py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg mt-2"
               >
-                {loading && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                 {loading ? 'Signing in...' : 'Sign In'}
               </button>
             </form>

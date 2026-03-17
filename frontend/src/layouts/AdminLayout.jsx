@@ -38,10 +38,8 @@ export default function AdminLayout() {
 
       {/* Sidebar */}
       <aside 
-        className={`${
-          sidebarOpen ? 'fixed' : 'lg:sticky'
-        } top-0 left-0 z-50 h-screen w-64 bg-[#0F172A] border-r border-white/10 shadow-[0_25px_60px_-30px_rgba(2,6,23,0.75)] flex flex-col lg:self-start ${sidebarOpen ? 'transform transition-transform duration-300 ease-in-out' : 'lg:transform-none'} ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#0F172A] border-r border-white/10 shadow-[0_25px_60px_-30px_rgba(2,6,23,0.75)] flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Brand header */}
@@ -112,7 +110,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 w-full">
         {/* Top bar for mobile */}
         <header className="lg:hidden sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-gray-200 px-4 py-3 flex items-center justify-between">
           <button 

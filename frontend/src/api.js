@@ -31,6 +31,28 @@ const cacheSet = (key, value) => {
 
 const cacheClear = () => { apiCache.clear(); inflightMap.clear(); };
 
+/**
+ * Generic wrapper to add caching and inflight deduplication to any API call.
+ */
+const withCache = (key, fetcher) => {
+  const cached = cacheGet(key);
+  if (cached) return Promise.resolve(cached);
+  
+  if (inflightMap.has(key)) return inflightMap.get(key);
+  
+  const promise = fetcher().then((data) => {
+    cacheSet(key, data);
+    inflightMap.delete(key);
+    return data;
+  }).catch((err) => {
+    inflightMap.delete(key);
+    throw err;
+  });
+  
+  inflightMap.set(key, promise);
+  return promise;
+};
+
 // ── Properties
 export const getProperties = (params = {}) => {
   const query = new URLSearchParams();
@@ -49,20 +71,8 @@ export const getProperties = (params = {}) => {
   if (params.cursor)   query.set('cursor',     params.cursor);
   const qs = query.toString();
   const key = `properties?${qs || 'all'}`;
-  const cached = cacheGet(key);
-  if (cached) return Promise.resolve(cached);
-  // Return same promise if request is already in-flight
-  if (inflightMap.has(key)) return inflightMap.get(key);
-  const promise = apiFetch(`/properties${qs ? `?${qs}` : ''}`).then((data) => {
-    cacheSet(key, data);
-    inflightMap.delete(key);
-    return data;
-  }).catch((err) => {
-    inflightMap.delete(key);
-    throw err;
-  });
-  inflightMap.set(key, promise);
-  return promise;
+  
+  return withCache(key, () => apiFetch(`/properties${qs ? `?${qs}` : ''}`));
 };
 
 export const getCachedProperties = () => {
@@ -87,41 +97,67 @@ export const getCachedProperties = () => {
 
 export const getProperty = (id) => {
   const key = `property:${id}`;
-  const cached = cacheGet(key);
-  if (cached) return Promise.resolve(cached);
-  if (inflightMap.has(key)) return inflightMap.get(key);
-  const promise = apiFetch(`/properties/${id}`).then((data) => {
-    cacheSet(key, data);
-    inflightMap.delete(key);
-    return data;
-  }).catch((err) => {
-    inflightMap.delete(key);
-    throw err;
-  });
-  inflightMap.set(key, promise);
-  return promise;
+  return withCache(key, () => apiFetch(`/properties/${id}`));
 };
 
-export const getAdminStats = (token) =>
-  apiFetch('/admin/stats', {
+// ── Admin Endpoints (Cached)
+export const getAdminStats = (token) => {
+  const key = 'admin:stats';
+  return withCache(key, () => apiFetch('/admin/stats', {
     headers: { Authorization: `Bearer ${token}` },
-  });
+  }));
+};
 
-export const getAdminUsers = (token) =>
-  apiFetch('/admin/users', {
+export const getAdminProperties = (token, params = {}) => {
+  const query = new URLSearchParams();
+  if (params.q)       query.set('q',      params.q);
+  if (params.status)  query.set('status', params.status);
+  if (params.intent)  query.set('intent', params.intent);
+  if (params.type)    query.set('type',   params.type);
+  if (params.limit)   query.set('limit',  params.limit);
+  if (params.cursor)  query.set('cursor', params.cursor);
+  const qs = query.toString();
+  const key = `admin:properties?${qs || 'default'}`;
+  
+  return withCache(key, () => apiFetch(`/admin/properties${qs ? `?${qs}` : ''}`, {
     headers: { Authorization: `Bearer ${token}` },
-  });
+  }));
+};
+
+export const getAdminUsers = (token) => {
+  const key = 'admin:users';
+  return withCache(key, () => apiFetch('/admin/users', {
+    headers: { Authorization: `Bearer ${token}` },
+  }));
+};
+
+export const getAdminUser = (userId, token) => {
+  const key = `admin:user:${userId}`;
+  return withCache(key, () => apiFetch(`/admin/users/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  }));
+};
 
 export const getAdminUserProperties = (userId, token, params = {}) => {
   const query = new URLSearchParams();
   if (params.limit) query.set('limit', params.limit);
   if (params.cursor) query.set('cursor', params.cursor);
   const qs = query.toString();
-  return apiFetch(`/admin/users/${userId}/properties${qs ? `?${qs}` : ''}`, {
+  const key = `admin:user:${userId}:properties?${qs || 'default'}`;
+  
+  return withCache(key, () => apiFetch(`/admin/users/${userId}/properties${qs ? `?${qs}` : ''}`, {
     headers: { Authorization: `Bearer ${token}` },
-  });
+  }));
 };
 
+export const getAdminUserQueries = (userId, token) => {
+  const key = `admin:user:${userId}:queries`;
+  return withCache(key, () => apiFetch(`/admin/users/${userId}/queries`, {
+    headers: { Authorization: `Bearer ${token}` },
+  }));
+};
+
+// ── Data Modifying Operations (Clear Cache)
 export const createProperty = (data, token) =>
   apiFetch('/properties', {
     method: 'POST',
@@ -176,6 +212,20 @@ export const submitInquiry = (data) =>
     body: JSON.stringify(data),
   });
 
+// ── Queries
+export const submitQuery = (data) =>
+  apiFetch('/queries', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+export const getMyQueries = (token) => {
+  const key = 'user:queries';
+  return withCache(key, () => apiFetch('/queries/my-queries', {
+    headers: { Authorization: `Bearer ${token}` },
+  }));
+};
+
 // ── Contact Form
 export const submitContactForm = (data) => {
   const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyZq5K9i713_my6SSlxli-h0TeiOyxN1a3lmuccJmi8D-DX2p2WadVNBmEB47kxvca_kg/exec';
@@ -189,4 +239,3 @@ export const submitContactForm = (data) => {
     body: JSON.stringify(data),
   });
 };
-

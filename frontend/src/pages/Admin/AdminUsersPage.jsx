@@ -166,7 +166,8 @@ export default function AdminUsersPage() {
       ) : (
         <>
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide border-b border-gray-200">
                   <tr>
@@ -205,13 +206,55 @@ export default function AdminUsersPage() {
                           to={`/admin/users/${u.id}`}
                           className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          View Properties
+                          View Details
                         </Link>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card List */}
+            <div className="md:hidden divide-y divide-gray-100">
+              {pageUsers.map((u) => (
+                <div key={u.id} className="p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-brand-500/10 text-brand-600 flex items-center justify-center font-bold text-sm">
+                        {(u.displayName || u.email || 'U')[0]?.toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="text-gray-900 font-bold">{u.displayName || '--'}</div>
+                        <div className="text-xs text-gray-500">{u.email || '--'}</div>
+                      </div>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                      u.role === 'admin' ? 'bg-brand-100 text-brand-700' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {u.role || 'user'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <div className="text-gray-400 font-bold uppercase tracking-widest mb-0.5 text-[9px]">Created</div>
+                      <div className="text-gray-700 font-medium">{formatDate(u.createdAt)}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-400 font-bold uppercase tracking-widest mb-0.5 text-[9px]">Last Login</div>
+                      <div className="text-gray-700 font-medium">{formatDate(u.lastLoginAt)}</div>
+                    </div>
+                  </div>
+
+                  <Link
+                    to={`/admin/users/${u.id}`}
+                    className="w-full flex items-center justify-center py-2.5 bg-gray-50 text-gray-700 rounded-xl text-sm font-bold border border-gray-200 hover:bg-gray-100"
+                  >
+                    View Details
+                  </Link>
+                </div>
+              ))}
             </div>
           </div>
 

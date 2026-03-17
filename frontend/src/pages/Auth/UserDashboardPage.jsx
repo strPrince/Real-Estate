@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { toast } from 'react-hot-toast';
 import { Building2, LogOut, Plus } from 'lucide-react';
 import Header from '../../components/Header/Header.jsx';
+import SkeletonCard from '../../components/SkeletonCard/SkeletonCard.jsx';
 
 export default function UserDashboardPage() {
   const { currentUser, logout, getToken } = useAuth();
@@ -117,10 +118,10 @@ export default function UserDashboardPage() {
             </div>
 
             {loading ? (
-              <div className="px-6 py-12">
-                <div className="flex justify-center items-center">
-                  <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
-                </div>
+              <div className="divide-y divide-gray-100">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <SkeletonCard key={i} variant="list" />
+                ))}
               </div>
             ) : properties.length === 0 ? (
               <div className="px-6 py-12 text-center">
