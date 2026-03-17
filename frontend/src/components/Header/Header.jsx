@@ -159,6 +159,20 @@ export default function Header() {
                     <span className="absolute inset-0 bg-brand-50 opacity-0 group-hover:opacity-100 transition-all duration-300" />
                     <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/10 group-hover:w-full transition-all duration-300" />
                   </Link>
+                  {currentUser.role === 'admin' && (
+                    <Link
+                      to="/admin/dashboard"
+                      onClick={() => setUserDropdownOpen(false)}
+                      className="block px-5 py-3 text-sm text-brand-600 font-bold rounded-lg transition-all duration-300 group relative overflow-hidden"
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-brand-600 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0" />
+                        Admin Dashboard
+                      </span>
+                      <span className="absolute inset-0 bg-brand-50 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                      <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-600/10 group-hover:w-full transition-all duration-300" />
+                    </Link>
+                  )}
                   <Link
                     to="/account"
                     onClick={() => setUserDropdownOpen(false)}
@@ -312,6 +326,19 @@ export default function Header() {
                 </span>
                 <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/20 group-hover:w-full transition-all duration-400" />
               </Link>
+              {currentUser.role === 'admin' && (
+                <Link
+                  to="/admin/dashboard"
+                  onClick={() => setOpen(false)}
+                  className="block py-3 pl-6 text-sm text-brand-500 font-bold hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-3 transition-all duration-400 hover:bg-white/5 relative overflow-hidden group"
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    <span className="w-1 h-1 rounded-full bg-brand-600 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                    Admin Dashboard
+                  </span>
+                  <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-600/20 group-hover:w-full transition-all duration-400" />
+                </Link>
+              )}
               <Link
                 to="/account"
                 onClick={() => setOpen(false)}

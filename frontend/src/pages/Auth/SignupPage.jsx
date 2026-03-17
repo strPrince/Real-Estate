@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { toast } from 'react-hot-toast';
 import Header from '../../components/Header/Header.jsx';
@@ -10,8 +10,12 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signup } = useAuth();
+  const { signup, currentUser } = useAuth();
   const navigate = useNavigate();
+
+  if (currentUser) {
+    return <Navigate to={currentUser.role === 'admin' ? '/admin/dashboard' : '/account'} replace />;
+  }
 
   const inputClass =
     'mt-2 w-full rounded-xl border border-gray-100 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 shadow-[0_1px_3px_rgba(15,23,42,0.06)] focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-gray-50';
@@ -30,9 +34,15 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      await signup(email, password, name);
+      const data = await signup(email, password, name);
       toast.success('Account created successfully!');
-      navigate('/account');
+      
+      // Redirect based on role
+      if (data.user?.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/account');
+      }
     } catch (error) {
       toast.error('Failed to create account: ' + error.message);
     }
