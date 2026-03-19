@@ -336,26 +336,29 @@ export function FilterPanel({
   reset,
   activeCount,
   onClose,
+  hideHeader = false,
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-lg overflow-hidden max-h-[90vh] lg:h-full flex flex-col">
-      <div className="flex justify-between items-center px-5 pt-6 pb-4 border-b border-gray-100">
-        <h3 className="font-bold text-gray-900">Filters</h3>
-        <button
-          onClick={onClose}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              onClose();
-            }
-          }}
-          aria-label="Close filters"
-          className="p-2 hover:bg-gray-100 rounded-lg focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-        >
-          <X className="w-5 h-5" aria-hidden="true" />
-        </button>
-      </div>
-      <div className="p-5 overflow-y-auto flex-1">
+    <div className={`flex flex-col h-full ${!hideHeader ? 'bg-white rounded-2xl border border-gray-100 shadow-lg overflow-hidden max-h-[90vh]' : ''}`}>
+      {!hideHeader && (
+        <div className="flex justify-between items-center px-5 pt-6 pb-4 border-b border-gray-100">
+          <h3 className="font-bold text-gray-900">Filters</h3>
+          <button
+            onClick={onClose}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClose();
+              }
+            }}
+            aria-label="Close filters"
+            className="p-2 hover:bg-gray-100 rounded-lg focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+          >
+            <X className="w-5 h-5" aria-hidden="true" />
+          </button>
+        </div>
+      )}
+      <div className={`flex-1 overflow-y-auto ${!hideHeader ? 'p-5' : ''}`}>
         <FilterForm
           filters={filters}
           setFilters={setFilters}

@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { toast } from 'react-hot-toast';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import logo from '../../property-master.png';
+import MathCaptcha from '../../components/MathCaptcha/MathCaptcha.jsx';
 
 export default function LoginPage() {
   const [email, setEmail]       = useState('');
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const [loading, setLoading]   = useState(false);
   const { login, currentUser }  = useAuth();
   const navigate                = useNavigate();
+  const captchaRef              = useRef();
 
   if (currentUser) {
     return <Navigate to={currentUser.role === 'admin' ? '/admin/dashboard' : '/account'} replace />;
@@ -19,6 +21,11 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!captchaRef.current.validate()) {
+      return;
+    }
+
     setLoading(true);
     try {
       const data = await login(email, password);
@@ -91,6 +98,10 @@ export default function LoginPage() {
                 {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+          </div>
+
+          <div className="mb-6">
+            <MathCaptcha ref={captchaRef} />
           </div>
 
           <button type="submit" disabled={loading} className="auth-btn flex items-center justify-center gap-2">

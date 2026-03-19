@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { toast } from 'react-hot-toast';
 import { CheckCircle2, Upload, Sparkles } from 'lucide-react';
 import Header from '../../components/Header/Header.jsx';
+import { getLocalities } from '../../api.js';
 
 export default function PostPropertyPage() {
   const { currentUser, getToken } = useAuth();
@@ -30,6 +31,7 @@ export default function PostPropertyPage() {
   const [existingImages, setExistingImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingProperty, setLoadingProperty] = useState(isEdit);
+  const [localities, setLocalities] = useState([]);
 
   const inputClass =
     'mt-2 w-full rounded-xl border border-gray-100 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 shadow-[0_1px_3px_rgba(15,23,42,0.06)] focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-gray-50';
@@ -72,6 +74,18 @@ export default function PostPropertyPage() {
   const removeExistingImage = (url) => {
     setExistingImages((prev) => prev.filter((item) => item !== url));
   };
+
+  useEffect(() => {
+    const fetchLocalities = async () => {
+      try {
+        const data = await getLocalities();
+        setLocalities(data);
+      } catch (error) {
+        toast.error('Could not load localities.');
+      }
+    };
+    fetchLocalities();
+  }, []);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -239,15 +253,19 @@ export default function PostPropertyPage() {
                     <label htmlFor="location" className="block text-sm font-semibold text-gray-700">
                       Locality
                     </label>
-                    <input
-                      type="text"
+                    <select
                       id="location"
                       name="location"
                       required
                       value={formData.location}
                       onChange={handleInputChange}
-                      className={inputClass}
-                    />
+                      className={selectClass}
+                    >
+                      <option value="">Select a Locality</option>
+                      {localities.map((loc) => (
+                        <option key={loc.id} value={loc.name}>{loc.name}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 

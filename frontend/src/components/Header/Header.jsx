@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { Menu, X, ChevronDown, User, Info, MapPin } from 'lucide-react';
+import { motion } from 'framer-motion';
 import logo from '../../property-master.png';
 import aboutImg from '../../assets/about.png';
 import vadodaraImg from '../../assets/Vadodara1.png';
@@ -67,12 +68,17 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3 group hover:scale-105 transition-transform duration-300">
-          <img 
+          <motion.img 
+            layoutId="main-logo"
             src={logo} 
             alt="Property Master" 
             className="w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 object-contain group-hover:scale-110 transition-transform duration-300" 
             width="128" 
             height="128" 
+            transition={{ 
+              duration: 0.6,
+              ease: [0.16, 1, 0.3, 1]
+            }}
           />
         </Link>
         

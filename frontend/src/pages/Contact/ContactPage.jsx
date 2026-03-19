@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Header from "../../components/Header/Header.jsx";
 import Footer from "../../components/Footer/Footer.jsx";
 import { MapPin, Phone, Mail, Send, CheckCircle, Menu, X } from "lucide-react";
 import { submitContactForm } from "../../api.js";
 import globBg from "../../assets/glob.png";
 import { LazyMotion, domAnimation, m, useReducedMotion } from "framer-motion";
+import MathCaptcha from "../../components/MathCaptcha/MathCaptcha.jsx";
 
 export default function ContactPage() {
   const shouldReduceMotion = false; // useReducedMotion();
+  const captchaRef = useRef();
 
   const pageMotion = shouldReduceMotion
     ? {}
@@ -62,6 +64,11 @@ export default function ContactPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!captchaRef.current.validate()) {
+      return;
+    }
+
     setIsLoading(true);
     try {
       // Submit the form data using our API
@@ -324,6 +331,10 @@ export default function ContactPage() {
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-colors resize-none"
                         placeholder="Describe your property requirements or questions..."
                       ></textarea>
+                    </div>
+
+                    <div className="mb-6">
+                      <MathCaptcha ref={captchaRef} />
                     </div>
 
                     <button

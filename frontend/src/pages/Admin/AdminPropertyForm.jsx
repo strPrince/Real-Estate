@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { createProperty, updateProperty, getProperty, uploadImage } from '../../api.js';
+import { createProperty, updateProperty, getProperty, uploadImage, getLocalities } from '../../api.js';
 import { X, Upload, Loader2, Info, DollarSign, MapPin, Sparkles, ImagePlus, Settings2, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -37,6 +37,9 @@ export default function AdminPropertyForm() {
   const [loadingProp, setLoadingProp] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [localities, setLocalities] = useState([]);
+  const [localitiesLoading, setLocalitiesLoading] = useState(true);
+  const [localitiesError, setLocalitiesError] = useState('');
 
   useEffect(() => {
     if (!isEdit) return;
@@ -65,6 +68,27 @@ export default function AdminPropertyForm() {
       .catch(() => toast.error('Failed to load property'))
       .finally(() => setLoadingProp(false));
   }, [id]);
+
+  useEffect(() => {
+    let active = true;
+    setLocalitiesLoading(true);
+    setLocalitiesError('');
+    getLocalities()
+      .then((data) => {
+        if (!active) return;
+        const normalized = Array.isArray(data) ? data : [];
+        setLocalities(normalized);
+      })
+      .catch(() => {
+        if (!active) return;
+        setLocalitiesError('Could not load localities. You can type manually.');
+        setLocalities([]);
+      })
+      .finally(() => {
+        if (active) setLocalitiesLoading(false);
+      });
+    return () => { active = false; };
+  }, []);
 
   const set = (key) => (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -238,7 +262,25 @@ export default function AdminPropertyForm() {
           </div>
           <div className="grid grid-cols-1 gap-5">
             <Field label="Locality *" required>
-              <input required value={form.locality} onChange={set('locality')} placeholder="e.g. Alkapuri" className={inputCls} />
+              {localities.length > 0 ? (
+                <select required value={form.locality} onChange={set('locality')} className={inputCls}>
+                  <option value="">Select a locality</option>
+                  {!localities.some((l) => l.name === form.locality) && form.locality && (
+                    <option value={form.locality}>{form.locality}</option>
+                  )}
+                  {localities.map((loc) => (
+                    <option key={loc.id || loc.name} value={loc.name}>{loc.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <input required value={form.locality} onChange={set('locality')} placeholder="e.g. Alkapuri" className={inputCls} />
+              )}
+              {localitiesLoading && (
+                <p className="text-xs text-gray-500 mt-2">Loading localities...</p>
+              )}
+              {localitiesError && (
+                <p className="text-xs text-red-500 mt-2">{localitiesError}</p>
+              )}
             </Field>
           </div>
           <Field label="Full Address">

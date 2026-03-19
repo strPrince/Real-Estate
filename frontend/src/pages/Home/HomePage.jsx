@@ -8,12 +8,13 @@ import Testimonials from '../../components/Testimonials/Testimonials.jsx';
 import EmiCalculator from '../../components/EmiCalculator/EmiCalculator.jsx';
 import FAQ from '../../components/FAQ/FAQ.jsx';
 import LocalityMap from '../../components/LocalityMap/LocalityMap.jsx';
-import { getProperties } from '../../api.js';
+import { getProperties, getLocalities } from '../../api.js';
 import { Link } from 'react-router-dom';
 import { LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext.jsx';
 import localities from '../../data/localities.json';
 import { Home, Building2, Award } from 'lucide-react';
+import PropertyCard from '../../components/PropertyCard/PropertyCard.jsx';
 import Vadodara1 from '../../assets/Vadodara1.png';
 import Vadodara2 from '../../assets/Vadodara2.png';
 import Vadodara3 from '../../assets/Vadodara3.png';
@@ -23,6 +24,11 @@ export default function HomePage() {
   const [featured, setFeatured] = useState([]);
   const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
+  const [localityOptions, setLocalityOptions] = useState([]);
+  const [selectedLocality, setSelectedLocality] = useState('');
+  const [localityProperties, setLocalityProperties] = useState([]);
+  const [localityLoading, setLocalityLoading] = useState(false);
+  const [localityError, setLocalityError] = useState('');
   const shouldReduceMotion = false; // useReducedMotion();
 
   const localityStats = useMemo(() => {
@@ -81,6 +87,55 @@ export default function HomePage() {
       .finally(() => setLoading(false));
   }, [currentUser]);
 
+  useEffect(() => {
+    let active = true;
+    getLocalities()
+      .then((data) => {
+        if (!active) return;
+        const list = Array.isArray(data) ? data : [];
+        const names = list.map((loc) => loc.name).filter(Boolean);
+        if (names.length) {
+          setLocalityOptions(names);
+          setSelectedLocality((prev) => prev || names[0]);
+        } else {
+          const fallbackNames = (localities || []).map((loc) => loc.name).filter(Boolean);
+          setLocalityOptions(fallbackNames);
+          setSelectedLocality((prev) => prev || fallbackNames[0] || '');
+        }
+      })
+      .catch(() => {
+        if (!active) return;
+        const fallbackNames = (localities || []).map((loc) => loc.name).filter(Boolean);
+        setLocalityOptions(fallbackNames);
+        setSelectedLocality((prev) => prev || fallbackNames[0] || '');
+      });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    if (!selectedLocality) {
+      setLocalityProperties([]);
+      return () => { active = false; };
+    }
+    setLocalityLoading(true);
+    setLocalityError('');
+    getProperties({ q: selectedLocality, limit: 3 })
+      .then((data) => {
+        if (!active) return;
+        setLocalityProperties(data.properties || []);
+      })
+      .catch(() => {
+        if (!active) return;
+        setLocalityError('Could not load locality listings.');
+        setLocalityProperties([]);
+      })
+      .finally(() => {
+        if (active) setLocalityLoading(false);
+      });
+    return () => { active = false; };
+  }, [selectedLocality]);
+
   return (
     <>
       <Header />
@@ -114,6 +169,73 @@ export default function HomePage() {
           <m.div {...reveal}>
             <FeaturedPropertyPreview properties={featured} loading={loading} />
           </m.div>
+
+          {/* Locality Picks */}
+          <m.section {...reveal} className="py-12 sm:py-16 bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6 sm:mb-8">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-brand-500 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-full">
+                    Locality Picks
+                  </span>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-3">
+                    Explore listings by locality
+                  </h2>
+                  <p className="mt-2 text-sm text-gray-600 text-pretty max-w-2xl">
+                    Select a locality to see the latest listings. Use View More to browse all matching properties.
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                  <label className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
+                    Choose locality
+                  </label>
+                  <select
+                    value={selectedLocality}
+                    onChange={(e) => setSelectedLocality(e.target.value)}
+                    className="w-full sm:w-72 border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white"
+                  >
+                    {localityOptions.map((name) => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {localityError && (
+                <div className="mb-6 text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+                  {localityError}
+                </div>
+              )}
+
+              {localityLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="h-64 rounded-2xl bg-gray-100 animate-pulse" />
+                  ))}
+                </div>
+              ) : localityProperties.length === 0 ? (
+                <div className="text-center py-10 border border-dashed border-gray-200 rounded-2xl text-gray-500">
+                  No listings found for {selectedLocality || 'this locality'}.
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {localityProperties.map((p) => (
+                      <PropertyCard key={p.id} property={p} />
+                    ))}
+                  </div>
+                  <div className="mt-6 flex justify-end">
+                    <Link
+                      to={selectedLocality ? `/properties?q=${encodeURIComponent(selectedLocality)}` : '/properties'}
+                      className="inline-flex items-center justify-center bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-[0_4px_14px_0_rgba(255,122,0,0.35)]"
+                    >
+                      View more in {selectedLocality || 'all areas'}
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
+          </m.section>
 
           <m.div {...reveal}>
             <Features />

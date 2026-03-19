@@ -1,4 +1,4 @@
-  import { useEffect, useState } from 'react';
+  import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -15,6 +15,7 @@ import PropertyCard from '../../components/PropertyCard/PropertyCard.jsx';
 import { getCachedProperties, getProperty, submitInquiry, submitQuery } from '../../api.js';
 import { LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext.jsx';
+import MathCaptcha from '../../components/MathCaptcha/MathCaptcha.jsx';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -67,6 +68,7 @@ export default function PropertyDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeImg, setActiveImg] = useState(0);
+  const captchaRef = useRef();
 
   const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' });
   const [submitting, setSubmitting] = useState(false);
@@ -115,6 +117,11 @@ export default function PropertyDetailPage() {
 
   async function handleInquiry(e) {
     e.preventDefault();
+
+    if (!captchaRef.current.validate()) {
+      return;
+    }
+
     setSubmitting(true);
     try {
       if (property.userId) {
@@ -134,6 +141,7 @@ export default function PropertyDetailPage() {
       }
       toast.success('Inquiry sent! We will contact you soon.');
       setForm({ name: '', email: '', phone: '', message: '' });
+      captchaRef.current.reset();
     } catch (err) {
       toast.error(err.message || 'Failed to send inquiry');
     } finally {
@@ -536,6 +544,8 @@ export default function PropertyDetailPage() {
                           Message *
                         </label>
                       </div>
+
+                      <MathCaptcha ref={captchaRef} />
 
                       <button
                         type="submit"

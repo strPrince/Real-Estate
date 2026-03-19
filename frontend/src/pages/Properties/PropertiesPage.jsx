@@ -6,7 +6,7 @@ import { FilterButton, FilterPanel, usePropertyFilters } from '../../components/
 import PropertyCard from '../../components/PropertyCard/PropertyCard.jsx';
 import SkeletonCard from '../../components/SkeletonCard/SkeletonCard.jsx';
 import { getProperties } from '../../api.js';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, X } from 'lucide-react';
 import { LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext.jsx';
 
@@ -204,135 +204,157 @@ export default function PropertiesPage() {
       <Header />
       <LazyMotion features={domAnimation}>
         <m.main {...pageMotion} className="min-h-screen bg-gray-50">
-          <m.section {...reveal} className="py-20">
+          <section className="py-12 sm:py-20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* header with eyebrow */}
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
-              <div>
-                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-brand-500 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-full">
-                  Browse
-                </span>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-3 text-balance">
-                  {searchParams.get('intent') === 'rent' ? 'Properties for Rent' :
-                   searchParams.get('intent') === 'buy' ? 'Properties for Sale' :
-                   searchParams.get('intent') === 'commercial' ? 'Commercial Properties' : 'All Properties'}
-                </h1>
-                {!loading && !error && (
-                  <p className="text-gray-400 mt-1 text-sm">
-                    Showing {filteredProperties.length} properties
-                  </p>
+              {/* header with eyebrow */}
+              <m.div {...reveal} className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-brand-500 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-full">
+                    Browse
+                  </span>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-3 text-balance">
+                    {searchParams.get('intent') === 'rent' ? 'Properties for Rent' :
+                     searchParams.get('intent') === 'buy' ? 'Properties for Sale' :
+                     searchParams.get('intent') === 'commercial' ? 'Commercial Properties' : 'All Properties'}
+                  </h1>
+                  {!loading && !error && (
+                    <p className="text-gray-400 mt-1 text-sm">
+                      Showing {filteredProperties.length} properties
+                    </p>
+                  )}
+                </div>
+                <FilterButton activeCount={filterState.activeCount} onOpen={() => setFilterOpen(!filterOpen)} />
+              </m.div>
+
+              <div className="flex flex-col lg:flex-row gap-8 items-start">
+                {/* Grid */}
+                <m.div {...reveal} className="flex-1 min-w-0 w-full">
+                  {activeFilters.length > 0 && (
+                    <div className="mb-5 rounded-2xl border border-gray-200 bg-white px-4 py-3 flex flex-wrap items-center gap-2">
+                      <span className="text-[10px] uppercase tracking-[0.25em] text-gray-400 font-semibold mr-1">
+                        Active
+                      </span>
+                      {activeFilters.map((f) => (
+                        <span
+                          key={f.key}
+                          className="px-3 py-1.5 rounded-full text-xs font-semibold bg-brand-50 text-brand-600 border border-brand-100"
+                        >
+                          {f.label}
+                        </span>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={handleReset}
+                        className="ml-auto text-xs font-semibold text-gray-500 hover:text-gray-800"
+                      >
+                        Clear all
+                      </button>
+                    </div>
+                  )}
+                  {error && (
+                    <div className="flex items-center gap-2 text-red-600 bg-red-50 px-6 py-4 rounded-xl mb-6 shadow-sm">
+                      <AlertCircle className="w-5 h-5 shrink-0" />
+                      <p className="text-sm">{error}</p>
+                    </div>
+                  )}
+
+                  {loading ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+                      {Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)}
+                    </div>
+                  ) : filteredProperties.length === 0 ? (
+                    <div className="text-center py-24 text-gray-400">
+                      <p className="text-xl font-semibold mb-2">No properties found</p>
+                      <p className="text-sm">Try adjusting your filters or search</p>
+                      <button
+                        type="button"
+                        onClick={handleReset}
+                        className="mt-5 inline-flex items-center justify-center px-5 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:text-gray-900 transition-colors text-sm font-semibold"
+                      >
+                        Reset filters
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {filteredProperties.map((p, index) => (
+                            <m.div
+                              key={p.id}
+                              {...cardMotion}
+                              transition={
+                                shouldReduceMotion
+                                  ? undefined
+                                  : {
+                                      duration: 0.35,
+                                      ease: [0.22, 0.61, 0.36, 1],
+                                      delay: index * 0.03,
+                                    }
+                              }
+                            >
+                              <PropertyCard property={p} />
+                            </m.div>
+                          ))}
+                        </div>
+
+                        <div className="flex items-center justify-center gap-4 mt-12">
+                          <button
+                            type="button"
+                            onClick={goPrev}
+                            disabled={cursorStackRef.current.length === 0}
+                            className="px-6 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-semibold"
+                          >
+                            Previous
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => goNext(properties[properties.length - 1]?.id)}
+                            disabled={!hasMore}
+                            className="px-6 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-semibold"
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </>
+                  )}
+                </m.div>
+
+                {/* Sidebar filter panel (desktop) - Persistent & Sticky */}
+                {filterOpen && (
+                  <aside className="hidden lg:block w-80 shrink-0 sticky top-24 self-start h-[calc(100vh-7rem)] animate-in slide-in-from-right duration-500">
+                    <div className="h-full bg-white rounded-3xl border border-gray-200 shadow-[0_20px_50px_-20px_rgba(15,23,42,0.15)] overflow-hidden flex flex-col">
+                      <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-gray-900">Filters</h3>
+                          {filterState.activeCount > 0 && (
+                            <span className="bg-brand-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                              {filterState.activeCount}
+                            </span>
+                          )}
+                        </div>
+                        <button 
+                          onClick={() => setFilterOpen(false)}
+                          className="p-2 hover:bg-gray-100 rounded-xl text-gray-400 hover:text-gray-600 transition-all duration-200"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-gray-200">
+                        <FilterPanel
+                          filters={filterState.filters}
+                          setFilters={filterState.setFilters}
+                          set={filterState.set}
+                          apply={handleApply}
+                          reset={handleReset}
+                          activeCount={filterState.activeCount}
+                          hideHeader={true}
+                        />
+                      </div>
+                    </div>
+                  </aside>
                 )}
               </div>
-              <FilterButton activeCount={filterState.activeCount} onOpen={() => setFilterOpen(true)} />
             </div>
-
-          <div className="flex flex-col lg:flex-row gap-6">
-            {/* Grid */}
-            <div className="flex-1 min-w-0">
-              {activeFilters.length > 0 && (
-                <div className="mb-5 rounded-2xl border border-gray-200 bg-white px-4 py-3 flex flex-wrap items-center gap-2">
-                  <span className="text-[10px] uppercase tracking-[0.25em] text-gray-400 font-semibold mr-1">
-                    Active
-                  </span>
-                  {activeFilters.map((f) => (
-                    <span
-                      key={f.key}
-                      className="px-3 py-1.5 rounded-full text-xs font-semibold bg-brand-50 text-brand-600 border border-brand-100"
-                    >
-                      {f.label}
-                    </span>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="ml-auto text-xs font-semibold text-gray-500 hover:text-gray-800"
-                  >
-                    Clear all
-                  </button>
-                </div>
-              )}
-              {error && (
-                <div className="flex items-center gap-2 text-red-600 bg-red-50 px-6 py-4 rounded-xl mb-6 shadow-sm">
-                  <AlertCircle className="w-5 h-5 shrink-0" />
-                  <p className="text-sm">{error}</p>
-                </div>
-              )}
-
-              {loading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-                  {Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)}
-                </div>
-              ) : filteredProperties.length === 0 ? (
-                <div className="text-center py-24 text-gray-400">
-                  <p className="text-xl font-semibold mb-2">No properties found</p>
-                  <p className="text-sm">Try adjusting your filters or search</p>
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="mt-5 inline-flex items-center justify-center px-5 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:text-gray-900 transition-colors text-sm font-semibold"
-                  >
-                    Reset filters
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-                    {filteredProperties.map((p, index) => (
-                        <m.div
-                          key={p.id}
-                          {...cardMotion}
-                          transition={
-                            shouldReduceMotion
-                              ? undefined
-                              : {
-                                  duration: 0.35,
-                                  ease: [0.22, 0.61, 0.36, 1],
-                                  delay: index * 0.03,
-                                }
-                          }
-                        >
-                          <PropertyCard property={p} />
-                        </m.div>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center justify-center gap-4 mt-12">
-                      <button
-                        type="button"
-                        onClick={goPrev}
-                        disabled={cursorStackRef.current.length === 0}
-                        className="px-6 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-semibold"
-                      >
-                        Previous
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => goNext(properties[properties.length - 1]?.id)}
-                        disabled={!hasMore}
-                        className="px-6 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-semibold"
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </>
-              )}
-            </div>
-
-            {/* Inline filter panel (desktop) */}
-            {filterOpen && (
-              <aside className="hidden lg:block w-full lg:w-80 shrink-0 sticky top-24 self-start">
-                <FilterPanel
-                  filters={filterState.filters}
-                  setFilters={filterState.setFilters}
-                  set={filterState.set}
-                  apply={handleApply}
-                  reset={handleReset}
-                  activeCount={filterState.activeCount}
-                  onClose={() => setFilterOpen(false)}
-                />
-              </aside>
-            )}
-          </div>
+          </section>
 
           {/* Mobile overlay filters */}
           {filterOpen && (
@@ -340,10 +362,10 @@ export default function PropertiesPage() {
               <button
                 type="button"
                 aria-label="Close filters"
-                className="absolute inset-0 bg-black/50"
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                 onClick={() => setFilterOpen(false)}
               />
-              <div className="relative w-full max-w-md glass-panel rounded-2xl border border-white/60 shadow-lg overflow-hidden max-h-[calc(100vh-1rem)]">
+              <div className="relative w-full max-w-md bg-white rounded-3xl border border-gray-100 shadow-2xl overflow-hidden max-h-[calc(100vh-2rem)] animate-in zoom-in-95 duration-300">
                 <FilterPanel
                   filters={filterState.filters}
                   setFilters={filterState.setFilters}
@@ -356,9 +378,7 @@ export default function PropertiesPage() {
               </div>
             </div>
           )}
-        </div>
-        </m.section>
-      </m.main>
+        </m.main>
       </LazyMotion>
       <Footer />
     </>

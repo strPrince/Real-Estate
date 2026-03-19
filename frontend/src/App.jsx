@@ -1,10 +1,12 @@
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { CompareProvider } from './context/CompareContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 
+import LoadingScreen from './components/LoadingScreen/LoadingScreen.jsx';
 import HomePage from './pages/Home/HomePage.jsx';
 import PropertiesPage from './pages/Properties/PropertiesPage.jsx';
 import PropertyDetailPage from './pages/PropertyDetail/PropertyDetailPage.jsx';
@@ -12,13 +14,13 @@ import ComparePage from './pages/Properties/ComparePage.jsx';
 import AboutPage from './pages/About/AboutPage.jsx';
 import WhyVadodaraPage from './pages/WhyVadodara/WhyVadodaraPage.jsx';
 import ContactPage from './pages/Contact/ContactPage.jsx';
-import TermsPage from './pages/Terms/TermsPage.jsx';
-import PolicyPage from './pages/Policy/PolicyPage.jsx';
+import LegalPage from './pages/Legal/LegalPage.jsx';
 import AdminLayout from './layouts/AdminLayout.jsx';
 import AdminDashboard from './pages/Admin/AdminDashboard.jsx';
 import AdminPropertyForm from './pages/Admin/AdminPropertyForm.jsx';
 import AdminUsersPage from './pages/Admin/AdminUsersPage.jsx';
 import AdminUserDetailPage from './pages/Admin/AdminUserDetailPage.jsx';
+import AdminLocalitiesPage from './pages/Admin/AdminLocalitiesPage.jsx';
 import LoginPage from './pages/Auth/LoginPage.jsx';
 import SignupPage from './pages/Auth/SignupPage.jsx';
 import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage.jsx';
@@ -47,8 +49,8 @@ function AnimatedRoutes() {
           <Route path="/about" element={<AboutPage />} />
         <Route path="/why-vadodara" element={<WhyVadodaraPage />} />
         <Route path="/contact" element={<ContactPage />} />
-        <Route path="/terms" element={<TermsPage />} />
-        <Route path="/policy" element={<PolicyPage />} />
+        <Route path="/terms" element={<LegalPage />} />
+        <Route path="/policy" element={<LegalPage />} />
         <Route path="/help" element={<HelpPage />} />
 
         {/* User auth */}
@@ -78,6 +80,7 @@ function AnimatedRoutes() {
           <Route path="users/:id" element={<AdminUserDetailPage />} />
           <Route path="properties/new" element={<AdminPropertyForm />} />
           <Route path="properties/:id/edit" element={<AdminPropertyForm />} />
+          <Route path="localities" element={<AdminLocalitiesPage />} />
         </Route>
       </Routes>
     </AnimatePresence>
@@ -87,12 +90,34 @@ function AnimatedRoutes() {
 }
 
 export default function App() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate initial load for animation
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <AuthProvider>
       <CompareProvider>
         <BrowserRouter>
           <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
-          <AnimatedRoutes />
+          <AnimatePresence>
+            {loading ? (
+              <LoadingScreen key="loader" />
+            ) : (
+              <motion.div
+                key="content"
+                initial={{ opacity: 1 }}
+                animate={{ opacity: 1 }}
+              >
+                <AnimatedRoutes />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </BrowserRouter>
       </CompareProvider>
     </AuthProvider>
