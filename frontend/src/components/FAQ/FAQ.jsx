@@ -1,4 +1,6 @@
+import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const faqs = [
   {
@@ -29,6 +31,7 @@ const faqs = [
 ];
 
 export default function FAQ() {
+  const [openIndex, setOpenIndex] = useState(0);
   return (
     <section className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -77,33 +80,59 @@ export default function FAQ() {
               </div>
             </div>
 
-            <div className="space-y-4">
-              {faqs.map((item, index) => (
-                <details
-                  key={item.question}
-                  open={index === 0}
-                  className="group relative rounded-2xl border border-gray-200 bg-white/80 px-5 py-4 transition-all hover:shadow-[0_16px_40px_-24px_rgba(15,23,42,0.2)] group-open:border-brand-200 group-open:bg-brand-50/40"
+    <div className="space-y-4">
+      {faqs.map((item, index) => {
+        const isOpen = openIndex === index;
+        return (
+          <div
+            key={item.question}
+            className={`group relative rounded-2xl border transition-all duration-300 ${
+              isOpen 
+                ? 'border-brand-200 bg-brand-50/40 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.2)]' 
+                : 'border-gray-200 bg-white/80 hover:shadow-[0_16px_40px_-24px_rgba(15,23,42,0.2)]'
+            }`}
+          >
+            {isOpen && (
+              <motion.span 
+                layoutId="active-indicator"
+                className="absolute left-0 top-6 h-10 w-1 rounded-full bg-brand-500/80" 
+              />
+            )}
+            <button
+              onClick={() => setOpenIndex(isOpen ? -1 : index)}
+              className="w-full flex cursor-pointer items-start justify-between gap-4 p-5 text-left"
+            >
+              <span className="flex items-start gap-3">
+                <span className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.32em] text-gray-400">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="text-base font-semibold text-gray-900">
+                  {item.question}
+                </span>
+              </span>
+              <span className={`flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-500 transition-transform duration-300 ${isOpen ? 'rotate-180 border-brand-200 text-brand-600' : ''}`}>
+                <ChevronDown className="h-4 w-4" />
+              </span>
+            </button>
+            <AnimatePresence>
+              {isOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  className="overflow-hidden"
                 >
-                  <span className="pointer-events-none absolute left-0 top-6 h-10 w-1 rounded-full bg-brand-500/80 opacity-0 transition-opacity group-open:opacity-100" />
-                  <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-left marker:hidden">
-                    <span className="flex items-start gap-3">
-                      <span className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.32em] text-gray-400">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                      <span className="text-base font-semibold text-gray-900">
-                        {item.question}
-                      </span>
-                    </span>
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-500 transition-transform duration-300 group-open:rotate-180 group-open:border-brand-200 group-open:text-brand-600">
-                      <ChevronDown className="h-4 w-4" />
-                    </span>
-                  </summary>
-                  <p className="mt-3 text-sm leading-relaxed text-gray-600">
+                  <p className="px-5 pb-5 pt-0 text-sm leading-relaxed text-gray-600">
                     {item.answer}
                   </p>
-                </details>
-              ))}
-            </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        );
+      })}
+    </div>
           </div>
         </div>
       </div>

@@ -27,8 +27,13 @@ export default function SignupPage() {
     setLoading(true);
     try {
       const data = await signup(email, password, name);
-      toast.success('Account created!');
-      navigate(data.user?.role === 'admin' ? '/admin/dashboard' : '/account');
+      if (data.requiresVerification) {
+        toast.success('Please verify your email');
+        navigate('/verify-email', { state: { email } });
+      } else {
+        toast.success('Account created!');
+        navigate(data.user?.role === 'admin' ? '/admin/dashboard' : '/account');
+      }
     } catch (err) {
       toast.error('Failed to create account: ' + err.message);
     }

@@ -156,9 +156,6 @@ export default function Footer() {
                 </a>
               </li>
             </ul>
-            <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-slate-400">
-              Mon - Sat: 9:00 AM to 8:00 PM
-            </div>
           </div>
         </div>
 

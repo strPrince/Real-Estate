@@ -86,9 +86,28 @@ export function AuthProvider({ children }) {
       method: 'POST',
       body: JSON.stringify({ email, password, name }),
     });
+    if (!data.requiresVerification) {
+      setAccessToken(data.accessToken || null);
+      setCurrentUser(normalizeUser(data.user));
+    }
+    return data;
+  }
+
+  async function verifyOTP(email, otp) {
+    const data = await authFetch('/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify({ email, otp }),
+    });
     setAccessToken(data.accessToken || null);
     setCurrentUser(normalizeUser(data.user));
     return data;
+  }
+
+  async function resendOTP(email) {
+    return await authFetch('/resend-otp', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
   }
 
   async function logout() {
@@ -153,7 +172,10 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ currentUser, login, signup, logout, changePassword, updateProfile, getToken, loading, forgotPassword, resetPassword }}
+      value={{ 
+        currentUser, login, signup, logout, changePassword, updateProfile, 
+        getToken, loading, forgotPassword, resetPassword, verifyOTP, resendOTP 
+      }}
     >
       {children}
     </AuthContext.Provider>

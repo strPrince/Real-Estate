@@ -65,7 +65,7 @@ export default function PropertyCard({ property, style }) {
           className="absolute inset-0 w-full h-full object-cover"
           onError={(e) => { e.target.src = PLACEHOLDER; }}
         />
-        <div className="absolute top-4 left-4 flex flex-col gap-2">
+        <div className="absolute top-4 left-4 flex flex-row items-center gap-2">
           {featured && (
             <span className="flex items-center gap-1 bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-1 rounded-full shadow-sm w-fit">
               <Star className="w-2.5 h-2.5" aria-hidden="true" /> Featured
@@ -102,7 +102,7 @@ export default function PropertyCard({ property, style }) {
             {`Rs ${Math.round(price / area).toLocaleString('en-IN')}/sqft`}
           </p>
         )}
-        <h3 className="font-semibold text-gray-900 text-lg leading-snug text-balance">{title}</h3>
+        <h3 className="font-semibold text-gray-900 text-lg leading-snug text-balance" style={{ fontFamily: 'var(--font-sans)' }}>{title}</h3>
         <div className="flex items-center gap-1 text-gray-500 text-sm">
           <MapPin className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
           <span>{locationLabel}</span>

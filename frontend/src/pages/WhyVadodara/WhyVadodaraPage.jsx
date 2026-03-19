@@ -1,7 +1,8 @@
-﻿import React from 'react';
+import React from 'react';
 import Header from '../../components/Header/Header.jsx';
 import Footer from '../../components/Footer/Footer.jsx';
 import lvp from '../../assets/lvp.png';
+import Vadodara1 from '../../assets/Vadodara1.png';
 import {
   Landmark, GraduationCap, TrendingUp, IndianRupee, Building2,
   MapPin, Star, ArrowRight, Train, TreePine, Shield, Zap
@@ -128,8 +129,8 @@ export default function WhyVadodaraPage() {
       {/* ── HERO — split image + city text on dark bg ── */}
       <m.section {...reveal} className="relative w-full overflow-hidden bg-gray-900 pt-16 sm:pt-20 pb-28">
         {/* glow blobs */}
-        <div className="pointer-events-none absolute -top-20 -right-20 w-96 h-96 bg-brand-500 rounded-full opacity-10 blur-3xl"></div>
-        <div className="pointer-events-none absolute bottom-32 left-10 w-64 h-64 bg-brand-300 rounded-full opacity-10 blur-2xl"></div>
+        <div className="pointer-events-none absolute -top-20 -right-20 w-96 h-96 bg-brand-500 rounded-full opacity-20 blur-3xl"></div>
+        <div className="pointer-events-none absolute bottom-32 left-10 w-64 h-64 bg-brand-300 rounded-full opacity-20 blur-2xl"></div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
@@ -164,7 +165,7 @@ export default function WhyVadodaraPage() {
                   'Tier-2 city with tier-1 infrastructure',
                   'Affordable land prices — great ROI',
                 ].map((point) => (
-                  <li key={point} className="flex items-center gap-2 text-gray-300 text-sm">
+                  <li key={point} className="flex items-center gap-2 text-gray-300 text-sm italic">
                     <span className="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0"></span>
                     {point}
                   </li>
@@ -194,15 +195,15 @@ export default function WhyVadodaraPage() {
             {/* RIGHT — image */}
             <m.div {...hoverLift} className="relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 order-1 lg:order-2">
               <img
-                src={LAXMI_VILAS}
-                alt="Laxmi Vilas Palace, Vadodara"
+                src={Vadodara1}
+                alt="Vadodara — The Banyan City"
                 className="w-full h-80 sm:h-96 lg:h-120 object-cover object-center"
               />
               <div className="absolute inset-0 bg-linear-to-t from-gray-900/70 via-transparent to-transparent"></div>
               <div className="absolute bottom-5 left-5 right-5">
                 <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-3 text-white">
-                  <p className="font-bold text-base">Laxmi Vilas Palace</p>
-                  <p className="text-sm text-gray-300">Vadodara — 4× larger than Buckingham Palace</p>
+                  <p className="font-bold text-base">Vadodara Skyline</p>
+                  <p className="text-sm text-gray-300">Modernity meets Heritage in Gujarat's Cultural Capital</p>
                 </div>
               </div>
             </m.div>
@@ -260,36 +261,36 @@ export default function WhyVadodaraPage() {
                   <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-brand-500/10 blur-2xl"></div>
 
                   <div className="relative rounded-[28px] border border-gray-200 bg-white/85 backdrop-blur p-6 sm:p-7 overflow-hidden shadow-[0_18px_40px_-24px_rgba(15,23,42,0.35)]">
-                    <div className="absolute -right-8 top-6 rotate-12 rounded-full border border-dashed border-gray-300 bg-white/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.35em] text-gray-400">
+                    <div className="absolute -right-8 top-6 rotate-12 rounded-full border border-dashed border-gray-400 bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-[0.35em] text-gray-500 shadow-sm">
                       Reason {String(index + 1).padStart(2, '0')}
                     </div>
 
                     <svg
-                      className="absolute -right-10 -bottom-10 h-44 w-44 text-gray-200 opacity-70"
+                      className="absolute -right-10 -bottom-10 h-44 w-44 text-gray-300 opacity-90"
                       viewBox="0 0 200 200"
                       fill="none"
                       aria-hidden="true"
                     >
-                      <path d="M20 150 C 60 90, 140 90, 180 150" stroke="currentColor" strokeWidth="2" strokeDasharray="4 6" />
-                      <path d="M30 50 C 80 20, 120 20, 170 50" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 7" />
-                      <circle cx="40" cy="150" r="6" fill="currentColor" />
-                      <circle cx="160" cy="50" r="5" fill="currentColor" />
+                      <path d="M20 150 C 60 90, 140 90, 180 150" stroke="currentColor" strokeWidth="2.5" strokeDasharray="4 6" />
+                      <path d="M30 50 C 80 20, 120 20, 170 50" stroke="currentColor" strokeWidth="2" strokeDasharray="3 7" />
+                      <circle cx="40" cy="150" r="7" fill="currentColor" />
+                      <circle cx="160" cy="50" r="6" fill="currentColor" />
                     </svg>
 
                     <div className="relative flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3">
                         <div className="relative">
-                          <div className={`absolute -inset-2 rounded-2xl ${bg} opacity-50 blur-sm`}></div>
-                          <div className={`relative w-12 h-12 rounded-2xl ${bg} flex items-center justify-center border border-white shadow-sm`}>
-                            <Icon className={`w-6 h-6 ${color}`} />
+                          <div className={`absolute -inset-2 rounded-2xl ${bg} opacity-80 blur-sm`}></div>
+                          <div className={`relative w-12 h-12 rounded-2xl ${bg} flex items-center justify-center border border-white shadow-md transition-transform group-hover:scale-110 duration-300`}>
+                            <Icon className={`w-6 h-6 ${color.replace('-600', '-700')}`} />
                           </div>
                         </div>
                         <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-gray-400">Reason</p>
-                          <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+                          <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-gray-500">Reason</p>
+                          <h3 className="text-lg font-bold text-gray-900 group-hover:text-brand-600 transition-colors duration-300">{title}</h3>
                         </div>
                       </div>
-                      <span className="text-3xl font-extrabold text-gray-200">{String(index + 1).padStart(2, '0')}</span>
+                      <span className="text-3xl font-extrabold text-gray-300/80">{String(index + 1).padStart(2, '0')}</span>
                     </div>
 
                     <div className="mt-4 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
@@ -309,8 +310,8 @@ export default function WhyVadodaraPage() {
           <div className="pointer-events-none absolute -top-24 -left-24 w-64 h-64 bg-brand-500 rounded-full opacity-10 blur-3xl"></div>
           <div className="pointer-events-none absolute -bottom-24 -right-24 w-64 h-64 bg-brand-300 rounded-full opacity-10 blur-3xl"></div>
           <div className="relative max-w-3xl mx-auto text-center px-4">
-            <div className="w-14 h-14 bg-brand-500/20 border border-brand-500/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <TrendingUp className="w-7 h-7 text-brand-400" />
+            <div className="w-16 h-16 bg-brand-500/40 border-2 border-brand-500/60 rounded-[1.5rem] flex items-center justify-center mx-auto mb-8 shadow-[0_0_30px_rgba(255,122,0,0.3)]">
+              <TrendingUp className="w-8 h-8 text-white" />
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-5">
               Ready to Invest in Vadodara?

@@ -122,7 +122,7 @@ export default function Hero() {
           <m.h1
             {...baseMotion}
             transition={{ duration: 0.5, ease: [0.22, 0.61, 0.36, 1], delay: shouldReduceMotion ? 0 : 0.05 }}
-            className="text-3xl sm:text-4xl md:text-[3.3rem] font-extrabold text-white leading-[1.06] tracking-tight text-balance"
+            className="text-3xl sm:text-4xl md:text-[3.3rem] font-bold text-white leading-[1.06] tracking-[0.12em] text-balance uppercase"
           >
             Find Your Dream Home<br className="hidden sm:block" />
             <span className="text-brand-500"> in Vadodara</span>

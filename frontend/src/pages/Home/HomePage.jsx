@@ -13,6 +13,11 @@ import { Link } from 'react-router-dom';
 import { LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext.jsx';
 import localities from '../../data/localities.json';
+import { Home, Building2, Award } from 'lucide-react';
+import Vadodara1 from '../../assets/Vadodara1.png';
+import Vadodara2 from '../../assets/Vadodara2.png';
+import Vadodara3 from '../../assets/Vadodara3.png';
+import lvp from '../../assets/lvp.png';
 
 export default function HomePage() {
   const [featured, setFeatured] = useState([]);
@@ -39,28 +44,28 @@ export default function HomePage() {
   const pageMotion = shouldReduceMotion
     ? {}
     : {
-        initial: { opacity: 0, y: 8 },
-        animate: { opacity: 1, y: 0 },
-        exit: { opacity: 0, y: -8 },
-        transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
-      };
+      initial: { opacity: 0, y: 8 },
+      animate: { opacity: 1, y: 0 },
+      exit: { opacity: 0, y: -8 },
+      transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+    };
 
   const reveal = shouldReduceMotion
     ? {}
     : {
-        initial: { opacity: 0, y: 16 },
-        whileInView: { opacity: 1, y: 0 },
-        viewport: { once: true, amount: 0.15 },
-        transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
-      };
+      initial: { opacity: 0, y: 16 },
+      whileInView: { opacity: 1, y: 0 },
+      viewport: { once: true, amount: 0.15 },
+      transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
+    };
 
   const hoverLift = shouldReduceMotion
     ? {}
     : {
-        whileHover: { y: -3, scale: 1.005 },
-        whileTap: { scale: 0.995 },
-        transition: { type: 'spring', stiffness: 400, damping: 25 },
-      };
+      whileHover: { y: -3, scale: 1.005 },
+      whileTap: { scale: 0.995 },
+      transition: { type: 'spring', stiffness: 400, damping: 25 },
+    };
 
   useEffect(() => {
     document.title = 'Property Master Vadodara - Find Your Dream Property';
@@ -72,7 +77,7 @@ export default function HomePage() {
     const limit = currentUser ? 6 : 3;
     getProperties({ featured: true, limit })
       .then((data) => setFeatured(data.properties || []))
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, [currentUser]);
 
@@ -128,6 +133,39 @@ export default function HomePage() {
                 </div>
                 <div className="absolute inset-x-0 top-0 h-px bg-brand-500/60" />
 
+                {/* Creative Floating Element - Top Right */}
+                <div className="absolute right-0 top-0 hidden lg:block pointer-events-none pr-12 pt-12">
+                  <m.div
+                    animate={{ 
+                      y: [0, -12, 0],
+                      scale: [1, 1.03, 1]
+                    }}
+                    transition={{ 
+                      duration: 8,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                    className="relative"
+                  >
+                    <div className="absolute -inset-6 bg-brand-500/5 rounded-full blur-2xl" />
+                    <div className="relative bg-white/80 backdrop-blur-sm border border-brand-50/50 p-6 rounded-[2.5rem] shadow-[0_24px_48px_-12px_rgba(15,23,42,0.1)] flex flex-col items-center gap-3">
+                      <div className="h-14 w-14 rounded-3xl bg-brand-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
+                        <Award className="h-7 w-7" />
+                      </div>
+                      <div className="text-center">
+                        <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-brand-500">Excellence</div>
+                        <div className="text-xs font-semibold text-gray-900 mt-1">Vadodara's Top Choice</div>
+                      </div>
+                      {/* Decorative accents */}
+                      <div className="flex gap-1 mt-1">
+                        {[1, 2, 3].map((i) => (
+                          <div key={i} className="h-1 w-1 rounded-full bg-brand-200" />
+                        ))}
+                      </div>
+                    </div>
+                  </m.div>
+                </div>
+
                 <div className="relative p-8 sm:p-12">
                   <div className="max-w-2xl">
                     <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-brand-500 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-full">
@@ -175,18 +213,30 @@ export default function HomePage() {
                       <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gray-400">
                         What you get
                       </div>
-                      <ul className="mt-4 space-y-3 text-sm text-gray-600">
-                        <li className="flex items-start gap-2">
+                      <ul className="mt-4 space-y-3 text-base text-gray-600">
+                        <li className="flex items-start gap-2 italic">
                           <span className="mt-1 h-2 w-2 rounded-full bg-brand-500" />
                           Proactive shortlisting based on budget and lifestyle.
                         </li>
-                        <li className="flex items-start gap-2">
+                        <li className="flex items-start gap-2 italic">
                           <span className="mt-1 h-2 w-2 rounded-full bg-brand-500" />
                           Transparent pricing insights and neighborhood guidance.
                         </li>
-                        <li className="flex items-start gap-2">
+                        <li className="flex items-start gap-2 italic">
                           <span className="mt-1 h-2 w-2 rounded-full bg-brand-500" />
                           On-ground support from visit to documentation.
+                        </li>
+                        <li className="flex items-start gap-2 italic">
+                          <span className="mt-1 h-2 w-2 rounded-full bg-brand-500" />
+                          Exclusive access to pre-launch projects and prime deals.
+                        </li>
+                        <li className="flex items-start gap-2 italic">
+                          <span className="mt-1 h-2 w-2 rounded-full bg-brand-500" />
+                          Expertise in legal verification and seamless registration.
+                        </li>
+                        <li className="flex items-start gap-2 italic">
+                          <span className="mt-1 h-2 w-2 rounded-full bg-brand-500" />
+                          Tailored investment plans with high ROI potential.
                         </li>
                       </ul>
 
@@ -312,7 +362,7 @@ export default function HomePage() {
                       <div className="space-y-4">
                         <div className="rounded-2xl overflow-hidden ring-1 ring-white/10">
                           <img
-                            src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Laxmi_Vilas_Palace%2C_Vadodara.jpg/1280px-Laxmi_Vilas_Palace%2C_Vadodara.jpg"
+                            src={lvp}
                             alt="Laxmi Vilas Palace"
                             className="h-36 sm:h-40 w-full object-cover"
                             loading="lazy"
@@ -320,7 +370,7 @@ export default function HomePage() {
                         </div>
                         <div className="rounded-2xl overflow-hidden ring-1 ring-white/10">
                           <img
-                            src="https://images.unsplash.com/photo-1514565131-fce0801e5785?w=600&q=80"
+                            src={Vadodara1}
                             alt="Vadodara Skyline"
                             className="h-44 sm:h-48 w-full object-cover"
                             loading="lazy"
@@ -330,7 +380,7 @@ export default function HomePage() {
                       <div className="space-y-4 pt-6">
                         <div className="rounded-2xl overflow-hidden ring-1 ring-white/10">
                           <img
-                            src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&q=80"
+                            src={Vadodara2}
                             alt="Vadodara Streets"
                             className="h-40 sm:h-44 w-full object-cover"
                             loading="lazy"
@@ -338,7 +388,7 @@ export default function HomePage() {
                         </div>
                         <div className="rounded-2xl overflow-hidden ring-1 ring-white/10">
                           <img
-                            src="https://images.unsplash.com/photo-1560185007-6e8f9d2d7387?w=600&q=80"
+                            src={Vadodara3}
                             alt="Vadodara Modern Buildings"
                             className="h-36 sm:h-40 w-full object-cover"
                             loading="lazy"

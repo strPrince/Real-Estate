@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { Menu, X, ChevronDown, User } from 'lucide-react';
+import { Menu, X, ChevronDown, User, Info, MapPin } from 'lucide-react';
 import logo from '../../property-master.png';
+import aboutImg from '../../assets/about.png';
+import vadodaraImg from '../../assets/Vadodara1.png';
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -94,44 +96,69 @@ export default function Header() {
           })}
           
           {/* About Us Dropdown */}
-          <div className="relative navbar-dropdown">
+          <div 
+            className="relative group/dropdown"
+            onMouseEnter={() => setDropdownOpen(true)}
+            onMouseLeave={() => setDropdownOpen(false)}
+          >
             <button
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="relative group flex items-center gap-1 text-sm font-semibold px-3 py-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-[color,transform,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:text-white hover:shadow-[0_10px_30px_-20px_rgba(0,0,0,0.7)] text-gray-300 dropdown-button"
+              className={`relative group flex items-center gap-1 text-sm font-semibold px-3 py-2 rounded-lg transition-all duration-300 ${
+                location.pathname.startsWith('/about') || location.pathname === '/why-vadodara' ? 'text-white' : 'text-gray-300'
+              } hover:text-white`}
             >
-              About Us
-              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ease-out ${dropdownOpen ? 'rotate-180' : ''}`} />
-              <span className="pointer-events-none absolute inset-x-2 bottom-1 h-px bg-brand-500 transition-transform duration-300 ease-out scale-x-0 group-hover:scale-x-100" />
-              <span className="pointer-events-none absolute inset-0 bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out" />
+              About
+              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${dropdownOpen ? 'rotate-180' : ''}`} />
+              <span className={`pointer-events-none absolute inset-x-2 bottom-1 h-px bg-brand-500 transition-transform duration-300 ${location.pathname.startsWith('/about') || location.pathname === '/why-vadodara' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </button>
-            {dropdownOpen && (
-              <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-2xl shadow-[0_24px_60px_-15px_rgba(15,23,42,0.45)] py-4 z-50 border border-gray-100 animate-in slide-in-from-top-2 fade-in duration-400">
+            
+            {/* Mega Dropdown */}
+            <div className={`absolute top-full left-1/2 -translate-x-1/2 pt-4 transition-all duration-300 ${dropdownOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'}`}>
+              <div className="bg-white rounded-[2rem] shadow-[0_40px_80px_-15px_rgba(15,23,42,0.5)] p-4 border border-gray-100 w-[520px] grid grid-cols-2 gap-4">
+                {/* About Us Card */}
                 <Link
                   to="/about"
                   onClick={() => setDropdownOpen(false)}
-                  className="block px-5 py-3 text-sm text-gray-700 rounded-lg transition-all duration-300 group relative overflow-hidden"
+                  className="relative group/card h-48 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500"
                 >
-                  <span className="relative z-10 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0" />
-                    About
-                  </span>
-                  <span className="absolute inset-0 bg-brand-50 opacity-0 group-hover:opacity-100 transition-all duration-300" />
-                  <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/10 group-hover:w-full transition-all duration-300" />
+                  <img src={aboutImg} alt="About Us" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-110" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent" />
+                  <div className="absolute inset-0 p-5 flex flex-col justify-end">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-6 h-6 rounded-lg bg-brand-500/20 backdrop-blur-md flex items-center justify-center border border-white/20">
+                        <Info className="w-3.5 h-3.5 text-brand-400" />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-brand-400">Expertise & Trust</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-white group-hover/card:translate-x-1 transition-transform duration-300">Our Vision</h3>
+                    <p className="text-[11px] text-gray-300 line-clamp-2 mt-1 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
+                      Meet Vasudha Thakur and the team dedicated to your secure property growth.
+                    </p>
+                  </div>
                 </Link>
+
+                {/* Why Vadodara Card */}
                 <Link
                   to="/why-vadodara"
                   onClick={() => setDropdownOpen(false)}
-                  className="block px-5 py-3 text-sm text-gray-700 rounded-lg transition-all duration-300 group relative overflow-hidden"
+                  className="relative group/card h-48 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500"
                 >
-                  <span className="relative z-10 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accent-500 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0" />
-                    Why Vadodara?
-                  </span>
-                  <span className="absolute inset-0 bg-brand-50 opacity-0 group-hover:opacity-100 transition-all duration-300" />
-                  <span className="absolute left-0 top-0 bottom-0 w-0 bg-accent-500/10 group-hover:w-full transition-all duration-300" />
+                  <img src={vadodaraImg} alt="Why Vadodara" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-110" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent" />
+                  <div className="absolute inset-0 p-5 flex flex-col justify-end">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-6 h-6 rounded-lg bg-accent-500/20 backdrop-blur-md flex items-center justify-center border border-white/20">
+                        <MapPin className="w-3.5 h-3.5 text-accent-400" />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-accent-400">Investment Hub</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-white group-hover/card:translate-x-1 transition-transform duration-300">Why Vadodara?</h3>
+                    <p className="text-[11px] text-gray-300 line-clamp-2 mt-1 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
+                      Explore Gujarat's cultural heart and its booming real estate opportunities.
+                    </p>
+                  </div>
                 </Link>
               </div>
-            )}
+            </div>
           </div>
           
           {/* User Authentication Links */}
@@ -242,7 +269,7 @@ export default function Header() {
             <div className="flex items-center gap-4">
               <Link
                 to="/login"
-                className="text-sm font-semibold text-gray-300 hover:text-white transition-colors duration-300"
+                className="text-sm font-semibold text-gray-300 border border-white/10 px-5 py-2 rounded-xl hover:bg-white/5 hover:text-white transition-all duration-300"
               >
                 Login
               </Link>

@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
 
     try {
       await forgotPassword(email);
-      toast.success('If an account exists, a reset link has been generated. Check the server console (simulating email).');
+      toast.success('Password reset link sent! Please check your email inbox.');
       setEmail('');
     } catch (error) {
       toast.error('Failed to submit request: ' + error.message);

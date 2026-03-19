@@ -458,49 +458,89 @@ export default function PropertyDetailPage() {
                   </div>
                 ) : (
                   <>
-                    <form onSubmit={handleInquiry} className="space-y-4">
-                      <input
-                        required
-                        value={form.name}
-                        onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                        placeholder="Your Name *"
-                        className="w-full border border-gray-200/80 rounded-xl px-4 py-3 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 bg-white"
-                        name="name"
-                        autoComplete="name"
-                      />
-                      <input
-                        required
-                        type="email"
-                        value={form.email}
-                        onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                        placeholder="Email Address *"
-                        className="w-full border border-gray-200/80 rounded-xl px-4 py-3 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 bg-white"
-                        name="email"
-                        autoComplete="email"
-                      />
-                      <input
-                        required
-                        type="tel"
-                        value={form.phone}
-                        onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                        placeholder="Phone Number *"
-                        className="w-full border border-gray-200/80 rounded-xl px-4 py-3 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 bg-white"
-                        name="phone"
-                        autoComplete="tel"
-                      />
-                      <textarea
-                        required
-                        rows={4}
-                        value={form.message}
-                        onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
-                        placeholder="Hi, I'm interested in this property. Please contact me."
-                        className="w-full border border-gray-200/80 rounded-xl px-4 py-3 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 resize-none bg-white"
-                        name="message"
-                      />
+                    <form onSubmit={handleInquiry} className="space-y-6">
+                      <div className="relative group">
+                        <input
+                          required
+                          value={form.name}
+                          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                          placeholder=" "
+                          className="peer w-full border border-gray-200 rounded-2xl px-4 py-4 text-sm outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 bg-white transition-all duration-300 placeholder-transparent"
+                          name="name"
+                          id="name"
+                          autoComplete="name"
+                        />
+                        <label 
+                          htmlFor="name"
+                          className="absolute left-4 -top-2.5 bg-white px-2 text-[11px] font-bold uppercase tracking-wider text-gray-400 transition-all duration-300 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:top-4 peer-placeholder-shown:text-gray-400 peer-focus:-top-2.5 peer-focus:text-[11px] peer-focus:font-bold peer-focus:text-brand-500 peer-focus:tracking-widest"
+                        >
+                          Your Name *
+                        </label>
+                      </div>
+
+                      <div className="relative group">
+                        <input
+                          required
+                          type="email"
+                          value={form.email}
+                          onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                          placeholder=" "
+                          className="peer w-full border border-gray-200 rounded-2xl px-4 py-4 text-sm outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 bg-white transition-all duration-300 placeholder-transparent"
+                          name="email"
+                          id="email"
+                          autoComplete="email"
+                        />
+                        <label 
+                          htmlFor="email"
+                          className="absolute left-4 -top-2.5 bg-white px-2 text-[11px] font-bold uppercase tracking-wider text-gray-400 transition-all duration-300 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:top-4 peer-placeholder-shown:text-gray-400 peer-focus:-top-2.5 peer-focus:text-[11px] peer-focus:font-bold peer-focus:text-brand-500 peer-focus:tracking-widest"
+                        >
+                          Email Address *
+                        </label>
+                      </div>
+
+                      <div className="relative group">
+                        <input
+                          required
+                          type="tel"
+                          value={form.phone}
+                          onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                          placeholder=" "
+                          className="peer w-full border border-gray-200 rounded-2xl px-4 py-4 text-sm outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 bg-white transition-all duration-300 placeholder-transparent"
+                          name="phone"
+                          id="phone"
+                          autoComplete="tel"
+                        />
+                        <label 
+                          htmlFor="phone"
+                          className="absolute left-4 -top-2.5 bg-white px-2 text-[11px] font-bold uppercase tracking-wider text-gray-400 transition-all duration-300 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:top-4 peer-placeholder-shown:text-gray-400 peer-focus:-top-2.5 peer-focus:text-[11px] peer-focus:font-bold peer-focus:text-brand-500 peer-focus:tracking-widest"
+                        >
+                          Phone Number *
+                        </label>
+                      </div>
+
+                      <div className="relative group">
+                        <textarea
+                          required
+                          rows={4}
+                          value={form.message}
+                          onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
+                          placeholder=" "
+                          className="peer w-full border border-gray-200 rounded-2xl px-4 py-4 text-sm outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 resize-none bg-white transition-all duration-300 placeholder-transparent"
+                          name="message"
+                          id="message"
+                        />
+                        <label 
+                          htmlFor="message"
+                          className="absolute left-4 -top-2.5 bg-white px-2 text-[11px] font-bold uppercase tracking-wider text-gray-400 transition-all duration-300 peer-placeholder-shown:text-sm peer-placeholder-shown:font-medium peer-placeholder-shown:top-4 peer-placeholder-shown:text-gray-400 peer-focus:-top-2.5 peer-focus:text-[11px] peer-focus:font-bold peer-focus:text-brand-500 peer-focus:tracking-widest"
+                        >
+                          Message *
+                        </label>
+                      </div>
+
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="w-full bg-brand-500 hover:bg-brand-600 disabled:opacity-60 text-white py-3.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-[0_16px_40px_-20px_rgba(255,122,0,0.7)] hover:shadow-[0_18px_45px_-18px_rgba(255,122,0,0.8)]"
+                        className="w-full bg-brand-500 hover:bg-brand-600 disabled:opacity-60 text-white py-4 rounded-2xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_20px_40px_-15px_rgba(255,122,0,0.5)] hover:shadow-[0_22px_45px_-12px_rgba(255,122,0,0.6)] active:scale-[0.98]"
                       >
                         {submitting ? (
                           <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -510,15 +550,6 @@ export default function PropertyDetailPage() {
                         {submitting ? 'Sending...' : 'Send Inquiry'}
                       </button>
                     </form>
-
-                    <a
-                      href={`https://wa.me/919876543210?text=${encodeURIComponent(`Hi, I'm interested in "${property.title}" - ${window.location.href}`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-4 w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white py-3.5 rounded-xl font-bold text-sm transition-all duration-200 shadow-md hover:shadow-lg"
-                    >
-                      <Phone className="w-5 h-5" /> WhatsApp Us
-                    </a>
                   </>
                 )}
               </m.div>

@@ -212,12 +212,12 @@ export default function AboutPage() {
                     desc: 'Only trusted builders and quality-checked properties.',
                   },
                 ].map(({ icon: Icon, title, desc }) => (
-                  <m.div key={title} {...hoverLift} className="rounded-xl border border-white/10 bg-white/5 p-4">
-                    <div className="w-9 h-9 rounded-lg bg-brand-500/20 flex items-center justify-center mb-3">
-                      <Icon className="w-4 h-4 text-brand-400" />
+                  <m.div key={title} {...hoverLift} className="rounded-xl border border-white/20 bg-white/10 p-4 shadow-sm">
+                    <div className="w-10 h-10 rounded-lg bg-brand-500/30 flex items-center justify-center mb-3">
+                      <Icon className="w-5 h-5 text-brand-400" />
                     </div>
-                    <p className="text-sm font-semibold text-white">{title}</p>
-                    <p className="text-xs text-gray-300 mt-1 leading-relaxed">{desc}</p>
+                    <p className="text-sm font-bold text-white">{title}</p>
+                    <p className="text-xs text-gray-200 mt-1.5 leading-relaxed">{desc}</p>
                   </m.div>
                 ))}
               </div>
@@ -275,16 +275,16 @@ export default function AboutPage() {
                   
                   <div className="space-y-5">
                     {[
-                      { icon: Home, text: 'First-time homebuyers looking for their dream home', bgColor: 'bg-blue-50', ringColor: 'ring-blue-100', textColor: 'text-blue-500' },
-                      { icon: DollarSign, text: 'Individual investors seeking high ROI properties', bgColor: 'bg-green-50', ringColor: 'ring-green-100', textColor: 'text-green-500' },
-                      { icon: Building2, text: 'Long-term property investors building a portfolio', bgColor: 'bg-purple-50', ringColor: 'ring-purple-100', textColor: 'text-purple-500' },
-                      { icon: Users, text: 'Families relocating to Vadodara', bgColor: 'bg-amber-50', ringColor: 'ring-amber-100', textColor: 'text-amber-500' },
+                      { icon: Home, text: 'First-time homebuyers looking for their dream home', bgColor: 'bg-blue-100/80', ringColor: 'ring-blue-200', textColor: 'text-blue-600' },
+                      { icon: DollarSign, text: 'Individual investors seeking high ROI properties', bgColor: 'bg-green-100/80', ringColor: 'ring-green-200', textColor: 'text-green-600' },
+                      { icon: Building2, text: 'Long-term property investors building a portfolio', bgColor: 'bg-purple-100/80', ringColor: 'ring-purple-200', textColor: 'text-purple-600' },
+                      { icon: Users, text: 'Families relocating to Vadodara', bgColor: 'bg-amber-100/80', ringColor: 'ring-amber-200', textColor: 'text-amber-600' },
                     ].map(({ icon: Icon, text, bgColor, ringColor, textColor }, index) => (
                       <div key={text} className="flex items-start gap-4 group/item">
-                        <div className={`mt-1 flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-lg ${bgColor} ring-1 ${ringColor} transition-all duration-300 group-hover/item:${bgColor.replace('bg-', 'bg-').replace('-50', '-100')}`}>
-                          <Icon className={`h-4 w-4 ${textColor}`} />
+                        <div className={`mt-1 flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-xl ${bgColor} ring-1 ${ringColor} transition-all duration-300 group-hover/item:scale-110 shadow-sm`}>
+                          <Icon className={`h-5 w-5 ${textColor}`} />
                         </div>
-                        <p className="text-gray-700 leading-relaxed group-hover/item:text-gray-900 transition-colors duration-300">
+                        <p className="text-gray-700 leading-relaxed group-hover/item:text-gray-900 transition-colors duration-300 font-medium pt-1.5">
                           {text}
                         </p>
                       </div>
@@ -315,16 +315,16 @@ export default function AboutPage() {
                   
                   <div className="space-y-5">
                     {[
-                      { icon: DollarSign, text: 'Budget-friendly pricing with maximum value', bgColor: 'bg-emerald-50', ringColor: 'ring-emerald-100', textColor: 'text-emerald-500' },
-                      { icon: Building2, text: 'Only quality-verified constructions', bgColor: 'bg-indigo-50', ringColor: 'ring-indigo-100', textColor: 'text-indigo-500' },
-                      { icon: MapPin, text: 'Prime and high-appreciation locations', bgColor: 'bg-rose-50', ringColor: 'ring-rose-100', textColor: 'text-rose-500' },
-                      { icon: Home, text: 'End-to-end support from search to registration', bgColor: 'bg-cyan-50', ringColor: 'ring-cyan-100', textColor: 'text-cyan-500' },
+                      { icon: DollarSign, text: 'Budget-friendly pricing with maximum value', bgColor: 'bg-emerald-100/80', ringColor: 'ring-emerald-200', textColor: 'text-emerald-600' },
+                      { icon: Building2, text: 'Only quality-verified constructions', bgColor: 'bg-indigo-100/80', ringColor: 'ring-indigo-200', textColor: 'text-indigo-600' },
+                      { icon: MapPin, text: 'Prime and high-appreciation locations', bgColor: 'bg-rose-100/80', ringColor: 'ring-rose-200', textColor: 'text-rose-600' },
+                      { icon: Home, text: 'End-to-end support from search to registration', bgColor: 'bg-cyan-100/80', ringColor: 'ring-cyan-200', textColor: 'text-cyan-600' },
                     ].map(({ icon: Icon, text, bgColor, ringColor, textColor }, index) => (
                       <div key={text} className="flex items-start gap-4 group/item">
-                        <div className={`mt-1 flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-lg ${bgColor} ring-1 ${ringColor} transition-all duration-300 group-hover/item:${bgColor.replace('bg-', 'bg-').replace('-50', '-100')}`}>
-                          <Icon className={`h-4 w-4 ${textColor}`} />
+                        <div className={`mt-1 flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-xl ${bgColor} ring-1 ${ringColor} transition-all duration-300 group-hover/item:scale-110 shadow-sm`}>
+                          <Icon className={`h-5 w-5 ${textColor}`} />
                         </div>
-                        <p className="text-gray-700 leading-relaxed font-medium group-hover/item:text-gray-900 transition-colors duration-300">
+                        <p className="text-gray-700 leading-relaxed font-semibold group-hover/item:text-gray-900 transition-colors duration-300 pt-1.5">
                           {text}
                         </p>
                       </div>
@@ -418,8 +418,8 @@ export default function AboutPage() {
           <div className="pointer-events-none absolute -top-24 -left-24 w-64 h-64 bg-brand-500 rounded-full opacity-10 blur-3xl"></div>
           <div className="pointer-events-none absolute -bottom-24 -right-24 w-64 h-64 bg-brand-300 rounded-full opacity-10 blur-3xl"></div>
           <div className="relative max-w-3xl mx-auto text-center px-4">
-            <div className="w-16 h-16 bg-brand-500/20 border border-brand-500/30 rounded-2xl flex items-center justify-center mx-auto mb-6 animate-pulse">
-              <Award className="w-8 h-8 text-brand-400" />
+            <div className="w-18 h-18 bg-brand-500/40 border-2 border-brand-500/60 rounded-[1.75rem] flex items-center justify-center mx-auto mb-8 animate-pulse shadow-[0_0_40px_rgba(255,122,0,0.35)]">
+              <Award className="w-9 h-9 text-white" />
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-5">Our Mission</h2>
             <p className="text-gray-300 text-lg leading-relaxed">

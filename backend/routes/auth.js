@@ -18,6 +18,7 @@ const REFRESH_TTL = process.env.JWT_REFRESH_TTL || `${REFRESH_DAYS}d`;
 const REFRESH_COOKIE = 'refresh_token';
 
 const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
+const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
 const buildUser = (doc) => {
   const data = doc.data() || {};
@@ -129,22 +130,67 @@ router.post('/signup', signupLimiter, async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
+    const otp = generateOTP();
+    const otpExpires = Date.now() + 600000; // 10 minutes
     const now = new Date().toISOString();
     const ref = db.collection('users').doc();
+    
     await ref.set({
       email,
       name,
       displayName: name,
       passwordHash,
       role: 'user',
+      isVerified: false,
+      otp,
+      otpExpires,
       tokenVersion: 0,
       createdAt: now,
       updatedAt: now,
     });
 
-    const userDoc = await ref.get();
-    const payload = await issueTokens(userDoc, res);
-    res.status(201).json(payload);
+    // Send OTP Email
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+      port: process.env.EMAIL_PORT || 587,
+      auth: {
+        user: process.env.EMAIL_USER || 'your-email@gmail.com',
+        pass: process.env.EMAIL_PASS || 'your-app-password',
+      },
+    });
+
+    const logoPath = fileURLToPath(new URL('../../frontend/src/property-master.png', import.meta.url));
+    const otpEmailHtml = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <img src="cid:brandlogo" alt="Property Master" style="width: 80px; height: auto;">
+        </div>
+        <h2 style="color: #ff7a00; text-align: center;">Verify Your Email</h2>
+        <p>Hello ${name},</p>
+        <p>Thank you for signing up with Property Master. Please use the following 6-digit code to verify your email address:</p>
+        <div style="background: #fdf2e9; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+          <span style="font-size: 32px; font-weight: bold; letter-spacing: 12px; color: #ff7a00;">${otp}</span>
+        </div>
+        <p>This code will expire in 10 minutes. If you didn't request this, please ignore this email.</p>
+        <p>Best regards,<br/>The Property Master Team</p>
+      </div>
+    `;
+
+    const mailOptions = {
+      from: '"Property Master" <' + (process.env.EMAIL_USER || 'noreply@propertymaster.com') + '>',
+      to: email,
+      subject: 'Verify Your Email - Property Master',
+      html: otpEmailHtml,
+      attachments: [{ filename: 'property-master.png', path: logoPath, cid: 'brandlogo' }]
+    };
+
+    transporter.sendMail(mailOptions).catch(err => console.error('OTP Email Error:', err));
+
+    res.status(201).json({ 
+      requiresVerification: true, 
+      email,
+      message: 'OTP sent to your email. Please verify to continue.' 
+    });
   } catch (err) {
     console.error('POST /auth/signup error:', err);
     res.status(500).json({ error: 'Failed to sign up' });
@@ -166,6 +212,14 @@ router.post('/login', loginLimiter, async (req, res) => {
     }
 
     const data = userDoc.data() || {};
+    if (data.isVerified === false) {
+      return res.status(403).json({ 
+        requiresVerification: true, 
+        email, 
+        error: 'Please verify your email to log in.' 
+      });
+    }
+
     const ok = await bcrypt.compare(password, data.passwordHash || '');
     if (!ok) {
       return res.status(401).json({ error: 'Invalid email or password' });
@@ -478,6 +532,110 @@ router.post('/reset-password', async (req, res) => {
   } catch (err) {
     console.error('POST /auth/reset-password error:', err);
     res.status(500).json({ error: 'Failed to reset password' });
+  }
+});
+
+router.post('/verify-otp', async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body?.email);
+    const otp = String(req.body?.otp || '').trim();
+
+    if (!email || !otp) {
+      return res.status(400).json({ error: 'Email and OTP are required' });
+    }
+
+    const userDoc = await findUserByEmail(email);
+    if (!userDoc) {
+      return res.status(400).json({ error: 'Invalid request' });
+    }
+
+    const data = userDoc.data() || {};
+    if (data.otp !== otp || !data.otpExpires || Date.now() > data.otpExpires) {
+      return res.status(400).json({ error: 'Invalid or expired OTP' });
+    }
+
+    await db.collection('users').doc(userDoc.id).update({
+      isVerified: true,
+      otp: null,
+      otpExpires: null,
+      updatedAt: new Date().toISOString()
+    });
+
+    const updatedDoc = await db.collection('users').doc(userDoc.id).get();
+    const payload = await issueTokens(updatedDoc, res);
+    res.json(payload);
+  } catch (err) {
+    console.error('POST /auth/verify-otp error:', err);
+    res.status(500).json({ error: 'Failed to verify OTP' });
+  }
+});
+
+router.post('/resend-otp', async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body?.email);
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const userDoc = await findUserByEmail(email);
+    if (!userDoc) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const data = userDoc.data() || {};
+    if (data.isVerified) {
+      return res.status(400).json({ error: 'Account is already verified' });
+    }
+
+    const otp = generateOTP();
+    const otpExpires = Date.now() + 600000; // 10 minutes
+
+    await db.collection('users').doc(userDoc.id).update({
+      otp,
+      otpExpires,
+      updatedAt: new Date().toISOString()
+    });
+
+    // Reuse transporter setup
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+      port: process.env.EMAIL_PORT || 587,
+      auth: {
+        user: process.env.EMAIL_USER || 'your-email@gmail.com',
+        pass: process.env.EMAIL_PASS || 'your-app-password',
+      },
+    });
+
+    const logoPath = fileURLToPath(new URL('../../frontend/src/property-master.png', import.meta.url));
+    const otpEmailHtml = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <img src="cid:brandlogo" alt="Property Master" style="width: 80px; height: auto;">
+        </div>
+        <h2 style="color: #ff7a00; text-align: center;">Your New Verification Code</h2>
+        <p>Hello ${data.name || 'User'},</p>
+        <p>You requested a new verification code. Please use the following 6-digit code to verify your email address:</p>
+        <div style="background: #fdf2e9; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+          <span style="font-size: 32px; font-weight: bold; letter-spacing: 12px; color: #ff7a00;">${otp}</span>
+        </div>
+        <p>This code will expire in 10 minutes.</p>
+        <p>Best regards,<br/>The Property Master Team</p>
+      </div>
+    `;
+
+    const mailOptions = {
+      from: '"Property Master" <' + (process.env.EMAIL_USER || 'noreply@propertymaster.com') + '>',
+      to: email,
+      subject: 'New Verification Code - Property Master',
+      html: otpEmailHtml,
+      attachments: [{ filename: 'property-master.png', path: logoPath, cid: 'brandlogo' }]
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.json({ message: 'New OTP sent to your email.' });
+  } catch (err) {
+    console.error('POST /auth/resend-otp error:', err);
+    res.status(500).json({ error: 'Failed to resend OTP' });
   }
 });
 
