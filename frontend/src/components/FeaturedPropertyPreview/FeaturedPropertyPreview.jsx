@@ -84,7 +84,7 @@ export default function FeaturedPropertyPreview({ properties = [], loading = fal
   );
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="py-12 sm:py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-10">
           <div>
@@ -113,7 +113,7 @@ export default function FeaturedPropertyPreview({ properties = [], loading = fal
           </div>
 
           {loading ? (
-            <div className="relative grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10 p-8 sm:p-12 items-center">
+            <div className="relative grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 sm:gap-10 p-6 sm:p-12 items-center">
               <div className="space-y-6">
                 <div className="bg-white/80 border border-white/70 rounded-3xl p-6 sm:p-7 shadow-[0_18px_40px_-18px_rgba(15,23,42,0.35)] space-y-4 animate-pulse">
                   <div className="h-3 w-24 bg-gray-200 rounded" />
@@ -138,7 +138,7 @@ export default function FeaturedPropertyPreview({ properties = [], loading = fal
           ) : properties.length === 0 ? (
             <p className="relative text-gray-500 text-center py-12">No featured properties yet.</p>
           ) : (
-            <div className="relative grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10 p-8 sm:p-12 items-center">
+            <div className="relative grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 sm:gap-10 p-6 sm:p-12 items-center">
               <div className="space-y-6">
                 <AnimatePresence mode="wait" initial={false}>
                   <m.div
@@ -154,15 +154,15 @@ export default function FeaturedPropertyPreview({ properties = [], loading = fal
                         {intentLabel}
                       </span>
                     </div>
-                    <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mt-3 text-balance">
+                    <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mt-2 sm:mt-3 text-balance">
                       {titleLabel}
                     </h3>
-                    <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
+                    <div className="mt-2 sm:mt-3 flex items-center gap-2 text-sm text-gray-600">
                       <MapPin className="w-4 h-4 text-gray-400" aria-hidden="true" />
                       <span>{locationLabel}</span>
                     </div>
 
-                    <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-gray-500">
+                    <div className="mt-3 sm:mt-4 flex flex-wrap items-center gap-2 sm:gap-3 text-[13px] sm:text-sm text-gray-500">
                       {areaLabel && (
                         <span className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1">
                           <Maximize2 className="w-4 h-4" aria-hidden="true" /> {areaLabel}

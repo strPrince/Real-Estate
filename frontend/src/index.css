@@ -332,10 +332,25 @@ body {
   margin: 0 0 0.3rem;
 }
 
+.auth-title--login {
+  letter-spacing: 0.14em;
+}
+
+.auth-title--signup {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
 .auth-sub {
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.45);
   margin: 0 0 1.5rem;
+}
+
+.auth-sub--login {
+  letter-spacing: 0.04em;
+  line-height: 1.6;
 }
 
 /* Form */
@@ -343,6 +358,22 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.auth-form--two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1rem;
+}
+
+.auth-full {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 640px) {
+  .auth-form--two-col {
+    grid-template-columns: 1fr;
+  }
 }
 
 .auth-field {
@@ -403,7 +434,8 @@ body {
   cursor: pointer;
   transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
   box-shadow: 0 4px 20px rgba(255, 122, 0, 0.4);
-  letter-spacing: 0.01em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .auth-btn:hover:not(:disabled) {
@@ -434,6 +466,7 @@ body {
   font-weight: 600;
   text-decoration: none;
   transition: color 0.2s;
+  letter-spacing: 0.05em;
 }
 
 .auth-link:hover {
@@ -446,6 +479,8 @@ body {
   font-weight: 600;
   text-decoration: none;
   transition: color 0.2s;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .auth-link-small:hover {

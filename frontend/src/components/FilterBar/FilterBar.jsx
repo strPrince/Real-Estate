@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { SlidersHorizontal, X } from 'lucide-react';
+import { getLocalities } from '../../api.js';
 
 const TYPES = [
   { value: '', label: 'All Types' },
@@ -39,7 +40,22 @@ const SORTS = [
   { value: 'price_desc', label: 'Price: High to Low' },
 ];
 
-function FilterForm({ filters, setFilters, set, apply, reset, activeCount }) {
+function FilterForm({
+  filters,
+  setFilters,
+  set,
+  apply,
+  reset,
+  activeCount,
+  localityOptions,
+  localitiesLoading,
+  localitiesError,
+}) {
+  const selectedLocality = useMemo(
+    () => (localityOptions.includes(filters.query) ? filters.query : ''),
+    [filters.query, localityOptions]
+  );
+
   return (
     <div className="space-y-5">
       {/* Intent */}
@@ -67,19 +83,42 @@ function FilterForm({ filters, setFilters, set, apply, reset, activeCount }) {
         </div>
       </div>
 
-      {/* Locality search */}
+      {/* Locality */}
       <div>
-        <label className="block text-xs font-semibold text-gray-500 uppercase mb-2" htmlFor="filter-query">Locality / Area / Landmark</label>
-        <input
-          id="filter-query"
-          value={filters.query}
-          onChange={set('query')}
-          onKeyDown={(e) => e.key === 'Enter' && apply()}
-          placeholder="e.g. Alkapuri, Gotri..."
+        <label className="block text-xs font-semibold text-gray-500 uppercase mb-2" htmlFor="filter-locality">Locality</label>
+        <select
+          id="filter-locality"
+          value={selectedLocality}
+          onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
           className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 bg-white"
-          name="query"
-          autoComplete="address-level2"
-        />
+          disabled={localitiesLoading}
+          name="locality"
+        >
+          <option value="">
+            {localitiesLoading ? 'Loading localities...' : 'All Localities'}
+          </option>
+          {localityOptions.map((name) => (
+            <option key={name} value={name}>{name}</option>
+          ))}
+        </select>
+        {localitiesError && (
+          <p className="text-xs text-red-500 mt-2">{localitiesError}</p>
+        )}
+        <div className="mt-3">
+          <label className="block text-[10px] font-semibold text-gray-400 uppercase mb-2" htmlFor="filter-query">
+            Or type area / landmark
+          </label>
+          <input
+            id="filter-query"
+            value={filters.query}
+            onChange={set('query')}
+            onKeyDown={(e) => e.key === 'Enter' && apply()}
+            placeholder="e.g. Alkapuri, Gotri..."
+            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 bg-white"
+            name="query"
+            autoComplete="address-level2"
+          />
+        </div>
       </div>
 
       {/* Property type */}
@@ -338,8 +377,35 @@ export function FilterPanel({
   onClose,
   hideHeader = false,
 }) {
+  const [localityOptions, setLocalityOptions] = useState([]);
+  const [localitiesLoading, setLocalitiesLoading] = useState(true);
+  const [localitiesError, setLocalitiesError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    setLocalitiesLoading(true);
+    setLocalitiesError('');
+    getLocalities()
+      .then((data) => {
+        if (cancelled) return;
+        const list = Array.isArray(data) ? data : data?.localities || [];
+        const names = Array.from(
+          new Set(list.map((loc) => loc?.name).filter(Boolean))
+        ).sort((a, b) => a.localeCompare(b));
+        setLocalityOptions(names);
+      })
+      .catch(() => {
+        if (!cancelled) setLocalitiesError('Could not load localities.');
+      })
+      .finally(() => {
+        if (!cancelled) setLocalitiesLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, []);
+
   return (
-    <div className={`flex flex-col h-full ${!hideHeader ? 'bg-white rounded-2xl border border-gray-100 shadow-lg overflow-hidden max-h-[90vh]' : ''}`}>
+    <div className={`flex flex-col h-full min-h-0 ${!hideHeader ? 'bg-white rounded-2xl border border-gray-100 shadow-lg overflow-hidden max-h-[90vh]' : ''}`}>
       {!hideHeader && (
         <div className="flex justify-between items-center px-5 pt-6 pb-4 border-b border-gray-100">
           <h3 className="font-bold text-gray-900">Filters</h3>
@@ -358,7 +424,7 @@ export function FilterPanel({
           </button>
         </div>
       )}
-      <div className={`flex-1 overflow-y-auto ${!hideHeader ? 'p-5' : ''}`}>
+      <div className={`flex-1 min-h-0 ${!hideHeader ? 'p-5 overflow-y-auto' : ''}`}>
         <FilterForm
           filters={filters}
           setFilters={setFilters}
@@ -366,6 +432,9 @@ export function FilterPanel({
           apply={apply}
           reset={reset}
           activeCount={activeCount}
+          localityOptions={localityOptions}
+          localitiesLoading={localitiesLoading}
+          localitiesError={localitiesError}
         />
       </div>
     </div>

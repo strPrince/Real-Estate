@@ -66,10 +66,10 @@ export default function SignupPage() {
           </Link>
         </div>
 
-        <h1 className="auth-title">Create an account</h1>
-        <p className="auth-sub">Join thousands discovering Vadodara real estate</p>
+        <h1 className="auth-title auth-title--signup">Create an account</h1>
+        <p className="auth-sub"><i>Join thousands discovering Vadodara real estate</i></p>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <form className="auth-form auth-form--two-col" onSubmit={handleSubmit}>
           <div className="auth-field">
             <label htmlFor="name">Full Name</label>
             <input
@@ -141,11 +141,11 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <div className="mb-6">
+          <div className="mb-6 auth-full">
             <MathCaptcha ref={captchaRef} />
           </div>
 
-          <button type="submit" disabled={loading} className="auth-btn flex items-center justify-center gap-2">
+          <button type="submit" disabled={loading} className="auth-btn flex items-center justify-center gap-2 auth-full">
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />

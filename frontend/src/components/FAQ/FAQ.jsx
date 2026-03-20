@@ -33,7 +33,7 @@ const faqs = [
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState(0);
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="py-12 sm:py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden rounded-4xl bg-white border border-gray-200 shadow-[0_24px_60px_-22px_rgba(15,23,42,0.2)]">
           <div className="pointer-events-none absolute inset-0">
@@ -43,7 +43,7 @@ export default function FAQ() {
           </div>
           <div className="absolute inset-x-0 top-0 h-px bg-brand-500/60" />
 
-          <div className="relative grid grid-cols-1 lg:grid-cols-[0.95fr_1.2fr] gap-10 p-8 sm:p-12">
+          <div className="relative grid grid-cols-1 lg:grid-cols-[0.95fr_1.2fr] gap-10 p-6 sm:p-12">
             <div>
               <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.26em] text-brand-500 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-full">
                 FAQ

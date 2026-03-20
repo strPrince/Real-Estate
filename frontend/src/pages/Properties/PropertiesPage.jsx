@@ -20,14 +20,6 @@ export default function PropertiesPage() {
   const [error, setError] = useState(null);
   const [filterOpen, setFilterOpen] = useState(false);
   const shouldReduceMotion = false; // useReducedMotion();
-  const pageMotion = shouldReduceMotion
-    ? {}
-    : {
-        initial: { opacity: 0, y: 8 },
-        animate: { opacity: 1, y: 0 },
-        exit: { opacity: 0, y: -8 },
-        transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
-      };
 
   const reveal = shouldReduceMotion
     ? {}
@@ -181,12 +173,16 @@ export default function PropertiesPage() {
 
   function handleApply() {
     filterState.apply();
-    setFilterOpen(false);
+    if (typeof window !== 'undefined' && !window.matchMedia('(min-width: 1024px)').matches) {
+      setFilterOpen(false);
+    }
   }
 
   function handleReset() {
     filterState.reset();
-    setFilterOpen(false);
+    if (typeof window !== 'undefined' && !window.matchMedia('(min-width: 1024px)').matches) {
+      setFilterOpen(false);
+    }
   }
 
   const filteredProperties = properties;
@@ -203,7 +199,7 @@ export default function PropertiesPage() {
     <>
       <Header />
       <LazyMotion features={domAnimation}>
-        <m.main {...pageMotion} className="min-h-screen bg-gray-50">
+        <main className="min-h-screen bg-gray-50">
           <section className="py-12 sm:py-20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               {/* header with eyebrow */}
@@ -225,6 +221,26 @@ export default function PropertiesPage() {
                 </div>
                 <FilterButton activeCount={filterState.activeCount} onOpen={() => setFilterOpen(!filterOpen)} />
               </m.div>
+
+              {/* Mobile Sticky Filter Bar */}
+              <div className="lg:hidden sticky top-20 z-30 bg-gray-50/90 backdrop-blur-md py-3 mb-6 -mx-4 px-4 sm:-mx-6 sm:px-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Filters</span>
+                    {filterState.activeCount > 0 && (
+                      <span className="bg-brand-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                        {filterState.activeCount}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setFilterOpen(true)}
+                    className="text-brand-600 text-sm font-bold flex items-center gap-1.5"
+                  >
+                    Adjust
+                  </button>
+                </div>
+              </div>
 
               <div className="flex flex-col lg:flex-row gap-8 items-start">
                 {/* Grid */}
@@ -320,8 +336,8 @@ export default function PropertiesPage() {
 
                 {/* Sidebar filter panel (desktop) - Persistent & Sticky */}
                 {filterOpen && (
-                  <aside className="hidden lg:block w-80 shrink-0 sticky top-24 self-start h-[calc(100vh-7rem)] animate-in slide-in-from-right duration-500">
-                    <div className="h-full bg-white rounded-3xl border border-gray-200 shadow-[0_20px_50px_-20px_rgba(15,23,42,0.15)] overflow-hidden flex flex-col">
+                  <aside className="hidden lg:block w-80 shrink-0 sticky top-24 self-start h-auto animate-in slide-in-from-right duration-500">
+                    <div className="bg-white rounded-3xl border border-gray-200 shadow-[0_20px_50px_-20px_rgba(15,23,42,0.15)] overflow-hidden flex flex-col">
                       <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                         <div className="flex items-center gap-2">
                           <h3 className="font-bold text-gray-900">Filters</h3>
@@ -338,7 +354,7 @@ export default function PropertiesPage() {
                           <X className="w-4 h-4" />
                         </button>
                       </div>
-                      <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-gray-200">
+                      <div className="flex-1 min-h-0 p-6">
                         <FilterPanel
                           filters={filterState.filters}
                           setFilters={filterState.setFilters}
@@ -378,7 +394,7 @@ export default function PropertiesPage() {
               </div>
             </div>
           )}
-        </m.main>
+        </main>
       </LazyMotion>
       <Footer />
     </>

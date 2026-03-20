@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Home, Briefcase, Building2, SlidersHorizontal, X, TrendingUp, Shield, Award } from 'lucide-react';
 import { AnimatePresence, LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
+import hero1 from '../../assets/Hero1.jpg';
+import hero2 from '../../assets/Hero2.jpg';
+import hero3 from '../../assets/Hero3.jpg';
+import hero4 from '../../assets/Hero4.jpg';
 
 const BHKS = [
   { value: '', label: 'Any' },
@@ -18,11 +22,7 @@ const STATS = [
   { icon: Award, value: '12 Yrs', label: 'Market Experience' },
 ];
 
-const HERO_IMAGES = [
-  'https://images.unsplash.com/photo-1502005097973-6a7082348e28?w=1800&q=80',
-  'https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=1800&q=80',
-  'https://images.unsplash.com/photo-1449844908441-8829872d2607?w=1800&q=80',
-];
+const HERO_IMAGES = [hero1, hero2, hero3, hero4];
 const HERO_SLIDE_MS = 6000;
 
 export default function Hero() {
@@ -44,6 +44,22 @@ export default function Hero() {
       setHeroIndex((current) => (current + 1) % HERO_IMAGES.length);
     }, HERO_SLIDE_MS);
     return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    // Preload hero images to avoid laggy background swaps.
+    const preloaded = HERO_IMAGES.map((src) => {
+      const img = new Image();
+      img.src = src;
+      img.decoding = 'async';
+      img.loading = 'eager';
+      return img;
+    });
+    return () => {
+      preloaded.forEach((img) => {
+        img.src = '';
+      });
+    };
   }, []);
 
   function handleSearch(e) {
@@ -84,7 +100,7 @@ export default function Hero() {
 
   return (
     <LazyMotion features={domAnimation}>
-      <section className="relative min-h-[85vh] sm:min-h-screen flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[75vh] sm:min-h-screen flex items-center justify-center overflow-hidden">
         <AnimatePresence initial={false} mode="sync">
           <m.div
             key={heroIndex}
@@ -105,13 +121,24 @@ export default function Hero() {
         {/* Subtle bottom vignette for text legibility */}
         <div className="absolute inset-x-0 bottom-0 h-48 bg-linear-to-t from-black/40 to-transparent" />
 
-        <div className="relative z-10 w-full max-w-6xl mx-auto px-4 text-center lg:text-left space-y-6 pt-6 sm:pt-8 pb-10 sm:pb-14">
+        <div className="relative z-10 w-full max-w-6xl mx-auto px-4 text-center space-y-6 pt-6 sm:pt-8 pb-10 sm:pb-14">
+          <div className="hidden" aria-hidden="true">
+            {HERO_IMAGES.map((src, index) => (
+              <img
+                key={src}
+                src={src}
+                alt=""
+                loading={index === 0 ? 'eager' : 'lazy'}
+                fetchpriority={index === 0 ? 'high' : 'auto'}
+              />
+            ))}
+          </div>
 
           {/* Eyebrow pill */}
           <m.div
             {...baseMotion}
             transition={{ duration: 0.45, ease: [0.22, 0.61, 0.36, 1] }}
-            className="inline-flex items-center gap-2 border border-white/20 text-white/70 text-[10px] font-semibold uppercase tracking-[0.32em] px-3.5 py-1.5 rounded-full mx-auto lg:mx-0 bg-white/5"
+            className="inline-flex items-center gap-2 border border-white/20 text-white/70 text-[10px] font-semibold uppercase tracking-[0.32em] px-3.5 py-1.5 rounded-full mx-auto bg-white/5"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0" />
             <MapPin className="w-3 h-3 text-white" aria-hidden="true" />
@@ -132,7 +159,7 @@ export default function Hero() {
           <m.p
             {...baseMotion}
             transition={{ duration: 0.5, ease: [0.22, 0.61, 0.36, 1], delay: shouldReduceMotion ? 0 : 0.1 }}
-            className="text-white/60 text-base max-w-xl mx-auto lg:mx-0 text-pretty leading-relaxed"
+            className="text-white/60 text-base max-w-xl mx-auto text-pretty leading-relaxed"
           >
             Curated listings, verified builders, and expert guidance — buy, rent, or invest with total confidence.
           </m.p>
@@ -142,10 +169,11 @@ export default function Hero() {
             onSubmit={handleSearch}
             {...baseMotion}
             transition={{ duration: 0.55, ease: [0.22, 0.61, 0.36, 1], delay: shouldReduceMotion ? 0 : 0.15 }}
-            className="bg-white/90 backdrop-blur-sm rounded-2xl border border-white/70 ring-1 ring-black/5 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.45)] p-4 sm:p-5 w-full max-w-4xl mx-auto lg:mx-0"
+            className="relative bg-white/90 backdrop-blur-sm rounded-2xl border border-white/70 ring-1 ring-black/5 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.45)] p-4 sm:p-5 w-full max-w-4xl mx-auto"
           >
+           
             {/* Intent toggle */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-5 mb-4 pb-3.5 border-b border-gray-100">
+            <div className="flex flex-wrap items-center justify-center gap-5 mb-4 pb-3.5 border-b border-gray-100">
               {[
                 { value: 'buy', label: 'Buy', icon: Home },
                 { value: 'rent', label: 'Rent', icon: Briefcase },
@@ -178,7 +206,7 @@ export default function Hero() {
               {/* Search input */}
               <label className="text-left w-full" htmlFor="hero-search">
                 <span className="text-[9px] font-bold tracking-[0.22em] text-gray-400">SEARCH</span>
-                <div className="mt-1.5 flex items-center gap-3 h-10 border border-gray-200 rounded-xl px-4 bg-gray-50 focus-within:bg-white focus-within:border-brand-500 focus-within:ring-1 focus-within:ring-brand-500 transition-all">
+                <div className="mt-1.5 flex items-center gap-3 h-12 sm:h-10 border border-gray-200 rounded-xl px-4 bg-gray-50 focus-within:bg-white focus-within:border-brand-500 focus-within:ring-1 focus-within:ring-brand-500 transition-all">
                   <Search className="w-4 h-4 text-gray-400 shrink-0" aria-hidden="true" />
                   <input
                     id="hero-search"
@@ -186,7 +214,7 @@ export default function Hero() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Property name, area..."
-                    className="flex-1 text-[13px] outline-none text-gray-900 placeholder-gray-400 bg-transparent"
+                    className="flex-1 text-[14px] sm:text-[13px] outline-none text-gray-900 placeholder-gray-400 bg-transparent"
                     name="search"
                     autoComplete="off"
                   />
@@ -196,7 +224,7 @@ export default function Hero() {
               {/* Location input */}
               <label className="text-left w-full" htmlFor="hero-location">
                 <span className="text-[9px] font-bold tracking-[0.22em] text-gray-400">LOCATION</span>
-                <div className="mt-1.5 flex items-center gap-3 h-10 border border-gray-200 rounded-xl px-4 bg-gray-50 focus-within:bg-white focus-within:border-brand-500 focus-within:ring-1 focus-within:ring-brand-500 transition-all">
+                <div className="mt-1.5 flex items-center gap-3 h-12 sm:h-10 border border-gray-200 rounded-xl px-4 bg-gray-50 focus-within:bg-white focus-within:border-brand-500 focus-within:ring-1 focus-within:ring-brand-500 transition-all">
                   <MapPin className="w-4 h-4 text-gray-400 shrink-0" aria-hidden="true" />
                   <input
                     id="hero-location"
@@ -204,7 +232,7 @@ export default function Hero() {
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     placeholder="Locality or landmark..."
-                    className="flex-1 text-[13px] outline-none text-gray-900 placeholder-gray-400 bg-transparent"
+                    className="flex-1 text-[14px] sm:text-[13px] outline-none text-gray-900 placeholder-gray-400 bg-transparent"
                     name="location"
                     autoComplete="address-level2"
                   />
@@ -216,8 +244,8 @@ export default function Hero() {
                 <span className="text-[9px] font-bold tracking-[0.22em] text-gray-400 mb-1.5 invisible select-none">FILTER</span>
                 <button
                   type="button"
-                  onClick={() => setFilterOpen(true)}
-                  className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:text-gray-900 transition-colors flex items-center justify-center gap-2 text-[13px] font-semibold"
+                  onClick={() => setFilterOpen((open) => !open)}
+                  className="h-12 sm:h-10 w-full md:w-auto px-4 rounded-xl border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:text-gray-900 transition-colors flex items-center justify-center gap-2 text-[13px] font-semibold"
                   aria-label="Open filters"
                 >
                   <SlidersHorizontal className="w-4 h-4" /> Filters
@@ -229,7 +257,7 @@ export default function Hero() {
                 <span className="text-[9px] font-bold tracking-[0.22em] text-gray-400 mb-1.5 invisible select-none">GO</span>
                   <button
                   type="submit"
-                  className="bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white px-5 h-10 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 shadow-[0_4px_14px_0_rgba(255,122,0,0.35)] text-[13px]"
+                  className="bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white px-5 h-12 sm:h-10 w-full md:w-auto rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 shadow-[0_4px_14px_0_rgba(255,122,0,0.35)] text-[13px]"
 >
                   <Search className="w-4 h-4" aria-hidden="true" /> Find Home
                 </button>
@@ -237,7 +265,7 @@ export default function Hero() {
             </div>
 
             {/* Quick filters */}
-            <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className="mt-4 flex items-center gap-2 overflow-x-auto whitespace-nowrap pb-1 -mx-1 px-1 sm:flex-wrap sm:overflow-visible sm:whitespace-normal">
               <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-400 mr-1">
                 Quick Filters
               </span>
@@ -265,7 +293,114 @@ export default function Hero() {
                 );
               })}
             </div>
+
           </m.form>
+
+          {filterOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+              <button
+                type="button"
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                aria-label="Close filters"
+                onClick={() => setFilterOpen(false)}
+              />
+              <div className="relative w-full max-w-3xl rounded-2xl border border-gray-200 bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)]">
+                <div className="flex items-start justify-between border-b border-gray-100 px-6 py-4">
+                  <div className="text-left">
+                    <p className="text-xs font-bold uppercase tracking-[0.22em] text-gray-400">Advanced Filters</p>
+                    <p className="text-sm text-gray-600">Refine by type, bedrooms, and budget.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFilterOpen(false)}
+                    className="p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                    aria-label="Close filters"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="px-6 py-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <label className="text-left w-full">
+                      <span className="text-[9px] font-bold tracking-[0.22em] text-gray-400">PROPERTY TYPE</span>
+                      <select
+                        value={propertyType}
+                        onChange={(e) => setPropertyType(e.target.value)}
+                        className="mt-1.5 h-10 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-[13px] font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                      >
+                        <option value="">Any</option>
+                        <option value="residential">Residential</option>
+                        <option value="commercial">Commercial</option>
+                        <option value="plot">Plot</option>
+                      </select>
+                    </label>
+
+                    <label className="text-left w-full">
+                      <span className="text-[9px] font-bold tracking-[0.22em] text-gray-400">BEDROOMS</span>
+                      <select
+                        value={bedrooms}
+                        onChange={(e) => setBedrooms(e.target.value)}
+                        className="mt-1.5 h-10 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-[13px] font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                      >
+                        {BHKS.map((bhk) => (
+                          <option key={bhk.value} value={bhk.value}>
+                            {bhk.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="text-left w-full">
+                      <span className="text-[9px] font-bold tracking-[0.22em] text-gray-400">MIN PRICE (₹)</span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min="0"
+                        value={minPrice}
+                        onChange={(e) => setMinPrice(e.target.value)}
+                        placeholder="e.g. 2500000"
+                        className="mt-1.5 h-10 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-[13px] font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                      />
+                    </label>
+
+                    <label className="text-left w-full">
+                      <span className="text-[9px] font-bold tracking-[0.22em] text-gray-400">MAX PRICE (₹)</span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min="0"
+                        value={maxPrice}
+                        onChange={(e) => setMaxPrice(e.target.value)}
+                        placeholder="e.g. 5000000"
+                        className="mt-1.5 h-10 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-[13px] font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        clearFilters();
+                        setFilterOpen(false);
+                      }}
+                      className="px-4 h-9 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:border-gray-300 hover:text-gray-900 transition-colors"
+                    >
+                      Clear
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFilterOpen(false)}
+                      className="px-4 h-9 rounded-xl bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 transition-colors"
+                    >
+                      Done
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
       </section>

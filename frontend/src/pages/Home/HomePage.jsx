@@ -147,7 +147,7 @@ export default function HomePage() {
 
           {/* Trust strip */}
           <m.section {...reveal} className="bg-white/80 border-y border-gray-100">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-600">
                 {[
                   { title: 'Verified Listings', desc: 'Only screened properties & builders' },
@@ -242,7 +242,7 @@ export default function HomePage() {
           </m.div>
 
           {/* Welcome Section */}
-          <m.section {...reveal} className="py-20 bg-gray-50">
+          <m.section {...reveal} className="py-12 sm:py-20 bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="relative overflow-hidden rounded-4xl bg-white border border-gray-200 shadow-[0_24px_60px_-22px_rgba(15,23,42,0.2)]">
                 {/* Background elements */}
@@ -288,7 +288,7 @@ export default function HomePage() {
                   </m.div>
                 </div>
 
-                <div className="relative p-8 sm:p-12">
+                <div className="relative p-6 sm:p-12">
                   <div className="max-w-2xl">
                     <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-brand-500 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-full">
                       Welcome
@@ -306,7 +306,7 @@ export default function HomePage() {
                     {/* Visual */}
                     <div className="relative flex items-center justify-center">
                       <div
-                        className="relative h-[360px] w-[320px] sm:h-[420px] sm:w-[360px] bg-cover bg-center shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)]"
+                        className="relative h-[360px] w-full max-w-[320px] sm:h-[420px] sm:max-w-[360px] bg-cover bg-center shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)]"
                         style={{
                           backgroundImage:
                             "url('https://images.unsplash.com/photo-1502005097973-6a7082348e28?w=1200&q=80')",
@@ -443,7 +443,7 @@ export default function HomePage() {
           </m.div>
 
           {/* Why Choose Vadodara */}
-          <m.section {...reveal} className="py-20 bg-gray-900">
+          <m.section {...reveal} className="py-12 sm:py-20 bg-gray-900">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="mb-10">
                 <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-brand-200 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full">
@@ -458,7 +458,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-size-[28px_28px] pointer-events-none" />
                 {/* Top brand accent line */}
                 <div className="absolute inset-x-0 top-0 h-px bg-brand-500/60" />
-                <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-10 p-8 sm:p-12">
+                <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-10 p-6 sm:p-12">
                   <div className="space-y-5">
                     <p className="text-gray-400 text-base leading-relaxed max-w-xl">
                       Vadodara, the cultural capital of Gujarat, offers a perfect blend of rich heritage and modern infrastructure.

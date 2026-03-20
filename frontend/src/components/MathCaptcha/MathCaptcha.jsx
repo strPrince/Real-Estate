@@ -38,10 +38,10 @@ const MathCaptcha = forwardRef(({ onValidate }, ref) => {
   }));
 
   return (
-    <div className="bg-gray-50/50 border border-gray-100 rounded-xl p-3">
+    <div className="bg-gray-50/60 border border-gray-200 rounded-xl p-3">
       <div className="flex items-center gap-2 mb-2">
-        <ShieldCheck className="w-3.5 h-3.5 text-brand-500" />
-        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">Security Check</span>
+        <ShieldCheck className="w-3.5 h-3.5 text-brand-600" />
+        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-600">Security Check</span>
       </div>
       
       <div className="flex flex-col gap-2">
@@ -50,7 +50,7 @@ const MathCaptcha = forwardRef(({ onValidate }, ref) => {
           <span className="text-lg font-bold text-gray-800 tabular-nums">
             {num1} <span className="text-brand-500 mx-1">+</span> {num2}
           </span>
-          <span className="text-lg font-bold text-gray-300 ml-2">=</span>
+          <span className="text-lg font-bold text-gray-400 ml-2">=</span>
         </div>
 
         {/* Input & Refresh - Row 2 */}
@@ -63,7 +63,7 @@ const MathCaptcha = forwardRef(({ onValidate }, ref) => {
               setError(false);
             }}
             placeholder="Answer"
-            className={`flex-1 px-3 py-2 bg-white border ${error ? 'border-red-200 focus:border-red-500' : 'border-gray-100 focus:border-brand-500'} rounded-lg transition-all outline-none text-center text-base font-bold placeholder:text-gray-300 placeholder:text-xs placeholder:font-medium focus:ring-2 focus:ring-brand-500/10`}
+            className={`flex-1 px-3 py-2 bg-white border ${error ? 'border-red-200 focus:border-red-500' : 'border-gray-200 focus:border-brand-500'} rounded-lg transition-all outline-none text-center text-base font-bold placeholder:text-gray-400 placeholder:text-xs placeholder:font-medium focus:ring-2 focus:ring-brand-500/10`}
           />
           <button
             type="button"

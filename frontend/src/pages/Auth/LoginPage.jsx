@@ -56,11 +56,11 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        <h1 className="auth-title">Welcome back</h1>
-        <p className="auth-sub">Sign in to continue to your account</p>
+        <h1 className="auth-title auth-title--login">Welcome back</h1>
+        <p className="auth-sub auth-sub--login">Sign in to continue to your account</p>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <div className="auth-field">
+        <form className="auth-form auth-form--two-col" onSubmit={handleSubmit}>
+          <div className="auth-field auth-full">
             <label htmlFor="email">Email address</label>
             <input
               id="email"
@@ -73,7 +73,7 @@ export default function LoginPage() {
             />
           </div>
 
-          <div className="auth-field">
+          <div className="auth-field auth-full">
             <div className="auth-field-row">
               <label htmlFor="password">Password</label>
               <Link to="/forgot-password" className="auth-link-small">Forgot password?</Link>
@@ -100,11 +100,11 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="mb-6">
+          <div className="mb-6 auth-full">
             <MathCaptcha ref={captchaRef} />
           </div>
 
-          <button type="submit" disabled={loading} className="auth-btn flex items-center justify-center gap-2">
+          <button type="submit" disabled={loading} className="auth-btn flex items-center justify-center gap-2 auth-full">
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
