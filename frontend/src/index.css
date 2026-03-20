@@ -297,6 +297,10 @@ body {
   animation: fadeInUp 0.5s ease-out both;
 }
 
+.auth-card--signup {
+  max-width: 560px;
+}
+
 /* Logo / wordmark */
 .auth-logo {
   display: flex;

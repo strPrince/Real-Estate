@@ -58,7 +58,7 @@ export default function SignupPage() {
       <div className="auth-grid" />
 
       {/* ── card ── */}
-      <div className="auth-card">
+      <div className="auth-card auth-card--signup">
         {/* logo / wordmark */}
         <div className="flex justify-center mb-2">
           <Link to="/" className="hover:scale-105 transition-transform duration-300">

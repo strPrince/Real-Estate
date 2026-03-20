@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import Header from '../../components/Header/Header.jsx';
 import Footer from '../../components/Footer/Footer.jsx';
 import { Home, MapPin, DollarSign, Building2, Award, Target, TrendingUp, Users, Star, ShieldCheck, Headphones } from 'lucide-react';
@@ -212,9 +212,9 @@ export default function AboutPage() {
                     desc: 'Only trusted builders and quality-checked properties.',
                   },
                 ].map(({ icon: Icon, title, desc }) => (
-                  <m.div key={title} {...hoverLift} className="rounded-xl border border-white/20 bg-white/10 p-4 shadow-sm">
-                    <div className="w-10 h-10 rounded-lg bg-brand-500/30 flex items-center justify-center mb-3">
-                      <Icon className="w-5 h-5 text-brand-400" />
+                  <m.div key={title} {...hoverLift} className="rounded-xl border border-white/20 bg-white/10 p-4 shadow-sm group/iconcard">
+                    <div className="w-10 h-10 rounded-lg bg-brand-500 flex items-center justify-center mb-3 shadow-[0_4px_12px_-2px_rgba(255,122,0,0.5)] transition-transform duration-300 group-hover/iconcard:scale-110">
+                      <Icon className="w-5 h-5 text-white" />
                     </div>
                     <p className="text-sm font-bold text-white">{title}</p>
                     <p className="text-xs text-gray-200 mt-1.5 leading-relaxed">{desc}</p>

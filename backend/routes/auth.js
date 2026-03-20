@@ -19,6 +19,87 @@ const REFRESH_COOKIE = 'refresh_token';
 
 const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+const BRAND_NAME = 'Property Master';
+const BRAND_LOGO_CID = 'brandlogo';
+const BRAND_LOGO_PATH = fileURLToPath(new URL('../../frontend/src/property-master.png', import.meta.url));
+
+const escapeHtml = (value) =>
+  String(value ?? '').replace(/[&<>"']/g, (char) => {
+    switch (char) {
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '"':
+        return '&quot;';
+      case "'":
+        return '&#39;';
+      default:
+        return char;
+    }
+  });
+
+const buildEmailLayout = ({ title, previewText, bodyHtml, footerHtml }) => `
+  <!doctype html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${escapeHtml(title)}</title>
+  </head>
+  <body style="margin:0; padding:0; background-color:#f5f5f5; font-family:'Sofia Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color:#222222;">
+    <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">${escapeHtml(previewText || '')}</div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f5f5f5; padding:0; margin:0;">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px; background-color:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.08);">
+            <tr>
+              <td style="background:linear-gradient(100deg, #ff7a00 0%, #ffb84d 55%, #ffd9b0 100%); padding:32px 24px; text-align:center;">
+                <img src="cid:${BRAND_LOGO_CID}" alt="${BRAND_NAME}" width="120" style="display:block; margin:0 auto 12px; background-color:#0f172a; padding:10px; border-radius:8px;" />
+                <div style="color:#ffffff; font-size:26px; font-weight:700; letter-spacing:-0.01em;">${BRAND_NAME}</div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:32px 28px; font-size:16px; line-height:1.6; color:#222222;">
+                ${bodyHtml}
+              </td>
+            </tr>
+            <tr>
+              <td style="background-color:#fffaf5; padding:20px 24px; text-align:center; border-top:1px solid #ece7df; font-size:13px; color:#6b6b6b;">
+                <div>Copyright ${new Date().getFullYear()} ${BRAND_NAME}. All rights reserved.</div>
+                ${footerHtml ? `<div style="margin-top:8px;">${footerHtml}</div>` : ''}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+  </html>
+`;
+
+const createTransporter = () => {
+  const port = Number(process.env.EMAIL_PORT || 587);
+  const safePort = Number.isFinite(port) ? port : 587;
+  return nodemailer.createTransport({
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: safePort,
+    auth: {
+      user: process.env.EMAIL_USER || 'your-email@gmail.com',
+      pass: process.env.EMAIL_PASS || 'your-app-password',
+    },
+  });
+};
+
+const buildMailOptions = ({ to, subject, html }) => ({
+  from: `"${BRAND_NAME}" <${process.env.EMAIL_USER || 'noreply@propertymaster.com'}>`,
+  to,
+  subject,
+  html,
+  attachments: [{ filename: 'property-master.png', path: BRAND_LOGO_PATH, cid: BRAND_LOGO_CID }],
+});
 
 const buildUser = (doc) => {
   const data = doc.data() || {};
@@ -150,39 +231,28 @@ router.post('/signup', signupLimiter, async (req, res) => {
     });
 
     // Send OTP Email
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-      port: process.env.EMAIL_PORT || 587,
-      auth: {
-        user: process.env.EMAIL_USER || 'your-email@gmail.com',
-        pass: process.env.EMAIL_PASS || 'your-app-password',
-      },
+    const transporter = createTransporter();
+    const safeName = escapeHtml(name || 'there');
+    const otpEmailHtml = buildEmailLayout({
+      title: 'Verify Your Email',
+      previewText: `Your verification code is ${otp}`,
+      bodyHtml: `
+        <h2 style="margin:0 0 12px; font-size:22px; font-weight:700; color:#222222;">Verify Your Email</h2>
+        <p style="margin:0 0 12px;">Hello ${safeName},</p>
+        <p style="margin:0 0 16px;">Thank you for signing up with ${BRAND_NAME}. Please use the following 6-digit code to verify your email address:</p>
+        <div style="background:#fdf2e9; padding:18px; text-align:center; border-radius:8px; margin:20px 0;">
+          <span style="font-size:28px; font-weight:700; letter-spacing:8px; color:#ff7a00; display:inline-block;">${otp}</span>
+        </div>
+        <p style="margin:0 0 12px;">This code will expire in 10 minutes. If you did not request this, please ignore this email.</p>
+        <p style="margin:0;">Best regards,<br>The ${BRAND_NAME} Team</p>
+      `,
     });
 
-    const logoPath = fileURLToPath(new URL('../../frontend/src/property-master.png', import.meta.url));
-    const otpEmailHtml = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <img src="cid:brandlogo" alt="Property Master" style="width: 80px; height: auto;">
-        </div>
-        <h2 style="color: #ff7a00; text-align: center;">Verify Your Email</h2>
-        <p>Hello ${name},</p>
-        <p>Thank you for signing up with Property Master. Please use the following 6-digit code to verify your email address:</p>
-        <div style="background: #fdf2e9; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
-          <span style="font-size: 32px; font-weight: bold; letter-spacing: 12px; color: #ff7a00;">${otp}</span>
-        </div>
-        <p>This code will expire in 10 minutes. If you didn't request this, please ignore this email.</p>
-        <p>Best regards,<br/>The Property Master Team</p>
-      </div>
-    `;
-
-    const mailOptions = {
-      from: '"Property Master" <' + (process.env.EMAIL_USER || 'noreply@propertymaster.com') + '>',
+    const mailOptions = buildMailOptions({
       to: email,
-      subject: 'Verify Your Email - Property Master',
+      subject: `Verify Your Email - ${BRAND_NAME}`,
       html: otpEmailHtml,
-      attachments: [{ filename: 'property-master.png', path: logoPath, cid: 'brandlogo' }]
-    };
+    });
 
     transporter.sendMail(mailOptions).catch(err => console.error('OTP Email Error:', err));
 
@@ -394,82 +464,30 @@ router.post('/forgot-password', async (req, res) => {
     const resetUrl = `${req.headers.origin || 'http://localhost:5173'}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
     
     // Set up Nodemailer transport
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-      port: process.env.EMAIL_PORT || 587,
-      auth: {
-        user: process.env.EMAIL_USER || 'your-email@gmail.com',
-        pass: process.env.EMAIL_PASS || 'your-app-password',
-      },
+    const transporter = createTransporter();
+    const safeEmail = escapeHtml(email);
+    const safeResetUrl = escapeHtml(resetUrl);
+    const emailHtml = buildEmailLayout({
+      title: 'Reset Your Password',
+      previewText: 'Use this link to reset your password.',
+      bodyHtml: `
+        <h2 style="margin:0 0 12px; font-size:22px; font-weight:700; color:#222222;">Password Reset Request</h2>
+        <p style="margin:0 0 12px;">Hello,</p>
+        <p style="margin:0 0 20px;">We received a request to reset the password for the ${BRAND_NAME} account associated with ${safeEmail}. If you made this request, please click the button below to choose a new password.</p>
+        <div style="text-align:center; margin:24px 0;">
+          <a href="${safeResetUrl}" style="display:inline-block; background-color:#ff7a00; color:#ffffff; padding:12px 24px; border-radius:8px; font-size:16px; font-weight:600; text-decoration:none;">Reset Password</a>
+        </div>
+        <p style="margin:0 0 12px;">This link will expire in 1 hour. If you did not request a password reset, you can safely ignore this email and your password will remain unchanged.</p>
+        <p style="margin:0;">Thanks,<br>The ${BRAND_NAME} Team</p>
+      `,
+      footerHtml: `If you are having trouble clicking the button, copy and paste this URL into your web browser:<br><a href="${safeResetUrl}" style="color:#0077b6; text-decoration:none; word-break:break-all;">${safeResetUrl}</a>`,
     });
 
-    const emailHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Reset Your Password</title>
-        <style>
-          body { font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 0; color: #222222; }
-          .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
-          .header { background: linear-gradient(100deg, #ff7a00 0%, #ffb84d 55%, #ffd9b0 100%); padding: 32px 24px; text-align: center; }
-          .header .logo { width: 80px; height: auto; margin-bottom: 16px; }
-          .header h1 { color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.01em; }
-          .content { padding: 40px 32px; text-align: left; }
-          .content h2 { margin-top: 0; font-size: 22px; font-weight: 600; color: #222222; }
-          .content p { font-size: 16px; line-height: 1.6; color: #6b6b6b; margin-bottom: 24px; }
-          .btn-container { text-align: center; margin: 36px 0; }
-          .btn { display: inline-block; background-color: #ff7a00; color: #ffffff; padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: 600; text-decoration: none; box-shadow: 0 4px 14px 0 rgba(255,122,0,0.35); }
-          .btn:hover { background-color: #cc5c00; }
-          .footer { background-color: #fffaf5; padding: 24px; text-align: center; border-top: 1px solid #ece7df; }
-          .footer p { margin: 0; font-size: 14px; color: #6b6b6b; }
-          .footer a { color: #0077b6; text-decoration: none; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <img src="cid:brandlogo" alt="Property Master Logo" class="logo">
-            <h1>Property Master</h1>
-          </div>
-          <div class="content">
-            <h2>Password Reset Request</h2>
-            <p>Hello,</p>
-            <p>We received a request to reset the password for the Property Master account associated with ${email}. If you made this request, please click the button below to choose a new password.</p>
-            
-            <div class="btn-container">
-              <a href="${resetUrl}" class="btn" target="_blank">Reset Password</a>
-            </div>
-            
-            <p>This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email and your password will remain unchanged.</p>
-            <p>Thanks,<br>The Property Master Team</p>
-          </div>
-          <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} Property Master. All rights reserved.</p>
-            <p>If you're having trouble clicking the button, copy and paste the URL below into your web browser:</p>
-            <p style="word-break: break-all; margin-top: 8px;"><a href="${resetUrl}">${resetUrl}</a></p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-
-    const logoPath = fileURLToPath(new URL('../../frontend/src/property-master.png', import.meta.url));
-
-    const mailOptions = {
-      from: '"Property Master" <' + (process.env.EMAIL_USER || 'noreply@propertymaster.com') + '>',
+    const mailOptions = buildMailOptions({
       to: email,
-      subject: 'Reset Your Password - Property Master',
+      subject: `Reset Your Password - ${BRAND_NAME}`,
       html: emailHtml,
-      attachments: [
-        {
-          filename: 'property-master.png',
-          path: logoPath,
-          cid: 'brandlogo'
-        }
-      ]
-    };
+    });
 
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
@@ -597,39 +615,28 @@ router.post('/resend-otp', async (req, res) => {
     });
 
     // Reuse transporter setup
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-      port: process.env.EMAIL_PORT || 587,
-      auth: {
-        user: process.env.EMAIL_USER || 'your-email@gmail.com',
-        pass: process.env.EMAIL_PASS || 'your-app-password',
-      },
+    const transporter = createTransporter();
+    const safeName = escapeHtml(data.name || 'there');
+    const otpEmailHtml = buildEmailLayout({
+      title: 'Your New Verification Code',
+      previewText: `Your new verification code is ${otp}`,
+      bodyHtml: `
+        <h2 style="margin:0 0 12px; font-size:22px; font-weight:700; color:#222222;">Your New Verification Code</h2>
+        <p style="margin:0 0 12px;">Hello ${safeName},</p>
+        <p style="margin:0 0 16px;">You requested a new verification code. Please use the following 6-digit code to verify your email address:</p>
+        <div style="background:#fdf2e9; padding:18px; text-align:center; border-radius:8px; margin:20px 0;">
+          <span style="font-size:28px; font-weight:700; letter-spacing:8px; color:#ff7a00; display:inline-block;">${otp}</span>
+        </div>
+        <p style="margin:0 0 12px;">This code will expire in 10 minutes.</p>
+        <p style="margin:0;">Best regards,<br>The ${BRAND_NAME} Team</p>
+      `,
     });
 
-    const logoPath = fileURLToPath(new URL('../../frontend/src/property-master.png', import.meta.url));
-    const otpEmailHtml = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <img src="cid:brandlogo" alt="Property Master" style="width: 80px; height: auto;">
-        </div>
-        <h2 style="color: #ff7a00; text-align: center;">Your New Verification Code</h2>
-        <p>Hello ${data.name || 'User'},</p>
-        <p>You requested a new verification code. Please use the following 6-digit code to verify your email address:</p>
-        <div style="background: #fdf2e9; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
-          <span style="font-size: 32px; font-weight: bold; letter-spacing: 12px; color: #ff7a00;">${otp}</span>
-        </div>
-        <p>This code will expire in 10 minutes.</p>
-        <p>Best regards,<br/>The Property Master Team</p>
-      </div>
-    `;
-
-    const mailOptions = {
-      from: '"Property Master" <' + (process.env.EMAIL_USER || 'noreply@propertymaster.com') + '>',
+    const mailOptions = buildMailOptions({
       to: email,
-      subject: 'New Verification Code - Property Master',
+      subject: `New Verification Code - ${BRAND_NAME}`,
       html: otpEmailHtml,
-      attachments: [{ filename: 'property-master.png', path: logoPath, cid: 'brandlogo' }]
-    };
+    });
 
     await transporter.sendMail(mailOptions);
     res.json({ message: 'New OTP sent to your email.' });
