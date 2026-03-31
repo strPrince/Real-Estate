@@ -1,4 +1,4 @@
-  import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -6,17 +6,18 @@ import 'leaflet/dist/leaflet.css';
 import toast from 'react-hot-toast';
 import {
   MapPin, BedDouble, Bath, Maximize2, Tag, Calendar,
-  ChevronLeft, ChevronRight, Phone, Mail, Share2,
+  ChevronLeft, ChevronRight, Phone, Mail, Share2, ArrowLeft, Ruler, Layers, IndianRupee, Sparkles
 } from 'lucide-react';
 import Header from '../../components/Header/Header.jsx';
 import Footer from '../../components/Footer/Footer.jsx';
 import SkeletonCard from '../../components/SkeletonCard/SkeletonCard.jsx';
 import PropertyCard from '../../components/PropertyCard/PropertyCard.jsx';
 import { getCachedProperties, getProperty, submitInquiry, submitQuery } from '../../api.js';
-import { LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
+import { LazyMotion, domAnimation, m } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext.jsx';
 import MathCaptcha from '../../components/MathCaptcha/MathCaptcha.jsx';
 import FloorPlansSection from '../../components/FloorPlans/FloorPlansSection.jsx';
+import floorPlanPlaceholder from '../../assets/floor-plan-placeholder.png';
 import localities from '../../data/localities.json';
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -36,7 +37,13 @@ function MapUpdater({ center }) {
   return null;
 }
 
-const PLACEHOLDER = 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&q=80';
+const PLACEHOLDER_IMAGES = [
+  floorPlanPlaceholder,
+  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80',
+  'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80',
+];
+
+const sqftToSqm = (sqft) => (sqft * 0.092903).toFixed(2);
 
 const normalizeText = (value) => String(value || '').trim().toLowerCase();
 
@@ -192,11 +199,13 @@ const getRelatedProperties = (current, list) => {
   return ranked.map((entry) => entry.item);
 };
 
-export default function PropertyDetailPage() {
-  const { id } = useParams();
+export default function FloorPlanDetailPage() {
+  const { id, planIndex } = useParams();
+  const idx = parseInt(planIndex) || 0;
+  
   const { currentUser } = useAuth();
   const isLocked = !currentUser;
-  const shouldReduceMotion = false; // useReducedMotion();
+  
   const [property, setProperty] = useState(null);
   const [mapCoords, setMapCoords] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -260,30 +269,18 @@ export default function PropertyDetailPage() {
     }
   }, [property]);
 
-  const pageMotion = shouldReduceMotion
-    ? {}
-    : {
+  const pageMotion = {
         initial: { opacity: 0, y: 8 },
         animate: { opacity: 1, y: 0 },
         exit: { opacity: 0, y: -8 },
         transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
       };
 
-  const reveal = shouldReduceMotion
-    ? {}
-    : {
+  const reveal = {
         initial: { opacity: 0, y: 18 },
         whileInView: { opacity: 1, y: 0 },
         viewport: { once: true, amount: 0.2 },
         transition: { duration: 0.55, ease: [0.22, 0.61, 0.36, 1] },
-      };
-
-  const hoverLift = shouldReduceMotion
-    ? {}
-    : {
-        whileHover: { y: -5, scale: 1.01 },
-        whileTap: { scale: 0.98 },
-        transition: { type: 'spring', stiffness: 260, damping: 18 },
       };
 
   useEffect(() => {
@@ -292,15 +289,16 @@ export default function PropertyDetailPage() {
     getProperty(id)
       .then((data) => {
         setProperty(data);
-        document.title = `${data.title} - Property Master Vadodara`;
+        const planName = data.floorPlans?.[idx]?.label || 'Floor Plan';
+        document.title = `${planName} - ${data.title} - Property Master Vadodara`;
         const meta = document.querySelector('meta[name="description"]');
         if (meta) {
-          meta.setAttribute('content', `Details and specifications for ${data.title} in Vadodara. Contact Property Master Vadodara for inquiries and site visits.`);
+          meta.setAttribute('content', `Details and specifications for ${planName} at ${data.title} in Vadodara.`);
         }
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, idx]);
 
   async function handleInquiry(e) {
     e.preventDefault();
@@ -310,20 +308,22 @@ export default function PropertyDetailPage() {
     }
 
     setSubmitting(true);
+    const planName = property.floorPlans?.[idx]?.label || `Floor Plan ${idx + 1}`;
+    
     try {
       if (property.userId) {
         await submitQuery({
           ...form,
           propertyId: id,
-          propertyTitle: property.title,
+          propertyTitle: `${property.title} - ${planName}`,
           ownerId: property.userId,
         });
       } else {
         await submitInquiry({
           ...form,
           propertyId: id,
-          propertyTitle: property.title,
-          propertyLink: `${window.location.origin}/properties/${id}`,
+          propertyTitle: `${property.title} - ${planName}`,
+          propertyLink: `${window.location.origin}/properties/${id}/floor-plans/${idx}`,
         });
       }
       toast.success('Inquiry sent! We will contact you soon.');
@@ -343,10 +343,10 @@ export default function PropertyDetailPage() {
   }
 
   const formatPrice = (n) => {
-    if (!n) return '-';
-    if (n >= 10_000_000) return `Rs ${(n / 10_000_000).toFixed(2)} Cr`;
-    if (n >= 100_000) return `Rs ${(n / 100_000).toFixed(2)} L`;
-    return `Rs ${n.toLocaleString('en-IN')}`;
+    if (!n && n !== 0) return 'Price on request';
+    if (n >= 10_000_000) return `₹ ${(n / 10_000_000).toFixed(2)} Cr`;
+    if (n >= 100_000) return `₹ ${(n / 100_000).toFixed(2)} L`;
+    return `₹ ${Number(n).toLocaleString('en-IN')}`;
   };
 
   if (loading) return (
@@ -372,30 +372,40 @@ export default function PropertyDetailPage() {
     </>
   );
 
-  if (error) return (
+  const plan = property?.floorPlans?.[idx];
+
+  if (error || !plan) return (
     <>
       <Header />
-      <div className="min-h-screen flex items-center justify-center text-center px-4">
-        <div>
-          <p className="text-lg font-semibold text-gray-700">Property not found</p>
-          <Link to="/properties" className="mt-4 inline-block text-accent-500 hover:underline">Back to listings</Link>
+      <div className="min-h-screen flex items-center justify-center text-center px-4 bg-[#F7F4F1]">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <p className="text-lg font-semibold text-gray-700">Floor plan not found</p>
+          <Link to={`/properties/${id}`} className="text-brand-500 hover:underline font-medium">
+            ← Back to property
+          </Link>
         </div>
       </div>
       <Footer />
     </>
   );
 
-  const images = property.images?.length ? property.images : [PLACEHOLDER];
-
+  const images = plan.image ? [plan.image, ...PLACEHOLDER_IMAGES] : PLACEHOLDER_IMAGES;
+  
   const lat = mapCoords?.[0] || property?.location?.lat || 22.3072;
   const lng = mapCoords?.[1] || property?.location?.lng || 73.1812;
   const relatedProperties = getRelatedProperties(property, getCachedProperties()).slice(0, 3);
   const descriptionPreview = isLocked && property.description
-    ? `${property.description.split(/\s+/).slice(0, 40).join(' ')}...`
+    ? `${property.description.split(/\\s+/).slice(0, 40).join(' ')}...`
     : property.description;
+    
+  const amenities = Array.from(new Set([
+    ...(plan.amenities || []),
+    ...(property?.amenities || [])
+  ]));
+  
   const amenitiesPreview = isLocked
-    ? (property.amenities || []).slice(0, 3)
-    : (property.amenities || []);
+    ? amenities.slice(0, 3)
+    : amenities;
 
   return (
     <>
@@ -403,12 +413,20 @@ export default function PropertyDetailPage() {
       <LazyMotion features={domAnimation}>
         <m.main {...pageMotion} className="pb-20 bg-[#F7F4F1]">
         <m.div {...reveal} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-3">
-          <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.28em] font-semibold text-gray-500 bg-white/70 border border-white/80 px-3 py-2 rounded-full shadow-[0_8px_18px_-14px_rgba(15,23,42,0.35)]">
-            <Link to="/" className="hover:text-accent-500">Home</Link>
-            <ChevronRight className="w-3 h-3" />
-            <Link to="/properties" className="hover:text-accent-500">Properties</Link>
-            <ChevronRight className="w-3 h-3" />
-            <span className="text-gray-800 truncate max-w-[220px] sm:max-w-none">{property.title}</span>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between w-full">
+            <div className="inline-flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.28em] font-semibold text-gray-500 bg-white/70 border border-white/80 px-3 py-2 rounded-full shadow-[0_8px_18px_-14px_rgba(15,23,42,0.35)]">
+              <Link to="/" className="hover:text-accent-500">Home</Link>
+              <ChevronRight className="w-3 h-3" />
+              <Link to={`/properties/${id}`} className="hover:text-accent-500 truncate max-w-[120px]">{property.title}</Link>
+              <ChevronRight className="w-3 h-3" />
+              <span className="text-gray-800 truncate max-w-[150px] sm:max-w-none">{plan.label || 'Floor Plan'}</span>
+            </div>
+            <Link
+              to={`/properties/${id}`}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-brand-500 transition-colors bg-white/70 border border-white/80 px-4 py-2 rounded-full shadow-sm w-fit"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to Main Property
+            </Link>
           </div>
         </m.div>
 
@@ -416,17 +434,18 @@ export default function PropertyDetailPage() {
           <div className="flex flex-col lg:flex-row gap-10">
             <div className="flex-1 min-w-0 space-y-8">
               <m.div className="bg-white rounded-[30px] overflow-hidden border border-white/80 shadow-[0_22px_50px_-30px_rgba(15,23,42,0.45)]">
-                <div className="relative h-72 sm:h-96 md:h-[520px]">
+                <div className="relative h-72 sm:h-96 md:h-[520px] bg-gray-50">
                   <img
                     src={images[activeImg]}
-                    alt={property.title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => { e.target.src = PLACEHOLDER; }}
+                    alt={plan.label || 'Floor Plan'}
+                    className="w-full h-full object-contain p-4"
+                    onError={(e) => { e.target.src = PLACEHOLDER_IMAGES[0]; }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
-                  <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/85 backdrop-blur px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-gray-600">
-                    {property.intent === 'rent' ? 'For Rent' : property.intent === 'commercial' ? 'Commercial' : 'For Sale'}
-                  </div>
+                  {plan.status && (
+                    <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/85 backdrop-blur px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.25em] text-green-600 shadow-sm border border-green-100">
+                      {plan.status}
+                    </div>
+                  )}
                   {images.length > 1 && (
                     <div className="absolute right-4 bottom-4 rounded-full bg-black/55 text-white text-xs font-semibold px-3 py-1">
                       {activeImg + 1}/{images.length}
@@ -463,7 +482,7 @@ export default function PropertyDetailPage() {
                         className={`shrink-0 w-24 h-16 rounded-xl overflow-hidden border-2 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${i === activeImg ? 'border-brand-500 ring-2 ring-brand-500 ring-offset-2' : 'border-transparent hover:border-gray-300'}`}
                         aria-label={`View image ${i + 1}`}
                       >
-                        <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { e.target.src = PLACEHOLDER; }} />
+                        <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { e.target.src = PLACEHOLDER_IMAGES[0]; }} />
                       </button>
                     ))}
                   </div>
@@ -473,14 +492,13 @@ export default function PropertyDetailPage() {
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                     <div className="space-y-2">
                       <p className="text-2xl sm:text-3xl font-semibold text-brand-600 tabular-nums">
-                        {formatPrice(property.price)}
-                        {property.priceUnit === 'per_month' && <span className="text-sm font-normal text-gray-500">/mo</span>}
+                        {plan.price ? formatPrice(plan.price) : 'Price on request'}
                       </p>
-                      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-balance">{property.title}</h1>
+                      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-balance">{plan.label || 'Floor Plan'}</h1>
                       <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-gray-500 mt-1">
                         <div className="flex items-center gap-1">
                           <MapPin className="w-4 h-4" />
-                          <span>{property.location?.locality || property.location?.city || 'Vadodara'}</span>
+                          <span>{property.title}</span>
                         </div>
                         {property.location?.address && (
                           <span className="text-sm">
@@ -501,75 +519,78 @@ export default function PropertyDetailPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 py-4 border-y border-gray-200/70">
-                    {property.bedrooms > 0 && (
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 py-4 border-y border-gray-200/70">
+                    {plan.carpetArea && (
                       <div className="rounded-2xl border border-gray-200/70 bg-white px-4 py-3 shadow-[0_10px_30px_-20px_rgba(15,23,42,0.35)]">
-                        <div className="flex items-center gap-2 text-gray-500 text-xs uppercase tracking-[0.22em]">Bedrooms</div>
-                        <div className="mt-2 flex items-center gap-2 text-gray-700 text-sm">
-                          <BedDouble className="w-5 h-5 text-accent-500" />
-                          <span className="text-lg font-semibold">{property.bedrooms}</span>
-                          <span className="text-gray-400">bed</span>
-                        </div>
+                        <div className="flex items-center gap-2 text-gray-500 text-xs uppercase tracking-[0.22em] font-semibold"><Maximize2 className="w-3 h-3 text-accent-500" /> Carpet Area</div>
+                        <div className="mt-2 text-lg font-bold text-gray-900">{plan.carpetArea} <span className="text-sm font-normal text-gray-400">{plan.areaUnit || 'sq.ft.'}</span></div>
                       </div>
                     )}
-                    {property.bathrooms > 0 && (
+                    {plan.carpetArea && (
                       <div className="rounded-2xl border border-gray-200/70 bg-white px-4 py-3 shadow-[0_10px_30px_-20px_rgba(15,23,42,0.35)]">
-                        <div className="flex items-center gap-2 text-gray-500 text-xs uppercase tracking-[0.22em]">Bathrooms</div>
-                        <div className="mt-2 flex items-center gap-2 text-gray-700 text-sm">
-                          <Bath className="w-5 h-5 text-accent-500" />
-                          <span className="text-lg font-semibold">{property.bathrooms}</span>
-                          <span className="text-gray-400">bath</span>
-                        </div>
+                        <div className="flex items-center gap-2 text-gray-500 text-xs uppercase tracking-[0.22em] font-semibold"><Ruler className="w-3 h-3 text-accent-500" /> Area (sq.m.)</div>
+                        <div className="mt-2 text-lg font-bold text-gray-900">{sqftToSqm(plan.carpetArea)} <span className="text-sm font-normal text-gray-400">sq.m.</span></div>
                       </div>
                     )}
-                    {property.area > 0 && (
+                    {plan.bhk && (
                       <div className="rounded-2xl border border-gray-200/70 bg-white px-4 py-3 shadow-[0_10px_30px_-20px_rgba(15,23,42,0.35)]">
-                        <div className="flex items-center gap-2 text-gray-500 text-xs uppercase tracking-[0.22em]">Area</div>
-                        <div className="mt-2 flex items-center gap-2 text-gray-700 text-sm">
-                          <Maximize2 className="w-5 h-5 text-accent-500" />
-                          <span className="text-lg font-semibold">{property.area}</span>
-                          <span className="text-gray-400">sqft</span>
-                        </div>
+                        <div className="flex items-center gap-2 text-gray-500 text-xs uppercase tracking-[0.22em] font-semibold"><Layers className="w-3 h-3 text-accent-500" /> Config</div>
+                        <div className="mt-2 text-lg font-bold text-gray-900">{plan.bhk}</div>
                       </div>
                     )}
                     <div className="rounded-2xl border border-gray-200/70 bg-white px-4 py-3 shadow-[0_10px_30px_-20px_rgba(15,23,42,0.35)]">
-                      <div className="flex items-center gap-2 text-gray-500 text-xs uppercase tracking-[0.22em]">Type</div>
-                      <div className="mt-2 flex items-center gap-2 text-gray-700 text-sm">
-                        <Tag className="w-5 h-5 text-accent-500" />
-                        <span className="text-lg font-semibold capitalize">{property.type}</span>
+                      <div className="flex items-center gap-2 text-gray-500 text-xs uppercase tracking-[0.22em] font-semibold"><IndianRupee className="w-3 h-3 text-accent-500" /> Price</div>
+                      <div className="mt-2 text-[15px] font-bold text-brand-600 line-clamp-1 break-all">
+                        {plan.price ? formatPrice(plan.price) : 'Price on request'}
                       </div>
                     </div>
-                    {property.createdAt && (
-                      <div className="rounded-2xl border border-gray-200/70 bg-white px-4 py-3 shadow-[0_10px_30px_-20px_rgba(15,23,42,0.35)]">
-                        <div className="flex items-center gap-2 text-gray-500 text-xs uppercase tracking-[0.22em]">Listed</div>
-                        <div className="mt-2 flex items-center gap-2 text-gray-700 text-sm">
-                          <Calendar className="w-5 h-5 text-accent-500" />
-                          <span className="text-base font-semibold">
-                            {new Date(property.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}
-                          </span>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {property.description && (
                     <div>
-                      <h2 className="font-semibold text-xl text-gray-900 mb-3">Description</h2>
+                      <h2 className="font-semibold text-xl text-gray-900 mb-3">About this Property</h2>
                       <p className="text-gray-600 text-base leading-relaxed whitespace-pre-line">{descriptionPreview}</p>
-                      {isLocked && (
+                      {isLocked ? (
                         <p className="mt-3 text-sm text-gray-400">
                           Log in to view the full description.
                         </p>
+                      ) : (
+                        <Link to={`/properties/${id}`} className="text-brand-500 hover:text-brand-600 text-sm font-semibold mt-3 inline-block transition-colors">
+                          Read full details →
+                        </Link>
                       )}
+                    </div>
+                  )}
+
+                  {typeof plan.otherAmenities === 'string' && plan.otherAmenities.trim() !== '' && (
+                    <div>
+                      <h2 className="font-semibold text-xl text-gray-900 mb-4 flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-purple-500" />
+                        Exclusive Floor Plan Amenities
+                      </h2>
+                      <div className="flex flex-wrap gap-3">
+                        {plan.otherAmenities.split(',').map((a, idx) => {
+                          const amenity = a.trim();
+                          if (!amenity) return null;
+                          return (
+                            <span key={idx} className="bg-purple-50 text-purple-700 text-sm px-4 py-2 rounded-full font-semibold border border-purple-100">
+                              {amenity}
+                            </span>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
 
                   {amenitiesPreview.length > 0 && (
                     <div>
-                      <h2 className="font-semibold text-xl text-gray-900 mb-4">Amenities</h2>
+                      <h2 className="font-semibold text-xl text-gray-900 mb-4 flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-brand-500" />
+                        Amenities
+                      </h2>
                       <div className="flex flex-wrap gap-3">
                         {amenitiesPreview.map((a) => (
-                          <span key={a} className="bg-brand-100 text-brand-600 text-sm px-4 py-2 rounded-full font-semibold">{a}</span>
+                          <span key={a} className="bg-brand-50 text-brand-600 text-sm px-4 py-2 rounded-full font-semibold border border-brand-100">{a}</span>
                         ))}
                       </div>
                       {isLocked && (
@@ -581,12 +602,6 @@ export default function PropertyDetailPage() {
                   )}
                 </div>
               </m.div>
-
-              {property.floorPlans?.length > 0 && (
-                <m.div {...reveal}>
-                  <FloorPlansSection floorPlans={property.floorPlans} propertyId={property.id} />
-                </m.div>
-              )}
 
               <m.div {...reveal} className="bg-white rounded-[28px] border border-gray-200/80 shadow-[0_18px_45px_-30px_rgba(15,23,42,0.45)] overflow-hidden">
                 <div className="p-6 border-b border-gray-200/70 bg-[#FAF7F4]">
@@ -769,6 +784,35 @@ export default function PropertyDetailPage() {
                   </>
                 )}
               </m.div>
+
+              {property?.floorPlans?.length > 1 && (
+                <div className="bg-white rounded-[28px] border border-gray-200/80 shadow-[0_18px_45px_-30px_rgba(15,23,42,0.45)] mt-8 p-6 sm:p-8">
+                  <h2 className="font-semibold text-lg text-gray-900 mb-4">Other Floor Plans in {property.title}</h2>
+                  <div className="space-y-2">
+                    {property.floorPlans.map((fp, i) => {
+                      if (i === idx) return null;
+                      return (
+                        <Link
+                          key={i}
+                          to={`/properties/${id}/floor-plans/${i}`}
+                          className="flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:border-brand-500 hover:bg-brand-50/50 transition-colors"
+                        >
+                          <div>
+                            <div className="font-semibold text-sm text-gray-900">{fp.label || `Floor Plan ${i + 1}`}</div>
+                            <div className="text-xs text-gray-500 mt-0.5">
+                              {fp.bhk && `${fp.bhk} · `}
+                              {fp.carpetArea ? `${fp.carpetArea} ${fp.areaUnit || 'sq.ft.'}` : ''}
+                            </div>
+                          </div>
+                          <div className="text-sm font-bold text-brand-500">
+                            {fp.price ? formatPrice(fp.price) : '—'}
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </m.div>

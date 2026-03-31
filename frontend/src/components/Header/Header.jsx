@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { Menu, X, ChevronDown, User, Info, MapPin } from 'lucide-react';
+import {
+  Menu, X, ChevronDown, User, Info, MapPin,
+  LayoutDashboard, MessageCircle, Shield, Settings, Building2, HelpCircle, LogOut
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 import logo from '../../property-master.png';
 import aboutImg from '../../assets/about.png';
@@ -186,7 +189,7 @@ export default function Header() {
                     className="block px-5 py-3 text-sm text-gray-700 rounded-lg transition-all duration-300 group relative overflow-hidden"
                   >
                     <span className="relative z-10 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0" />
+                      <LayoutDashboard className="w-4 h-4 text-brand-500" />
                       Dashboard
                     </span>
                     <span className="absolute inset-0 bg-brand-50 opacity-0 group-hover:opacity-100 transition-all duration-300" />
@@ -198,7 +201,7 @@ export default function Header() {
                     className="block px-5 py-3 text-sm text-gray-700 rounded-lg transition-all duration-300 group relative overflow-hidden"
                   >
                     <span className="relative z-10 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0" />
+                      <MessageCircle className="w-4 h-4 text-brand-500" />
                       My Queries
                     </span>
                     <span className="absolute inset-0 bg-brand-50 opacity-0 group-hover:opacity-100 transition-all duration-300" />
@@ -211,7 +214,7 @@ export default function Header() {
                       className="block px-5 py-3 text-sm text-brand-600 font-bold rounded-lg transition-all duration-300 group relative overflow-hidden"
                     >
                       <span className="relative z-10 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-brand-600 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0" />
+                        <Shield className="w-4 h-4 text-brand-600" />
                         Admin Dashboard
                       </span>
                       <span className="absolute inset-0 bg-brand-50 opacity-0 group-hover:opacity-100 transition-all duration-300" />
@@ -224,7 +227,7 @@ export default function Header() {
                     className="block px-5 py-3 text-sm text-gray-700 rounded-lg transition-all duration-300 group relative overflow-hidden"
                   >
                     <span className="relative z-10 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0" />
+                      <Settings className="w-4 h-4 text-brand-500" />
                       Account Settings
                     </span>
                     <span className="absolute inset-0 bg-brand-50 opacity-0 group-hover:opacity-100 transition-all duration-300" />
@@ -236,7 +239,7 @@ export default function Header() {
                     className="block px-5 py-3 text-sm text-gray-700 rounded-lg transition-all duration-300 group relative overflow-hidden"
                   >
                     <span className="relative z-10 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0" />
+                      <Building2 className="w-4 h-4 text-brand-500" />
                       Post Property
                     </span>
                     <span className="absolute inset-0 bg-brand-50 opacity-0 group-hover:opacity-100 transition-all duration-300" />
@@ -248,7 +251,7 @@ export default function Header() {
                     className="block px-5 py-3 text-sm text-gray-700 rounded-lg transition-all duration-300 group relative overflow-hidden"
                   >
                     <span className="relative z-10 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0" />
+                      <HelpCircle className="w-4 h-4 text-brand-500" />
                       Help & Guide
                     </span>
                     <span className="absolute inset-0 bg-brand-50 opacity-0 group-hover:opacity-100 transition-all duration-300" />
@@ -262,7 +265,7 @@ export default function Header() {
                     className="w-full text-left block px-5 py-3 text-sm text-red-600 rounded-lg transition-all duration-300 group relative overflow-hidden"
                   >
                     <span className="relative z-10 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0" />
+                      <LogOut className="w-4 h-4 text-red-500" />
                       Logout
                     </span>
                     <span className="absolute inset-0 bg-red-50 opacity-0 group-hover:opacity-100 transition-all duration-300" />
@@ -366,7 +369,7 @@ export default function Header() {
                 className="block py-3 pl-6 text-sm text-gray-400 hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-3 transition-all duration-400 hover:bg-white/5 relative overflow-hidden group"
               >
                 <span className="relative z-10 flex items-center gap-2">
-                  <span className="w-1 h-1 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                  <LayoutDashboard className="w-4 h-4 text-brand-500" />
                   Dashboard
                 </span>
                 <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/20 group-hover:w-full transition-all duration-400" />
@@ -377,7 +380,7 @@ export default function Header() {
                 className="block py-3 pl-6 text-sm text-gray-400 hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-3 transition-all duration-400 hover:bg-white/5 relative overflow-hidden group"
               >
                 <span className="relative z-10 flex items-center gap-2">
-                  <span className="w-1 h-1 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                  <MessageCircle className="w-4 h-4 text-brand-500" />
                   My Queries
                 </span>
                 <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/20 group-hover:w-full transition-all duration-400" />
@@ -389,7 +392,7 @@ export default function Header() {
                   className="block py-3 pl-6 text-sm text-brand-500 font-bold hover:text-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-3 transition-all duration-400 hover:bg-white/5 relative overflow-hidden group"
                 >
                   <span className="relative z-10 flex items-center gap-2">
-                    <span className="w-1 h-1 rounded-full bg-brand-600 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                    <Shield className="w-4 h-4 text-brand-600" />
                     Admin Dashboard
                   </span>
                   <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-600/20 group-hover:w-full transition-all duration-400" />
@@ -401,7 +404,7 @@ export default function Header() {
                 className="block py-3 pl-6 text-sm text-gray-400 hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-3 transition-all duration-400 hover:bg-white/5 relative overflow-hidden group"
               >
                 <span className="relative z-10 flex items-center gap-2">
-                  <span className="w-1 h-1 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                  <Settings className="w-4 h-4 text-brand-500" />
                   Account Settings
                 </span>
                 <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/20 group-hover:w-full transition-all duration-400" />
@@ -412,7 +415,7 @@ export default function Header() {
                 className="block py-3 pl-6 text-sm text-gray-400 hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-3 transition-all duration-400 hover:bg-white/5 relative overflow-hidden group"
               >
                 <span className="relative z-10 flex items-center gap-2">
-                  <span className="w-1 h-1 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                  <Building2 className="w-4 h-4 text-brand-500" />
                   Post Property
                 </span>
                 <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/20 group-hover:w-full transition-all duration-400" />
@@ -423,7 +426,7 @@ export default function Header() {
                 className="block py-3 pl-6 text-sm text-gray-400 hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-lg px-3 transition-all duration-400 hover:bg-white/5 relative overflow-hidden group"
               >
                 <span className="relative z-10 flex items-center gap-2">
-                  <span className="w-1 h-1 rounded-full bg-brand-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                  <HelpCircle className="w-4 h-4 text-brand-500" />
                   Help & Guide
                 </span>
                 <span className="absolute left-0 top-0 bottom-0 w-0 bg-brand-500/20 group-hover:w-full transition-all duration-400" />
@@ -436,7 +439,7 @@ export default function Header() {
                 className="w-full text-left block py-3 pl-6 text-sm text-red-400 hover:text-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-lg px-3 transition-all duration-400 hover:bg-white/5 relative overflow-hidden group"
               >
                 <span className="relative z-10 flex items-center gap-2">
-                  <span className="w-1 h-1 rounded-full bg-red-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                  <LogOut className="w-4 h-4 text-red-500" />
                   Logout
                 </span>
                 <span className="absolute left-0 top-0 bottom-0 w-0 bg-red-500/20 group-hover:w-full transition-all duration-400" />

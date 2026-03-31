@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { SlidersHorizontal, X } from 'lucide-react';
 import { getLocalities } from '../../api.js';
+import MultiSelect from '../MultiSelect/MultiSelect.jsx';
+
 
 const TYPES = [
   { value: '', label: 'All Types' },
@@ -85,25 +87,15 @@ function FilterForm({
 
       {/* Locality */}
       <div>
-        <label className="block text-xs font-semibold text-gray-500 uppercase mb-2" htmlFor="filter-locality">Locality</label>
-        <select
-          id="filter-locality"
-          value={selectedLocality}
-          onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
-          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 bg-white"
-          disabled={localitiesLoading}
-          name="locality"
-        >
-          <option value="">
-            {localitiesLoading ? 'Loading localities...' : 'All Localities'}
-          </option>
-          {localityOptions.map((name) => (
-            <option key={name} value={name}>{name}</option>
-          ))}
-        </select>
-        {localitiesError && (
-          <p className="text-xs text-red-500 mt-2">{localitiesError}</p>
-        )}
+        <MultiSelect
+          label="Locality"
+          options={localityOptions}
+          selected={filters.localities}
+          onChange={(newSelected) => setFilters((f) => ({ ...f, localities: newSelected }))}
+          placeholder="Select Localities"
+          loading={localitiesLoading}
+          error={localitiesError}
+        />
         <div className="mt-3">
           <label className="block text-[10px] font-semibold text-gray-400 uppercase mb-2" htmlFor="filter-query">
             Or type area / landmark
@@ -290,6 +282,7 @@ export function usePropertyFilters() {
     intent: searchParams.get('intent') || '',
     type: searchParams.get('type') || '',
     query: searchParams.get('q') || '',
+    localities: searchParams.get('localities') ? searchParams.get('localities').split(',').filter(Boolean) : [],
     bedrooms: searchParams.get('bedrooms') || '',
     bathrooms: searchParams.get('bathrooms') || '',
     minPrice: searchParams.get('minPrice') || '',
@@ -305,6 +298,7 @@ export function usePropertyFilters() {
       intent: searchParams.get('intent') || '',
       type: searchParams.get('type') || '',
       query: searchParams.get('q') || '',
+      localities: searchParams.get('localities') ? searchParams.get('localities').split(',').filter(Boolean) : [],
       bedrooms: searchParams.get('bedrooms') || '',
       bathrooms: searchParams.get('bathrooms') || '',
       minPrice: searchParams.get('minPrice') || '',
@@ -318,8 +312,9 @@ export function usePropertyFilters() {
   function apply() {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([k, v]) => {
-      if (!v) return;
+      if (!v || (Array.isArray(v) && v.length === 0)) return;
       if (k === 'query') params.set('q', v);
+      else if (k === 'localities' && Array.isArray(v)) params.set('localities', v.join(','));
       else params.set(k, v);
     });
     navigate(`/properties?${params.toString()}`);
@@ -330,6 +325,7 @@ export function usePropertyFilters() {
       intent: '',
       type: '',
       query: '',
+      localities: [],
       bedrooms: '',
       bathrooms: '',
       minPrice: '',

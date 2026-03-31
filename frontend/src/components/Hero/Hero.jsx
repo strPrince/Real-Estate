@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Home, Briefcase, Building2, SlidersHorizontal, X, TrendingUp, Shield, Award } from 'lucide-react';
+import { getLocalities } from '../../api.js';
+import MultiSelect from '../MultiSelect/MultiSelect.jsx';
+
 import { AnimatePresence, LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
 import hero1 from '../../assets/Hero1.jpg';
 import hero2 from '../../assets/Hero2.jpg';
@@ -30,12 +33,15 @@ export default function Hero() {
   const shouldReduceMotion = false; // useReducedMotion();
   const [heroIndex, setHeroIndex] = useState(0);
   const [intent, setIntent] = useState('buy');
+  const [commercialType, setCommercialType] = useState('buy'); // 'buy' or 'rent' (lease)
   const [propertyType, setPropertyType] = useState('');
   const [bedrooms, setBedrooms] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [search, setSearch] = useState('');
-  const [location, setLocation] = useState('');
+  const [localities, setLocalities] = useState([]);
+  const [localityOptions, setLocalityOptions] = useState([]);
+  const [localitiesLoading, setLocalitiesLoading] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => {
@@ -44,6 +50,20 @@ export default function Hero() {
       setHeroIndex((current) => (current + 1) % HERO_IMAGES.length);
     }, HERO_SLIDE_MS);
     return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    setLocalitiesLoading(true);
+    getLocalities()
+      .then((data) => {
+        const list = Array.isArray(data) ? data : data?.localities || [];
+        const names = Array.from(
+          new Set(list.map((loc) => loc?.name).filter(Boolean))
+        ).sort((a, b) => a.localeCompare(b));
+        setLocalityOptions(names);
+      })
+      .catch(() => {})
+      .finally(() => setLocalitiesLoading(false));
   }, []);
 
   useEffect(() => {
@@ -64,10 +84,16 @@ export default function Hero() {
 
   function handleSearch(e) {
     e.preventDefault();
-    const params = new URLSearchParams({ intent });
-    const query = [search.trim(), location.trim()].filter(Boolean).join(' ');
-    if (query) params.set('q', query);
-    if (propertyType) params.set('type', propertyType);
+    let finalIntent = intent;
+    let finalType = propertyType;
+    if (intent === 'commercial') {
+      finalIntent = commercialType;
+      finalType = 'commercial';
+    }
+    const params = new URLSearchParams({ intent: finalIntent });
+    if (search.trim()) params.set('q', search.trim());
+    if (localities.length > 0) params.set('localities', localities.join(','));
+    if (finalType) params.set('type', finalType);
     if (bedrooms) params.set('bedrooms', bedrooms);
     if (minPrice) params.set('minPrice', minPrice);
     if (maxPrice) params.set('maxPrice', maxPrice);
@@ -201,43 +227,44 @@ export default function Hero() {
               ))}
             </div>
 
-            {/* Search fields */}
-            <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr_auto_auto] gap-3 items-end">
-              {/* Search input */}
-              <label className="text-left w-full" htmlFor="hero-search">
-                <span className="text-[9px] font-bold tracking-[0.22em] text-gray-400">SEARCH</span>
-                <div className="mt-1.5 flex items-center gap-3 h-12 sm:h-10 border border-gray-200 rounded-xl px-4 bg-gray-50 focus-within:bg-white focus-within:border-brand-500 focus-within:ring-1 focus-within:ring-brand-500 transition-all">
-                  <Search className="w-4 h-4 text-gray-400 shrink-0" aria-hidden="true" />
-                  <input
-                    id="hero-search"
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Property name, area..."
-                    className="flex-1 text-[14px] sm:text-[13px] outline-none text-gray-900 placeholder-gray-400 bg-transparent"
-                    name="search"
-                    autoComplete="off"
-                  />
+            {/* Commercial sub-options */}
+            {intent === 'commercial' && (
+              <div className="flex items-center justify-center gap-4 mb-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Commercial:</span>
+                <div className="flex bg-gray-100 p-1 rounded-lg">
+                  <button
+                    type="button"
+                    onClick={() => setCommercialType('buy')}
+                    className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${commercialType === 'buy' ? 'bg-white text-brand-500 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  >
+                    Buy
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCommercialType('rent')}
+                    className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${commercialType === 'rent' ? 'bg-white text-brand-500 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  >
+                    Lease
+                  </button>
                 </div>
-              </label>
+              </div>
+            )}
 
+            {/* Search fields */}
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3 items-end">
               {/* Location input */}
-              <label className="text-left w-full" htmlFor="hero-location">
+              <div className="text-left w-full relative z-20">
                 <span className="text-[9px] font-bold tracking-[0.22em] text-gray-400">LOCATION</span>
-                <div className="mt-1.5 flex items-center gap-3 h-12 sm:h-10 border border-gray-200 rounded-xl px-4 bg-gray-50 focus-within:bg-white focus-within:border-brand-500 focus-within:ring-1 focus-within:ring-brand-500 transition-all">
-                  <MapPin className="w-4 h-4 text-gray-400 shrink-0" aria-hidden="true" />
-                  <input
-                    id="hero-location"
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Locality or landmark..."
-                    className="flex-1 text-[14px] sm:text-[13px] outline-none text-gray-900 placeholder-gray-400 bg-transparent"
-                    name="location"
-                    autoComplete="address-level2"
+                <div className="mt-1.5 min-w-[200px]">
+                  <MultiSelect
+                    options={localityOptions}
+                    selected={localities}
+                    onChange={setLocalities}
+                    placeholder="Locality..."
+                    loading={localitiesLoading}
                   />
                 </div>
-              </label>
+              </div>
 
               {/* Filter button */}
               <div className="flex flex-col">

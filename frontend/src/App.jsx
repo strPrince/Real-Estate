@@ -10,6 +10,7 @@ import LoadingScreen from './components/LoadingScreen/LoadingScreen.jsx';
 import HomePage from './pages/Home/HomePage.jsx';
 import PropertiesPage from './pages/Properties/PropertiesPage.jsx';
 import PropertyDetailPage from './pages/PropertyDetail/PropertyDetailPage.jsx';
+import FloorPlanDetailPage from './pages/FloorPlanDetail/FloorPlanDetailPage.jsx';
 import ComparePage from './pages/Properties/ComparePage.jsx';
 import AboutPage from './pages/About/AboutPage.jsx';
 import WhyVadodaraPage from './pages/WhyVadodara/WhyVadodaraPage.jsx';
@@ -45,6 +46,7 @@ function AnimatedRoutes() {
           <Route path="/" element={<HomePage />} />
           <Route path="/properties" element={<PropertiesPage />} />
           <Route path="/properties/:id" element={<PropertyDetailPage />} />
+          <Route path="/properties/:id/floor-plans/:planIndex" element={<FloorPlanDetailPage />} />
           <Route path="/compare" element={<ComparePage />} />
           <Route path="/about" element={<AboutPage />} />
         <Route path="/why-vadodara" element={<WhyVadodaraPage />} />

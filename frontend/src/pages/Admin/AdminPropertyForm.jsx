@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { createProperty, updateProperty, getProperty, uploadImage, getLocalities } from '../../api.js';
-import { X, Upload, Loader2, Info, DollarSign, MapPin, Sparkles, ImagePlus, Settings2, ArrowLeft } from 'lucide-react';
+import { X, Upload, Loader2, Info, DollarSign, MapPin, Sparkles, ImagePlus, Settings2, ArrowLeft, Layers, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const PROPERTY_TYPES = ['residential', 'commercial', 'plot', 'pg'];
@@ -23,7 +23,7 @@ const EMPTY_FORM = {
   locality: '', address: '',
   lat: '', lng: '',
   status: 'active', featured: false,
-  images: [], amenities: [],
+  images: [], amenities: [], floorPlans: [],
 };
 
 export default function AdminPropertyForm() {
@@ -63,6 +63,7 @@ export default function AdminPropertyForm() {
           featured: Boolean(data.featured),
           images: data.images || [],
           amenities: data.amenities || [],
+          floorPlans: data.floorPlans || [],
         });
       })
       .catch(() => toast.error('Failed to load property'))
@@ -148,6 +149,7 @@ export default function AdminPropertyForm() {
         status: form.status,
         featured: form.featured,
         images: form.images,
+        floorPlans: form.floorPlans,
         amenities: form.amenities,
       };
 
@@ -207,8 +209,8 @@ export default function AdminPropertyForm() {
               <input required value={form.title} onChange={set('title')} placeholder="e.g. 3BHK Apartment in Prime Location" className={inputCls} />
             </Field>
 
-            <Field label="Description">
-              <textarea rows={4} value={form.description} onChange={set('description')} placeholder="Describe the property in detail..." className={`${inputCls} resize-none`} />
+            <Field label="Description *" required>
+              <textarea rows={4} value={form.description} onChange={set('description')} placeholder="Describe the property in detail..." className={`${inputCls} resize-none`} required />
             </Field>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -242,14 +244,14 @@ export default function AdminPropertyForm() {
                 <option value="per_month">Per Month</option>
               </select>
             </Field>
-            <Field label="Bedrooms (BHK)">
-              <input type="number" min={0} value={form.bedrooms} onChange={set('bedrooms')} placeholder="0" className={inputCls} />
+            <Field label="Bedrooms (BHK) *" required>
+              <input type="number" min={0} value={form.bedrooms} onChange={set('bedrooms')} placeholder="0" className={inputCls} required />
             </Field>
-            <Field label="Bathrooms">
-              <input type="number" min={0} value={form.bathrooms} onChange={set('bathrooms')} placeholder="0" className={inputCls} />
+            <Field label="Bathrooms *" required>
+              <input type="number" min={0} value={form.bathrooms} onChange={set('bathrooms')} placeholder="0" className={inputCls} required />
             </Field>
-            <Field label="Area (sq.ft)">
-              <input type="number" min={0} value={form.area} onChange={set('area')} placeholder="e.g. 1200" className={inputCls} />
+            <Field label="Area (sq.ft) *" required>
+              <input type="number" min={0} value={form.area} onChange={set('area')} placeholder="e.g. 1200" className={inputCls} required />
             </Field>
           </div>
         </div>
@@ -354,6 +356,182 @@ export default function AdminPropertyForm() {
           >
             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
             {uploading ? 'Uploading...' : 'Upload Images (JPEG / PNG / WebP)'}
+          </button>
+        </div>
+
+        {/* Floor Plans */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+          <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-gray-100">
+            <div className="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center"><Layers className="w-3.5 h-3.5 text-teal-600" /></div>
+            <h2 className="font-bold text-gray-800 text-base">Floor Plans</h2>
+          </div>
+
+          {form.floorPlans.length > 0 && (
+            <div className="space-y-4 mb-5">
+              {form.floorPlans.map((fp, idx) => (
+                <div key={idx} className="relative border border-gray-200 rounded-xl p-4">
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, floorPlans: f.floorPlans.filter((_, i) => i !== idx) }))}
+                    className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <Field label="Label">
+                      <input
+                        value={fp.label}
+                        onChange={(e) => {
+                          const updated = [...form.floorPlans];
+                          updated[idx] = { ...updated[idx], label: e.target.value };
+                          setForm((f) => ({ ...f, floorPlans: updated }));
+                        }}
+                        placeholder="e.g. 2 BHK - Type A"
+                        className={inputCls}
+                      />
+                    </Field>
+                    <Field label="Carpet Area">
+                      <input
+                        type="number"
+                        min={0}
+                        step="any"
+                        value={fp.carpetArea}
+                        onChange={(e) => {
+                          const updated = [...form.floorPlans];
+                          updated[idx] = { ...updated[idx], carpetArea: e.target.value };
+                          setForm((f) => ({ ...f, floorPlans: updated }));
+                        }}
+                        placeholder="e.g. 660.36"
+                        className={inputCls}
+                      />
+                    </Field>
+                    <Field label="Area Unit">
+                      <select
+                        value={fp.areaUnit || 'sq.ft.'}
+                        onChange={(e) => {
+                          const updated = [...form.floorPlans];
+                          updated[idx] = { ...updated[idx], areaUnit: e.target.value };
+                          setForm((f) => ({ ...f, floorPlans: updated }));
+                        }}
+                        className={inputCls}
+                      >
+                        <option value="sq.ft.">sq.ft.</option>
+                        <option value="sq.m.">sq.m.</option>
+                        <option value="sq.yd.">sq.yd.</option>
+                      </select>
+                    </Field>
+                    <Field label="BHK">
+                      <input
+                        value={fp.bhk}
+                        onChange={(e) => {
+                          const updated = [...form.floorPlans];
+                          updated[idx] = { ...updated[idx], bhk: e.target.value };
+                          setForm((f) => ({ ...f, floorPlans: updated }));
+                        }}
+                        placeholder="e.g. 2 BHK"
+                        className={inputCls}
+                      />
+                    </Field>
+                    <Field label="Price (₹)">
+                      <input
+                        type="number"
+                        min={0}
+                        value={fp.price}
+                        onChange={(e) => {
+                          const updated = [...form.floorPlans];
+                          updated[idx] = { ...updated[idx], price: e.target.value };
+                          setForm((f) => ({ ...f, floorPlans: updated }));
+                        }}
+                        placeholder="e.g. 3799000"
+                        className={inputCls}
+                      />
+                    </Field>
+                    <Field label="Status">
+                      <input
+                        value={fp.status}
+                        onChange={(e) => {
+                          const updated = [...form.floorPlans];
+                          updated[idx] = { ...updated[idx], status: e.target.value };
+                          setForm((f) => ({ ...f, floorPlans: updated }));
+                        }}
+                        placeholder="e.g. New Launch"
+                        className={inputCls}
+                      />
+                    </Field>
+                    <div className="col-span-2 md:col-span-3">
+                      <Field label="Other Amenities">
+                        <input
+                          value={fp.otherAmenities || ''}
+                          onChange={(e) => {
+                            const updated = [...form.floorPlans];
+                            updated[idx] = { ...updated[idx], otherAmenities: e.target.value };
+                            setForm((f) => ({ ...f, floorPlans: updated }));
+                          }}
+                          placeholder="e.g. Private Terrace, Jacuzzi (comma-separated)"
+                          className={inputCls}
+                        />
+                      </Field>
+                    </div>
+                  </div>
+                  {/* Floor plan image */}
+                  <div className="mt-3">
+                    {fp.image ? (
+                      <div className="relative inline-block">
+                        <img src={fp.image} alt={fp.label} className="h-24 rounded-lg object-cover border border-gray-200" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = [...form.floorPlans];
+                            updated[idx] = { ...updated[idx], image: '' };
+                            setForm((f) => ({ ...f, floorPlans: updated }));
+                          }}
+                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 opacity-0 hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex items-center gap-2 text-sm text-gray-500 cursor-pointer hover:text-brand-500 transition-colors">
+                        <ImagePlus className="w-4 h-4" />
+                        Upload floor plan image
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                              const token = await getToken();
+                              const url = await uploadImage(file, token);
+                              const updated = [...form.floorPlans];
+                              updated[idx] = { ...updated[idx], image: url };
+                              setForm((f) => ({ ...f, floorPlans: updated }));
+                              toast.success('Floor plan image uploaded');
+                            } catch (err) {
+                              toast.error(err.message || 'Upload failed');
+                            }
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setForm((f) => ({
+              ...f,
+              floorPlans: [...f.floorPlans, { label: '', carpetArea: '', areaUnit: 'sq.ft.', bhk: '', price: '', status: '', image: '', otherAmenities: '' }],
+            }))}
+            className="flex items-center gap-2 border-2 border-dashed border-gray-300 hover:border-teal-500 text-gray-700 hover:text-teal-600 px-5 py-3.5 rounded-xl text-sm font-medium w-full justify-center transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Floor Plan
           </button>
         </div>
 

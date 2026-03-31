@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { toast } from 'react-hot-toast';
-import { CheckCircle2, Upload, Sparkles } from 'lucide-react';
+import { CheckCircle2, Upload, Sparkles, Layers, Plus, Trash2, ImagePlus, X } from 'lucide-react';
 import Header from '../../components/Header/Header.jsx';
-import { getLocalities } from '../../api.js';
+import { getLocalities, uploadImage } from '../../api.js';
 
 export default function PostPropertyPage() {
   const { currentUser, getToken } = useAuth();
@@ -17,6 +17,7 @@ export default function PostPropertyPage() {
     description: '',
     price: '',
     location: '',
+    address: '',
     area: '',
     bedrooms: '',
     bathrooms: '',
@@ -25,6 +26,7 @@ export default function PostPropertyPage() {
     status: 'available',
     images: [],
     amenities: [],
+    floorPlans: [],
   });
 
   const [imagePreviews, setImagePreviews] = useState([]);
@@ -104,6 +106,7 @@ export default function PostPropertyPage() {
           description: property.description || '',
           price: property.price ?? '',
           location: property.location?.locality || property.location?.city || '',
+          address: property.location?.address || '',
           area: property.area ?? '',
           bedrooms: property.bedrooms ?? '',
           bathrooms: property.bathrooms ?? '',
@@ -112,6 +115,7 @@ export default function PostPropertyPage() {
           status: normalizedStatus,
           images: [],
           amenities: Array.isArray(property.amenities) ? property.amenities : [],
+          floorPlans: Array.isArray(property.floorPlans) ? property.floorPlans : [],
         });
         setExistingImages(Array.isArray(property.images) ? property.images : []);
       } catch (error) {
@@ -139,6 +143,8 @@ export default function PostPropertyPage() {
           });
         } else if (key === 'amenities') {
           data.append('amenities', JSON.stringify(formData.amenities));
+        } else if (key === 'floorPlans') {
+          data.append('floorPlans', JSON.stringify(formData.floorPlans));
         } else {
           data.append(key, formData[key]);
         }
@@ -205,7 +211,7 @@ export default function PostPropertyPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label htmlFor="title" className="block text-sm font-semibold text-gray-700">
-                    Property Title
+                    Property Title <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -220,7 +226,7 @@ export default function PostPropertyPage() {
 
                 <div>
                   <label htmlFor="description" className="block text-sm font-semibold text-gray-700">
-                    Description
+                    Description <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     id="description"
@@ -236,7 +242,7 @@ export default function PostPropertyPage() {
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                   <div>
                     <label htmlFor="price" className="block text-sm font-semibold text-gray-700">
-                      Price (INR)
+                      Price (INR) <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -251,7 +257,7 @@ export default function PostPropertyPage() {
 
                   <div>
                     <label htmlFor="location" className="block text-sm font-semibold text-gray-700">
-                      Locality
+                      Locality <span className="text-red-500">*</span>
                     </label>
                     <select
                       id="location"
@@ -269,10 +275,25 @@ export default function PostPropertyPage() {
                   </div>
                 </div>
 
+                <div>
+                  <label htmlFor="address" className="block text-sm font-semibold text-gray-700">
+                    Full Address
+                  </label>
+                  <input
+                    type="text"
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    placeholder="Enter full property address"
+                    className={inputClass}
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
                   <div>
                     <label htmlFor="area" className="block text-sm font-semibold text-gray-700">
-                      Area (sq ft)
+                      Area (sq ft) <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -287,7 +308,7 @@ export default function PostPropertyPage() {
 
                   <div>
                     <label htmlFor="bedrooms" className="block text-sm font-semibold text-gray-700">
-                      Bedrooms
+                      Bedrooms <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -302,7 +323,7 @@ export default function PostPropertyPage() {
 
                   <div>
                     <label htmlFor="bathrooms" className="block text-sm font-semibold text-gray-700">
-                      Bathrooms
+                      Bathrooms <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -319,7 +340,7 @@ export default function PostPropertyPage() {
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
                   <div>
                     <label htmlFor="propertyType" className="block text-sm font-semibold text-gray-700">
-                      Property Type
+                      Property Type <span className="text-red-500">*</span>
                     </label>
                     <select
                       id="propertyType"
@@ -340,7 +361,7 @@ export default function PostPropertyPage() {
 
                   <div>
                     <label htmlFor="intent" className="block text-sm font-semibold text-gray-700">
-                      Intent
+                      Intent <span className="text-red-500">*</span>
                     </label>
                     <select
                       id="intent"
@@ -351,14 +372,13 @@ export default function PostPropertyPage() {
                       className={selectClass}
                     >
                       <option value="buy">Buy</option>
-                      <option value="rent">Rent</option>
-                      <option value="commercial">Commercial</option>
+                      <option value="rent">{formData.propertyType === 'commercial' ? 'Lease' : 'Rent'}</option>
                     </select>
                   </div>
 
                   <div>
                     <label htmlFor="status" className="block text-sm font-semibold text-gray-700">
-                      Status
+                      Status <span className="text-red-500">*</span>
                     </label>
                     <select
                       id="status"
@@ -452,6 +472,165 @@ export default function PostPropertyPage() {
                       </button>
                     ))}
                   </div>
+                </div>
+
+                {/* Floor Plans */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Floor Plans
+                  </label>
+                  <p className="mt-1 text-xs text-gray-500">Add different floor plan variants with details like area, BHK, and pricing.</p>
+                  {formData.floorPlans.length > 0 && (
+                    <div className="mt-3 space-y-4">
+                      {formData.floorPlans.map((fp, idx) => (
+                        <div key={idx} className="relative border border-gray-200 rounded-xl p-4 bg-gray-50">
+                          <button
+                            type="button"
+                            onClick={() => setFormData((prev) => ({ ...prev, floorPlans: prev.floorPlans.filter((_, i) => i !== idx) }))}
+                            className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Label</label>
+                              <input
+                                value={fp.label}
+                                onChange={(e) => {
+                                  const updated = [...formData.floorPlans];
+                                  updated[idx] = { ...updated[idx], label: e.target.value };
+                                  setFormData((prev) => ({ ...prev, floorPlans: updated }));
+                                }}
+                                placeholder="e.g. 2 BHK - Type A"
+                                className={inputClass}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Carpet Area</label>
+                              <input
+                                type="number" min={0} step="any"
+                                value={fp.carpetArea}
+                                onChange={(e) => {
+                                  const updated = [...formData.floorPlans];
+                                  updated[idx] = { ...updated[idx], carpetArea: e.target.value };
+                                  setFormData((prev) => ({ ...prev, floorPlans: updated }));
+                                }}
+                                placeholder="e.g. 660.36"
+                                className={inputClass}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">BHK</label>
+                              <input
+                                value={fp.bhk}
+                                onChange={(e) => {
+                                  const updated = [...formData.floorPlans];
+                                  updated[idx] = { ...updated[idx], bhk: e.target.value };
+                                  setFormData((prev) => ({ ...prev, floorPlans: updated }));
+                                }}
+                                placeholder="e.g. 2 BHK"
+                                className={inputClass}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Price (₹)</label>
+                              <input
+                                type="number" min={0}
+                                value={fp.price}
+                                onChange={(e) => {
+                                  const updated = [...formData.floorPlans];
+                                  updated[idx] = { ...updated[idx], price: e.target.value };
+                                  setFormData((prev) => ({ ...prev, floorPlans: updated }));
+                                }}
+                                placeholder="e.g. 3799000"
+                                className={inputClass}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                              <input
+                                value={fp.status}
+                                onChange={(e) => {
+                                  const updated = [...formData.floorPlans];
+                                  updated[idx] = { ...updated[idx], status: e.target.value };
+                                  setFormData((prev) => ({ ...prev, floorPlans: updated }));
+                                }}
+                                placeholder="e.g. New Launch"
+                                className={inputClass}
+                              />
+                            </div>
+                            <div className="col-span-2 sm:col-span-3">
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Other Amenities</label>
+                              <input
+                                value={fp.otherAmenities || ''}
+                                onChange={(e) => {
+                                  const updated = [...formData.floorPlans];
+                                  updated[idx] = { ...updated[idx], otherAmenities: e.target.value };
+                                  setFormData((prev) => ({ ...prev, floorPlans: updated }));
+                                }}
+                                placeholder="e.g. Private Terrace, Jacuzzi"
+                                className={inputClass}
+                              />
+                            </div>
+                          </div>
+                          <div className="mt-3">
+                            {fp.image ? (
+                              <div className="relative inline-block">
+                                <img src={fp.image} alt={fp.label} className="h-20 rounded-lg object-cover border border-gray-200" />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const updated = [...formData.floorPlans];
+                                    updated[idx] = { ...updated[idx], image: '' };
+                                    setFormData((prev) => ({ ...prev, floorPlans: updated }));
+                                  }}
+                                  className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ) : (
+                              <label className="inline-flex items-center gap-2 text-xs text-gray-500 cursor-pointer hover:text-brand-500 transition-colors">
+                                <ImagePlus className="w-4 h-4" />
+                                Upload floor plan image
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="sr-only"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    try {
+                                      const token = await getToken();
+                                      const url = await uploadImage(file, token);
+                                      const updated = [...formData.floorPlans];
+                                      updated[idx] = { ...updated[idx], image: url };
+                                      setFormData((prev) => ({ ...prev, floorPlans: updated }));
+                                      toast.success('Floor plan image uploaded');
+                                    } catch (err) {
+                                      toast.error(err.message || 'Upload failed');
+                                    }
+                                    e.target.value = '';
+                                  }}
+                                />
+                              </label>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({
+                      ...prev,
+                      floorPlans: [...prev.floorPlans, { label: '', carpetArea: '', areaUnit: 'sq.ft.', bhk: '', price: '', status: '', image: '', otherAmenities: '' }],
+                    }))}
+                    className="mt-3 flex items-center gap-2 border-2 border-dashed border-gray-200 hover:border-brand-500 text-gray-600 hover:text-brand-500 px-4 py-3 rounded-xl text-sm font-medium w-full justify-center transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Floor Plan
+                  </button>
                 </div>
 
                 <button

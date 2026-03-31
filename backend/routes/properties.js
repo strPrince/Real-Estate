@@ -59,6 +59,7 @@ router.get('/', async (req, res) => {
       intent,
       type,
       q,
+      localities,
       minPrice,
       maxPrice,
       bedrooms,
@@ -80,6 +81,7 @@ router.get('/', async (req, res) => {
 
     const needsInMemory =
       Boolean(q) ||
+      Boolean(localities) ||
       Boolean(minPrice) ||
       Boolean(maxPrice) ||
       Boolean(bedrooms) ||
@@ -124,6 +126,13 @@ router.get('/', async (req, res) => {
           ].filter(Boolean).join(' '));
           return tokens.every((t) => hay.includes(t) || isSubsequence(t, hay));
         });
+      }
+
+      if (localities) {
+        const locList = Array.isArray(localities) ? localities : String(localities).split(',').map(s => s.trim()).filter(Boolean);
+        if (locList.length > 0) {
+          properties = properties.filter((p) => locList.includes(p.location?.locality));
+        }
       }
 
       // Post-filter for price range and bedrooms
@@ -275,6 +284,16 @@ router.post('/user-post', requireAuth, async (req, res) => {
       }
     }
 
+    let floorPlans = [];
+    if (payload.floorPlans) {
+      try {
+        const parsed = JSON.parse(payload.floorPlans);
+        if (Array.isArray(parsed)) floorPlans = parsed;
+      } catch {
+        floorPlans = [];
+      }
+    }
+
     const data = {
       title: payload.title,
       description: payload.description || '',
@@ -282,18 +301,20 @@ router.post('/user-post', requireAuth, async (req, res) => {
       location: {
         city: DEFAULT_CITY,
         locality: payload.location,
+        address: payload.address || '',
       },
       area: payload.area ? Number(payload.area) : 0,
       bedrooms: payload.bedrooms ? Number(payload.bedrooms) : 0,
       bathrooms: payload.bathrooms ? Number(payload.bathrooms) : 0,
       propertyType: payload.propertyType || 'apartment',
-      status: normalizeUserStatus(payload.status), // User posts visible by default
+      status: normalizeUserStatus(payload.status),
       images: imageUrls,
+      floorPlans,
       amenities,
-      userId: req.user.uid, // From auth middleware
+      userId: req.user.uid,
       userName: payload.userName || 'Unknown User',
       featured: false,
-      intent: normalizeUserIntent(payload.intent), // Default to buy
+      intent: normalizeUserIntent(payload.intent),
       type: normalizeUserType(payload.propertyType),
       createdAt: now,
       updatedAt: now,
@@ -363,6 +384,16 @@ router.put('/user/:id', requireAuth, upload.array('images', 10), async (req, res
       newImageUrls = req.files.map((file) => `/uploads/${file.originalname}`);
     }
 
+    let floorPlans = existing.floorPlans || [];
+    if (payload.floorPlans) {
+      try {
+        const parsed = JSON.parse(payload.floorPlans);
+        if (Array.isArray(parsed)) floorPlans = parsed;
+      } catch {
+        // keep existing
+      }
+    }
+
     const now = new Date().toISOString();
     const data = {
       title: payload.title || existing.title || '',
@@ -371,6 +402,7 @@ router.put('/user/:id', requireAuth, upload.array('images', 10), async (req, res
       location: {
         city: existing.location?.city || DEFAULT_CITY,
         locality: payload.location || existing.location?.locality || '',
+        address: payload.address || existing.location?.address || '',
       },
       area: payload.area ? Number(payload.area) : (existing.area || 0),
       bedrooms: payload.bedrooms ? Number(payload.bedrooms) : (existing.bedrooms || 0),
@@ -378,6 +410,7 @@ router.put('/user/:id', requireAuth, upload.array('images', 10), async (req, res
       propertyType: payload.propertyType || existing.propertyType || 'apartment',
       status: normalizeUserStatus(payload.status || existing.status),
       images: [...existingImages, ...newImageUrls],
+      floorPlans,
       amenities,
       userName: payload.userName || existing.userName || 'Unknown User',
       intent: normalizeUserIntent(payload.intent || existing.intent),
@@ -423,6 +456,7 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
       area: payload.area !== '' && payload.area !== undefined ? Number(payload.area) : 0,
       featured: payload.featured === true || payload.featured === 'true',
       images: payload.images || [],
+      floorPlans: payload.floorPlans || [],
       amenities: payload.amenities || [],
       status: payload.status || 'active',
       createdAt: now,
@@ -451,6 +485,7 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
       area: payload.area !== '' && payload.area !== undefined ? Number(payload.area) : 0,
       featured: payload.featured === true || payload.featured === 'true',
       images: payload.images || [],
+      floorPlans: payload.floorPlans || [],
       amenities: payload.amenities || [],
       updatedAt: new Date().toISOString(),
     };

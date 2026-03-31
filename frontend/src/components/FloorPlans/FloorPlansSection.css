@@ -1,0 +1,228 @@
+/* ─── Floor Plans Section ─── */
+.floor-plans-section {
+  background: #fff;
+  border-radius: 28px;
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  box-shadow: 0 18px 45px -30px rgba(15, 23, 42, 0.45);
+  overflow: hidden;
+}
+
+.floor-plans-header {
+  padding: 24px 28px;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.7);
+  background: #FAF7F4;
+}
+
+.floor-plans-header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 4px;
+}
+
+.floor-plans-count {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.floor-plans-count strong {
+  color: #f97316;
+  font-weight: 700;
+}
+
+/* BHK Filter Tabs */
+.floor-plans-tabs {
+  display: flex;
+  gap: 10px;
+  padding: 16px 28px 0;
+  flex-wrap: wrap;
+}
+
+.fp-tab {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.fp-tab:hover {
+  border-color: #f97316;
+  color: #f97316;
+  background: #fff7ed;
+}
+
+.fp-tab.active {
+  background: #f97316;
+  color: #fff;
+  border-color: #f97316;
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+}
+
+/* Cards Container */
+.floor-plans-cards {
+  display: flex;
+  gap: 20px;
+  padding: 24px 28px 28px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+.floor-plans-cards::-webkit-scrollbar {
+  height: 6px;
+}
+
+.floor-plans-cards::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.floor-plans-cards::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 99px;
+}
+
+/* Individual Card */
+.fp-card {
+  flex: 0 0 260px;
+  scroll-snap-align: start;
+  border-radius: 20px;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  overflow: hidden;
+  position: relative;
+  display: block;
+}
+
+.fp-card:hover {
+  border-color: #f97316;
+  box-shadow: 0 12px 32px -8px rgba(249, 115, 22, 0.2);
+  transform: translateY(-3px);
+}
+
+.fp-card-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.fp-card-dot.dot-orange { background: #f97316; }
+.fp-card-dot.dot-blue { background: #3b82f6; }
+.fp-card-dot.dot-green { background: #22c55e; }
+.fp-card-dot.dot-purple { background: #a855f7; }
+.fp-card-dot.dot-rose { background: #f43f5e; }
+.fp-card-dot.dot-teal { background: #14b8a6; }
+
+.fp-card-head {
+  padding: 16px 16px 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.fp-card-area {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.3;
+}
+
+.fp-card-area-sqm {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.fp-card-bhk {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.fp-card-image {
+  width: 100%;
+  height: 155px;
+  object-fit: cover;
+  border-top: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f3f4f6;
+  background: #f9fafb;
+}
+
+.fp-card-footer {
+  padding: 12px 16px 16px;
+}
+
+.fp-card-price {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #111827;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.fp-card-price .rupee {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.fp-card-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.fp-card-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #059669;
+}
+
+.fp-card-view-link {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #f97316;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: color 0.2s;
+}
+
+.fp-card:hover .fp-card-view-link {
+  color: #ea580c;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .floor-plans-header {
+    padding: 18px 20px;
+  }
+
+  .floor-plans-tabs {
+    padding: 12px 20px 0;
+  }
+
+  .floor-plans-cards {
+    padding: 18px 20px 22px;
+    gap: 14px;
+  }
+
+  .fp-card {
+    flex: 0 0 230px;
+  }
+}

@@ -49,6 +49,7 @@ export default function PropertiesPage() {
     const intent = searchParams.get('intent');
     const type = searchParams.get('type');
     const q = searchParams.get('q');
+    const localities = searchParams.get('localities');
     const bedrooms = searchParams.get('bedrooms');
     const bathrooms = searchParams.get('bathrooms');
     const minPrice = searchParams.get('minPrice');
@@ -59,6 +60,11 @@ export default function PropertiesPage() {
     if (intent) filters.push({ key: 'intent', label: `Intent: ${pretty(intent)}` });
     if (type) filters.push({ key: 'type', label: `Type: ${pretty(type)}` });
     if (q) filters.push({ key: 'q', label: `Search: ${q}` });
+    if (localities) {
+      localities.split(',').filter(Boolean).forEach(loc => {
+        filters.push({ key: `locality-${loc}`, label: `Locality: ${loc}` });
+      });
+    }
     if (bedrooms) filters.push({ key: 'bedrooms', label: `Bedrooms: ${bedrooms}+` });
     if (bathrooms) filters.push({ key: 'bathrooms', label: `Bathrooms: ${bathrooms}+` });
     if (minPrice || maxPrice) {
@@ -79,6 +85,7 @@ export default function PropertiesPage() {
     const intent = searchParams.get('intent') || '';
     const type = searchParams.get('type') || '';
     const q = searchParams.get('q') || '';
+    const localities = searchParams.get('localities') || '';
     const bedrooms = searchParams.get('bedrooms') || '';
     const bathrooms = searchParams.get('bathrooms') || '';
     const minPrice = searchParams.get('minPrice') || '';
@@ -90,6 +97,7 @@ export default function PropertiesPage() {
     if (intent) params.set('intent', intent);
     if (type) params.set('type', type);
     if (q) params.set('q', q);
+    if (localities) params.set('localities', localities);
     if (bedrooms) params.set('bedrooms', bedrooms);
     if (bathrooms) params.set('bathrooms', bathrooms);
     if (minPrice) params.set('minPrice', minPrice);
@@ -118,6 +126,7 @@ export default function PropertiesPage() {
       intent: searchParams.get('intent') || '',
       type: searchParams.get('type') || '',
       q: searchParams.get('q') || '',
+      localities: searchParams.get('localities') || '',
       bedrooms: searchParams.get('bedrooms') || '',
       bathrooms: searchParams.get('bathrooms') || '',
       minPrice: searchParams.get('minPrice') || '',
