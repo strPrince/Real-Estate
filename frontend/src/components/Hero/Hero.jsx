@@ -42,7 +42,8 @@ export default function Hero() {
   const [localities, setLocalities] = useState([]);
   const [localityOptions, setLocalityOptions] = useState([]);
   const [localitiesLoading, setLocalitiesLoading] = useState(false);
-  const [filterOpen, setFilterOpen] = useState(false);
+  // const [filterOpen, setFilterOpen] = useState(false);
+
 
   useEffect(() => {
     if (HERO_IMAGES.length < 2) return undefined;
@@ -251,7 +252,8 @@ export default function Hero() {
             )}
 
             {/* Search fields */}
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3 items-end">
+            <div className="grid grid-cols-1 md:grid-cols-[1.2fr_0.8fr_auto] gap-3 items-end">
+
               {/* Location input */}
               <div className="text-left w-full relative z-20">
                 <span className="text-[9px] font-bold tracking-[0.22em] text-gray-400">LOCATION</span>
@@ -266,18 +268,28 @@ export default function Hero() {
                 </div>
               </div>
 
-              {/* Filter button */}
-              <div className="flex flex-col">
-                <span className="text-[9px] font-bold tracking-[0.22em] text-gray-400 mb-1.5 invisible select-none">FILTER</span>
-                <button
-                  type="button"
-                  onClick={() => setFilterOpen((open) => !open)}
-                  className="h-12 sm:h-10 w-full md:w-auto px-4 rounded-xl border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:text-gray-900 transition-colors flex items-center justify-center gap-2 text-[13px] font-semibold"
-                  aria-label="Open filters"
-                >
-                  <SlidersHorizontal className="w-4 h-4" /> Filters
-                </button>
+              {/* Price Range inputs */}
+              <div className="text-left w-full">
+                <span className="text-[9px] font-bold tracking-[0.22em] text-gray-400">BUDGET (₹)</span>
+                <div className="mt-1.5 flex items-center gap-2 h-12 sm:h-10 px-3 rounded-xl border border-gray-200 bg-white group transition-all focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:border-brand-500">
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    className="w-full text-[13px] font-medium outline-none placeholder:text-gray-400 bg-transparent"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                  />
+                  <span className="text-gray-300 font-light px-0.5">|</span>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    className="w-full text-[13px] font-medium outline-none placeholder:text-gray-400 bg-transparent"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                  />
+                </div>
               </div>
+
 
               {/* Search button */}
               <div className="flex flex-col">
@@ -291,143 +303,44 @@ export default function Hero() {
               </div>
             </div>
 
-            {/* Quick filters */}
-            <div className="mt-4 flex items-center gap-2 overflow-x-auto whitespace-nowrap pb-1 -mx-1 px-1 sm:flex-wrap sm:overflow-visible sm:whitespace-normal">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-400 mr-1">
-                Quick Filters
-              </span>
-              {quickFilters.map((qf) => {
-                const isActive = (qf.type && propertyType === qf.type) || (qf.maxPrice && maxPrice === qf.maxPrice);
-                return (
-                  <button
-                    key={qf.label}
-                    type="button"
-                    onClick={() => {
-                      if (qf.type) setPropertyType(qf.type);
-                      if (qf.maxPrice) {
-                        setMinPrice('');
-                        setMaxPrice(qf.maxPrice);
-                      }
-                    }}
-                    className={`px-3 py-1.5 rounded-full border text-[11px] font-semibold transition-colors ${
-                      isActive
-                        ? 'bg-brand-500 text-white border-brand-500'
-                        : 'border-gray-200 text-gray-600 hover:border-brand-500 hover:text-gray-800'
-                    }`}
-                  >
-                    {qf.label}
-                  </button>
-                );
-              })}
-            </div>
-
-          </m.form>
-
-          {filterOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-              <button
-                type="button"
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                aria-label="Close filters"
-                onClick={() => setFilterOpen(false)}
-              />
-              <div className="relative w-full max-w-3xl rounded-2xl border border-gray-200 bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)]">
-                <div className="flex items-start justify-between border-b border-gray-100 px-6 py-4">
-                  <div className="text-left">
-                    <p className="text-xs font-bold uppercase tracking-[0.22em] text-gray-400">Advanced Filters</p>
-                    <p className="text-sm text-gray-600">Refine by type, bedrooms, and budget.</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setFilterOpen(false)}
-                    className="p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-                    aria-label="Close filters"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="px-6 py-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <label className="text-left w-full">
-                      <span className="text-[9px] font-bold tracking-[0.22em] text-gray-400">PROPERTY TYPE</span>
-                      <select
-                        value={propertyType}
-                        onChange={(e) => setPropertyType(e.target.value)}
-                        className="mt-1.5 h-10 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-[13px] font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                      >
-                        <option value="">Any</option>
-                        <option value="residential">Residential</option>
-                        <option value="commercial">Commercial</option>
-                        <option value="plot">Plot</option>
-                      </select>
-                    </label>
-
-                    <label className="text-left w-full">
-                      <span className="text-[9px] font-bold tracking-[0.22em] text-gray-400">BEDROOMS</span>
-                      <select
-                        value={bedrooms}
-                        onChange={(e) => setBedrooms(e.target.value)}
-                        className="mt-1.5 h-10 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-[13px] font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                      >
-                        {BHKS.map((bhk) => (
-                          <option key={bhk.value} value={bhk.value}>
-                            {bhk.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label className="text-left w-full">
-                      <span className="text-[9px] font-bold tracking-[0.22em] text-gray-400">MIN PRICE (₹)</span>
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        min="0"
-                        value={minPrice}
-                        onChange={(e) => setMinPrice(e.target.value)}
-                        placeholder="e.g. 2500000"
-                        className="mt-1.5 h-10 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-[13px] font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                      />
-                    </label>
-
-                    <label className="text-left w-full">
-                      <span className="text-[9px] font-bold tracking-[0.22em] text-gray-400">MAX PRICE (₹)</span>
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        min="0"
-                        value={maxPrice}
-                        onChange={(e) => setMaxPrice(e.target.value)}
-                        placeholder="e.g. 5000000"
-                        className="mt-1.5 h-10 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-[13px] font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                      />
-                    </label>
-                  </div>
-
-                  <div className="mt-5 flex flex-wrap items-center justify-end gap-2">
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+                <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-gray-400 mr-2">
+                  Quick Filters
+                </span>
+                {quickFilters.map((qf) => {
+                  const isActive = (qf.type && propertyType === qf.type) || (qf.maxPrice && maxPrice === qf.maxPrice);
+                  return (
                     <button
+                      key={qf.label}
                       type="button"
                       onClick={() => {
-                        clearFilters();
-                        setFilterOpen(false);
+                        if (qf.type) {
+                          setPropertyType(qf.type === propertyType ? '' : qf.type);
+                        }
+                        if (qf.maxPrice) {
+                          if (maxPrice === qf.maxPrice) {
+                            setMaxPrice('');
+                          } else {
+                            setMinPrice('');
+                            setMaxPrice(qf.maxPrice);
+                          }
+                        }
                       }}
-                      className="px-4 h-9 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:border-gray-300 hover:text-gray-900 transition-colors"
+                      className={`px-3.5 py-1.5 rounded-full border text-[11px] font-bold transition-all ${
+                        isActive
+                          ? 'bg-brand-500 text-white border-brand-500 shadow-sm'
+                          : 'bg-white border-gray-200 text-gray-500 hover:border-brand-500 hover:text-brand-600'
+                      }`}
                     >
-                      Clear
+                      {qf.label}
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setFilterOpen(false)}
-                      className="px-4 h-9 rounded-xl bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 transition-colors"
-                    >
-                      Done
-                    </button>
-                  </div>
-                </div>
-              </div>
+                  );
+                })}
             </div>
-          )}
+          </m.form>
+
+
+
 
         </div>
       </section>
