@@ -145,7 +145,7 @@ export default function UserDashboardPage() {
             ) : (
               <ul className="divide-y divide-gray-100">
                 {properties.map((property) => {
-                  const priceLabel = property.price ? property.price.toLocaleString() : '--';
+                  const priceLabel = property.price && property.price > 0 ? property.price.toLocaleString() : '--';
                   const postedDate = property.createdAt
                     ? new Date(property.createdAt).toLocaleDateString()
                     : '--';

@@ -224,7 +224,7 @@ export default function AdminUserDetailPage() {
                           <span className="truncate">{p.location?.locality || 'Unknown'}</span>
                         </div>
                         <div className="xs:col-span-2 font-bold text-brand-600">
-                          ₹{p.price?.toLocaleString('en-IN') || '--'}
+                          ₹{p.price && p.price > 0 ? p.price.toLocaleString('en-IN') : '--'}
                         </div>
                       </div>
                       <div className="mt-3 pt-3 border-t border-gray-50 flex justify-end">

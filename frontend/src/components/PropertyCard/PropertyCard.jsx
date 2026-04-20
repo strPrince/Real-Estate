@@ -19,6 +19,7 @@ export default function PropertyCard({ property, style }) {
   const locationLabel = location?.locality || location?.city || 'Vadodara';
 
   const formatPrice = (n) => {
+    if (!n) return '--';
     if (n >= 10_000_000) return `Rs ${(n / 10_000_000).toFixed(1)} Cr`;
     if (n >= 100_000) return `Rs ${(n / 100_000).toFixed(1)} L`;
     return `Rs ${n.toLocaleString('en-IN')}`;
@@ -97,7 +98,7 @@ export default function PropertyCard({ property, style }) {
           {formatPrice(price)}
           {priceUnit === 'per_month' && <span className="text-sm font-normal text-gray-500">/mo</span>}
         </p>
-        {area > 0 && price > 0 && (
+        {area && area > 0 && price && price > 0 && (
           <p className="text-xs text-gray-400 -mt-1">
             {`Rs ${Math.round(price / area).toLocaleString('en-IN')}/sqft`}
           </p>

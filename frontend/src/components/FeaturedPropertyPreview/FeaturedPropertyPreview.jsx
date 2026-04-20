@@ -42,7 +42,7 @@ export default function FeaturedPropertyPreview({ properties = [], loading = fal
     : 'Vadodara';
 
   const areaLabel = activeProperty?.area ? `${activeProperty.area} sqft` : null;
-  const pricePerSqft = activeProperty?.area && activeProperty?.price
+  const pricePerSqft = activeProperty?.area && activeProperty?.area > 0 && activeProperty?.price && activeProperty?.price > 0
     ? `Rs ${Math.round(activeProperty.price / activeProperty.area).toLocaleString('en-IN')}/sqft`
     : null;
   const intentLabel = activeProperty?.intent === 'rent'

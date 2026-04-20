@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { toast } from 'react-hot-toast';
 import { CheckCircle2, Upload, Sparkles, Layers, Plus, Trash2, ImagePlus, X } from 'lucide-react';
 import Header from '../../components/Header/Header.jsx';
+import BrochureUploadSection from '../../components/BrochureUploadSection/BrochureUploadSection.jsx';
 import { getLocalities, uploadImage } from '../../api.js';
 
 export default function PostPropertyPage() {
@@ -27,6 +28,8 @@ export default function PostPropertyPage() {
     images: [],
     amenities: [],
     floorPlans: [],
+    builder: '',
+    brochure: null,
   });
 
   const [imagePreviews, setImagePreviews] = useState([]);
@@ -632,6 +635,15 @@ export default function PostPropertyPage() {
                     Add Floor Plan
                   </button>
                 </div>
+
+                {/* Brochure Upload */}
+                <BrochureUploadSection
+                  brochure={formData.brochure}
+                  onBrochureChange={(brochure) => setFormData((prev) => ({ ...prev, brochure }))}
+                  builder={formData.builder}
+                  onBuilderChange={(builder) => setFormData((prev) => ({ ...prev, builder }))}
+                  disabled={loading}
+                />
 
                 <button
                   type="submit"

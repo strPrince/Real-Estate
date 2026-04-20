@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { createProperty, updateProperty, getProperty, uploadImage, getLocalities } from '../../api.js';
 import { X, Upload, Loader2, Info, DollarSign, MapPin, Sparkles, ImagePlus, Settings2, ArrowLeft, Layers, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import BrochureUploadSection from '../../components/BrochureUploadSection/BrochureUploadSection.jsx';
 
 const PROPERTY_TYPES = ['residential', 'commercial', 'plot', 'pg'];
 const INTENTS = ['buy', 'rent', 'commercial'];
@@ -24,6 +25,7 @@ const EMPTY_FORM = {
   lat: '', lng: '',
   status: 'active', featured: false,
   images: [], amenities: [], floorPlans: [],
+  builder: '', brochure: null,
 };
 
 export default function AdminPropertyForm() {
@@ -64,6 +66,8 @@ export default function AdminPropertyForm() {
           images: data.images || [],
           amenities: data.amenities || [],
           floorPlans: data.floorPlans || [],
+          builder: data.builder || '',
+          brochure: data.brochure || null,
         });
       })
       .catch(() => toast.error('Failed to load property'))
@@ -151,6 +155,8 @@ export default function AdminPropertyForm() {
         images: form.images,
         floorPlans: form.floorPlans,
         amenities: form.amenities,
+        builder: form.builder,
+        brochure: form.brochure,
       };
 
       if (isEdit) {
@@ -558,6 +564,15 @@ export default function AdminPropertyForm() {
             </label>
           </div>
         </div>
+
+        {/* Brochure Upload */}
+        <BrochureUploadSection
+          brochure={form.brochure}
+          onBrochureChange={(brochure) => setForm((f) => ({ ...f, brochure }))}
+          builder={form.builder}
+          onBuilderChange={(e) => setForm((f) => ({ ...f, builder: e }))}
+          disabled={uploading}
+        />
 
         {/* Submit */}
         <div className="flex flex-col sm:flex-row gap-3">

@@ -11,7 +11,8 @@
     "remove-90-percent": "node backend/remove-90-percent-collection.js",
     "migrate-user-properties": "node migrate-user-properties.js",
     "generate-indexes": "node generate_indexes.js",
-    "deploy-indexes": "npm run generate-indexes && cd .. && firebase deploy --only firestore:indexes"
+    "deploy-indexes": "npm run generate-indexes && cd .. && firebase deploy --only firestore:indexes",
+    "upload-aadikara": "node upload-aadikara-property.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
