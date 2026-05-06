@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Upload, X, File, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Upload, X, File, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function BrochureUploadSection({ 
@@ -139,14 +139,7 @@ export default function BrochureUploadSection({
               </p>
             </div>
 
-            {/* Info Alert */}
-            <div className="mt-3 flex gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="text-xs text-blue-700">
-                <p className="font-medium">Storage Note:</p>
-                <p>Brochure upload is ready but will work once Firebase Storage is enabled.</p>
-              </div>
-            </div>
+
           </>
         ) : (
           <>
@@ -177,14 +170,7 @@ export default function BrochureUploadSection({
               </button>
             </div>
 
-            {/* Upload Status */}
-            <div className="mt-3 flex gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-              <div className="text-xs text-green-700">
-                <p className="font-medium">Ready for Upload</p>
-                <p>Your brochure will be uploaded when storage is enabled and you save the property.</p>
-              </div>
-            </div>
+
           </>
         )}
       </div>

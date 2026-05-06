@@ -26,6 +26,7 @@ export default function PostPropertyPage() {
     propertyType: 'apartment',
     status: 'available',
     images: [],
+    videos: [],
     amenities: [],
     floorPlans: [],
     builder: '',
@@ -33,7 +34,9 @@ export default function PostPropertyPage() {
   });
 
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [videoPreviews, setVideoPreviews] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
+  const [existingVideos, setExistingVideos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingProperty, setLoadingProperty] = useState(isEdit);
   const [localities, setLocalities] = useState([]);
@@ -58,13 +61,136 @@ export default function PostPropertyPage() {
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
+
+    // Validate file types
+    const validImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    for (let file of files) {
+      if (!validImageTypes.includes(file.type)) {
+        toast.error(`Invalid image format: ${file.name}. Only JPG, PNG, WebP allowed.`);
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`Image too large: ${file.name}. Max size 5MB.`);
+        return;
+      }
+    }
+
+    const totalImages = existingImages.length + files.length;
+    if (totalImages > 10) {
+      toast.error(`Maximum 10 images allowed. You have ${existingImages.length} existing and trying to add ${files.length} new.`);
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       images: files,
     }));
 
+    // Clean up old preview URLs
+    imagePreviews.forEach((url) => URL.revokeObjectURL(url));
     const previews = files.map((file) => URL.createObjectURL(file));
     setImagePreviews(previews);
+  };
+
+  const handleVideoChange = (e) => {
+    const files = Array.from(e.target.files);
+
+    // Validate file types
+    const validVideoTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/webm'];
+    for (let file of files) {
+      if (!validVideoTypes.includes(file.type)) {
+        toast.error(`Invalid video format: ${file.name}. Only MP4, MOV, AVI, MKV, WebM allowed.`);
+        return;
+      }
+      if (file.size > 100 * 1024 * 1024) {
+        toast.error(`Video too large: ${file.name}. Max size 100MB.`);
+        return;
+      }
+    }
+
+    const totalVideos = existingVideos.length + files.length;
+    if (totalVideos > 5) {
+      toast.error(`Maximum 5 videos allowed. You have ${existingVideos.length} existing and trying to add ${files.length} new.`);
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      videos: files,
+    }));
+
+    // Clean up old preview URLs
+    videoPreviews.forEach((url) => URL.revokeObjectURL(url));
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setVideoPreviews(previews);
+  };
+
+  const handleMediaChange = (e) => {
+    const files = Array.from(e.target.files);
+    
+    const validImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const validVideoTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/webm'];
+    
+    const newImages = [];
+    const newVideos = [];
+    
+    for (let file of files) {
+      const isImage = validImageTypes.includes(file.type);
+      const isVideo = validVideoTypes.includes(file.type);
+      
+      if (!isImage && !isVideo) {
+        toast.error(`Invalid file format: ${file.name}. Only images (JPG, PNG, WebP) and videos (MP4, MOV, AVI, MKV, WebM) allowed.`);
+        continue;
+      }
+      
+      if (isImage) {
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`Image too large: ${file.name}. Max size 5MB.`);
+          continue;
+        }
+        newImages.push(file);
+      }
+      
+      if (isVideo) {
+        if (file.size > 100 * 1024 * 1024) {
+          toast.error(`Video too large: ${file.name}. Max size 100MB.`);
+          continue;
+        }
+        newVideos.push(file);
+      }
+    }
+    
+    if (newImages.length > 0) {
+      const totalImages = existingImages.length + newImages.length;
+      if (totalImages > 10) {
+        toast.error(`Maximum 10 images allowed. You have ${existingImages.length} existing and trying to add ${newImages.length} new.`);
+        newImages.length = 0;
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          images: newImages,
+        }));
+        imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+        const previews = newImages.map((file) => URL.createObjectURL(file));
+        setImagePreviews(previews);
+      }
+    }
+    
+    if (newVideos.length > 0) {
+      const totalVideos = existingVideos.length + newVideos.length;
+      if (totalVideos > 5) {
+        toast.error(`Maximum 5 videos allowed. You have ${existingVideos.length} existing and trying to add ${newVideos.length} new.`);
+        newVideos.length = 0;
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          videos: newVideos,
+        }));
+        videoPreviews.forEach((url) => URL.revokeObjectURL(url));
+        const previews = newVideos.map((file) => URL.createObjectURL(file));
+        setVideoPreviews(previews);
+      }
+    }
   };
 
   const toggleAmenity = (amenity) => {
@@ -78,6 +204,10 @@ export default function PostPropertyPage() {
 
   const removeExistingImage = (url) => {
     setExistingImages((prev) => prev.filter((item) => item !== url));
+  };
+
+  const removeExistingVideo = (index) => {
+    setExistingVideos((prev) => prev.filter((_, i) => i !== index));
   };
 
   useEffect(() => {
@@ -119,8 +249,16 @@ export default function PostPropertyPage() {
           images: [],
           amenities: Array.isArray(property.amenities) ? property.amenities : [],
           floorPlans: Array.isArray(property.floorPlans) ? property.floorPlans : [],
+          builder: property.builder || '',
+          brochure: property.brochure
+            ? typeof property.brochure === 'string'
+              ? { url: property.brochure, name: property.brochure.split('/').pop() || 'brochure', size: 0 }
+              : property.brochure
+            : null,
+          videos: [],
         });
         setExistingImages(Array.isArray(property.images) ? property.images : []);
+        setExistingVideos(Array.isArray(property.videos) ? property.videos : []);
       } catch (error) {
         toast.error(error.message || 'Failed to load property');
       } finally {
@@ -129,6 +267,14 @@ export default function PostPropertyPage() {
     };
     loadProperty();
   }, [id]);
+
+  // Cleanup object URLs for image and video previews
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach(url => URL.revokeObjectURL(url));
+      videoPreviews.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [imagePreviews, videoPreviews]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -144,10 +290,16 @@ export default function PostPropertyPage() {
           formData.images.forEach((image) => {
             data.append('images', image);
           });
+        } else if (key === 'videos') {
+          formData.videos.forEach((video) => {
+            data.append('videos', video);
+          });
         } else if (key === 'amenities') {
           data.append('amenities', JSON.stringify(formData.amenities));
         } else if (key === 'floorPlans') {
           data.append('floorPlans', JSON.stringify(formData.floorPlans));
+        } else if (key === 'brochure' && formData.brochure?.file) {
+          data.append('brochure', formData.brochure.file, formData.brochure.name);
         } else {
           data.append(key, formData[key]);
         }
@@ -157,6 +309,7 @@ export default function PostPropertyPage() {
       data.append('userName', currentUser.displayName || currentUser.email);
 
       data.append('existingImages', JSON.stringify(existingImages));
+      data.append('existingVideos', JSON.stringify(existingVideos));
 
       const response = await fetch(isEdit ? `/api/properties/user/${id}` : '/api/properties/user-post', {
         method: isEdit ? 'PUT' : 'POST',
@@ -401,55 +554,94 @@ export default function PostPropertyPage() {
 
                 <div>
                   <label htmlFor="images" className="block text-sm font-semibold text-gray-700">
-                    Images
+                    Media (Images & Videos)
                   </label>
                   {existingImages.length > 0 && (
-                    <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                      {existingImages.map((url) => (
-                        <div key={url} className="relative">
-                          <img
-                            src={url}
-                            alt="Existing"
-                            className="h-24 w-full rounded-xl object-cover"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeExistingImage(url)}
-                            className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-lg"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ))}
+                    <div className="mt-3">
+                      <p className="text-sm text-gray-600 mb-2">Existing Images:</p>
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        {existingImages.map((url) => (
+                          <div key={url} className="relative">
+                            <img
+                              src={url}
+                              alt="Existing"
+                              className="h-24 w-full rounded-xl object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeExistingImage(url)}
+                              className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-lg"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
-                  <label
-                    htmlFor="images"
-                    className="mt-2 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-6 py-8 text-sm text-gray-600 transition-colors hover:border-gray-300 hover:bg-white"
-                  >
-                    <Upload className="w-5 h-5 text-brand-500" />
-                    <span className="font-semibold text-gray-900">Upload photos</span>
-                    <span className="text-xs text-gray-500">PNG or JPG, up to 10 files</span>
-                    <input
-                      type="file"
-                      id="images"
-                      name="images"
-                      accept="image/*"
-                      multiple
-                      onChange={handleImageChange}
-                      className="sr-only"
-                    />
-                  </label>
-                  {imagePreviews.length > 0 && (
-                    <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                      {imagePreviews.map((preview, index) => (
-                        <img
-                          key={index}
-                          src={preview}
-                          alt={`Preview ${index}`}
-                          className="h-24 w-full rounded-xl object-cover"
-                        />
-                      ))}
+                  {existingVideos.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-sm text-gray-600 mb-2">Existing Videos:</p>
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        {existingVideos.map((url, idx) => (
+                          <div key={idx} className="relative">
+                            <video
+                              src={url}
+                              controls
+                              className="h-24 w-full rounded-xl object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeExistingVideo(idx)}
+                              className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-lg"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className="mt-4">
+                    <label
+                      htmlFor="media"
+                      className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-6 py-8 text-sm text-gray-600 transition-colors hover:border-gray-300 hover:bg-white"
+                    >
+                      <Upload className="w-5 h-5 text-brand-500" />
+                      <span className="font-semibold text-gray-900">Upload Images & Videos</span>
+                      <span className="text-xs text-gray-500">Images: PNG, JPG, WebP (Max 5MB • up to 10 files) | Videos: MP4, MOV, AVI, MKV, WebM (Max 100MB • up to 5 videos)</span>
+                      <input
+                        type="file"
+                        id="media"
+                        name="media"
+                        accept="image/*,video/*"
+                        multiple
+                        onChange={handleMediaChange}
+                        className="sr-only"
+                      />
+                    </label>
+                  </div>
+                  {(imagePreviews.length > 0 || videoPreviews.length > 0) && (
+                    <div className="mt-4">
+                      <p className="text-sm text-gray-600 mb-2">New Media:</p>
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        {imagePreviews.map((preview, index) => (
+                          <img
+                            key={`img-${index}`}
+                            src={preview}
+                            alt={`Preview ${index}`}
+                            className="h-24 w-full rounded-xl object-cover"
+                          />
+                        ))}
+                        {videoPreviews.map((preview, index) => (
+                          <video
+                            key={`vid-${index}`}
+                            src={preview}
+                            controls
+                            className="h-24 w-full rounded-xl object-cover"
+                          />
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

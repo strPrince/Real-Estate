@@ -1,9 +1,53 @@
 import { Router } from 'express';
 import multer from 'multer';
 import os from 'os';
+import path from 'path';
+import fs from 'fs';
 import { promises as fsPromises } from 'fs';
-import { db } from '../firebase.js';
+import { db, storage } from '../firebase.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
+
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ALLOWED_VIDEO_TYPES = [
+  'video/mp4',
+  'video/quicktime',
+  'video/x-msvideo',
+  'video/x-matroska',
+  'video/webm',
+];
+const ALLOWED_BROCHURE_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+];
+
+const IMAGE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB
+const VIDEO_SIZE_LIMIT = 100 * 1024 * 1024; // 100MB
+const BROCHURE_SIZE_LIMIT = 10 * 1024 * 1024; // 10MB
+
+const MAX_IMAGES = 10;
+const MAX_VIDEOS = 5;
+
+const uploadToFirebase = (file, destinationFolder) => {
+  const ext = path.extname(file.originalname) || '';
+  const filename = `${destinationFolder}/${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
+  const bucket = storage.bucket();
+  const firebaseFile = bucket.file(filename);
+  return new Promise((resolve, reject) => {
+    const writeStream = firebaseFile.createWriteStream({
+      metadata: { contentType: file.mimetype },
+      public: true,
+    });
+    fs.createReadStream(file.path)
+      .on('error', reject)
+      .pipe(writeStream)
+      .on('error', reject)
+      .on('finish', () => {
+        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filename}`;
+        resolve(publicUrl);
+      });
+  });
+};
 
 const router = Router();
 
@@ -16,8 +60,15 @@ const upload = multer({
     },
   }),
   limits: {
-    fileSize: 5 * 1024 * 1024,
-    files: 10,
+    fileSize: Math.max(IMAGE_SIZE_LIMIT, VIDEO_SIZE_LIMIT, BROCHURE_SIZE_LIMIT), // 100MB max
+  },
+  fileFilter: (_req, file, cb) => {
+    const allowed = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES, ...ALLOWED_BROCHURE_TYPES];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type'), false);
+    }
   },
 });
 
@@ -248,189 +299,355 @@ router.get('/:id', async (req, res) => {
 });
 
 // ── POST /api/properties/user-post  (authenticated users only)
-router.post('/user-post', requireAuth, async (req, res) => {
-  try {
-    // Multer handles multipart/form-data parsing
-    const payload = req.body || {};
-    
-    // Validate required fields
-    if (!payload.title || !payload.location) {
-      return res.status(400).json({
-        error: 'Missing required fields: title, location'
+router.post(
+  '/user-post',
+  requireAuth,
+  upload.fields([
+    { name: 'images', maxCount: MAX_IMAGES },
+    { name: 'videos', maxCount: MAX_VIDEOS },
+    { name: 'brochure', maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const payload = req.body || {};
+
+      // Validate required fields
+      if (!payload.title || !payload.location) {
+        return res.status(400).json({
+          error: 'Missing required fields: title, location',
+        });
+      }
+
+      const now = new Date().toISOString();
+
+      // Validate and process images
+      let imageUrls = [];
+      if (req.files?.images) {
+        if (req.files.images.length > MAX_IMAGES) {
+          return res.status(400).json({ error: `Maximum ${MAX_IMAGES} images allowed.` });
+        }
+        for (const file of req.files.images) {
+          if (!ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
+            return res.status(400).json({ error: `Invalid image type: ${file.originalname}` });
+          }
+          if (file.size > IMAGE_SIZE_LIMIT) {
+            return res.status(400).json({ error: `Image too large: ${file.originalname}. Max 5MB.` });
+          }
+          try {
+            const url = await uploadToFirebase(file, 'properties/images');
+            imageUrls.push(url);
+          } catch (err) {
+            console.error('Image upload error:', err);
+            return res.status(500).json({ error: `Failed to upload image: ${file.originalname}` });
+          }
+        }
+      }
+
+      // Validate and process videos
+      let videoUrls = [];
+      if (req.files?.videos) {
+        if (req.files.videos.length > MAX_VIDEOS) {
+          return res.status(400).json({ error: `Maximum ${MAX_VIDEOS} videos allowed.` });
+        }
+        for (const file of req.files.videos) {
+          if (!ALLOWED_VIDEO_TYPES.includes(file.mimetype)) {
+            return res.status(400).json({ error: `Invalid video type: ${file.originalname}` });
+          }
+          if (file.size > VIDEO_SIZE_LIMIT) {
+            return res.status(400).json({ error: `Video too large: ${file.originalname}. Max 100MB.` });
+          }
+          try {
+            const url = await uploadToFirebase(file, 'properties/videos');
+            videoUrls.push(url);
+          } catch (err) {
+            console.error('Video upload error:', err);
+            return res.status(500).json({ error: `Failed to upload video: ${file.originalname}` });
+          }
+        }
+      }
+
+      // Validate and process brochure
+      let brochureData = null;
+      if (req.files?.brochure && req.files.brochure.length > 0) {
+        const file = req.files.brochure[0];
+        if (!ALLOWED_BROCHURE_TYPES.includes(file.mimetype)) {
+          return res.status(400).json({ error: 'Invalid brochure type. Only PDF, DOC, DOCX allowed.' });
+        }
+        if (file.size > BROCHURE_SIZE_LIMIT) {
+          return res.status(400).json({ error: 'Brochure file too large. Max 10MB.' });
+        }
+        try {
+          const url = await uploadToFirebase(file, 'properties/brochures');
+          brochureData = { url, name: file.originalname, size: file.size };
+        } catch (err) {
+          console.error('Brochure upload error:', err);
+          return res.status(500).json({ error: 'Failed to upload brochure' });
+        }
+      }
+
+      // Parse amenities
+      let amenities = [];
+      if (payload.amenities) {
+        try {
+          const parsed = JSON.parse(payload.amenities);
+          if (Array.isArray(parsed)) amenities = parsed;
+        } catch {
+          amenities = String(payload.amenities)
+            .split(',')
+            .map((item) => item.trim())
+            .filter(Boolean);
+        }
+      }
+
+      // Parse floorPlans
+      let floorPlans = [];
+      if (payload.floorPlans) {
+        try {
+          const parsed = JSON.parse(payload.floorPlans);
+          if (Array.isArray(parsed)) floorPlans = parsed;
+        } catch {
+          floorPlans = [];
+        }
+      }
+
+      const data = {
+        title: payload.title,
+        description: payload.description || '',
+        price: payload.price ? Number(payload.price) : 0,
+        location: {
+          city: DEFAULT_CITY,
+          locality: payload.location,
+          address: payload.address || '',
+        },
+        area: payload.area ? Number(payload.area) : 0,
+        bedrooms: payload.bedrooms ? Number(payload.bedrooms) : 0,
+        bathrooms: payload.bathrooms ? Number(payload.bathrooms) : 0,
+        propertyType: payload.propertyType || 'apartment',
+        status: normalizeUserStatus(payload.status),
+        images: imageUrls,
+        videos: videoUrls,
+        floorPlans,
+        amenities,
+        builder: payload.builder || '',
+        brochure: brochureData,
+        userId: req.user.uid,
+        userName: payload.userName || 'Unknown User',
+        featured: false,
+        intent: normalizeUserIntent(payload.intent),
+        type: normalizeUserType(payload.propertyType),
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      const ref = await db.collection('properties').add(data);
+      res.status(201).json({
+        id: ref.id,
+        ...data,
+        message: 'Property submitted successfully. It will be reviewed by our team.',
       });
-    }
-    
-    const now = new Date().toISOString();
-    
-    // Handle uploaded images
-    let imageUrls = [];
-    if (req.files && req.files.length > 0) {
-      // In a real implementation, you would upload these to cloud storage
-      // For now, we'll just store the filenames
-      imageUrls = req.files.map(file => `/uploads/${file.originalname}`);
-    }
-    
-    // Create property data with user info
-    let amenities = [];
-    if (payload.amenities) {
-      try {
-        const parsed = JSON.parse(payload.amenities);
-        if (Array.isArray(parsed)) amenities = parsed;
-      } catch {
-        amenities = String(payload.amenities)
-          .split(',')
-          .map((item) => item.trim())
-          .filter(Boolean);
-      }
-    }
-
-    let floorPlans = [];
-    if (payload.floorPlans) {
-      try {
-        const parsed = JSON.parse(payload.floorPlans);
-        if (Array.isArray(parsed)) floorPlans = parsed;
-      } catch {
-        floorPlans = [];
-      }
-    }
-
-    const data = {
-      title: payload.title,
-      description: payload.description || '',
-      price: payload.price ? Number(payload.price) : 0,
-      location: {
-        city: DEFAULT_CITY,
-        locality: payload.location,
-        address: payload.address || '',
-      },
-      area: payload.area ? Number(payload.area) : 0,
-      bedrooms: payload.bedrooms ? Number(payload.bedrooms) : 0,
-      bathrooms: payload.bathrooms ? Number(payload.bathrooms) : 0,
-      propertyType: payload.propertyType || 'apartment',
-      status: normalizeUserStatus(payload.status),
-      images: imageUrls,
-      floorPlans,
-      amenities,
-      userId: req.user.uid,
-      userName: payload.userName || 'Unknown User',
-      featured: false,
-      intent: normalizeUserIntent(payload.intent),
-      type: normalizeUserType(payload.propertyType),
-      createdAt: now,
-      updatedAt: now,
-    };
-    
-    // Add property to main properties collection
-    const ref = await db.collection('properties').add(data);
-    
-    res.status(201).json({ 
-      id: ref.id, 
-      ...data,
-      message: 'Property submitted successfully. It will be reviewed by our team.' 
-    });
-  } catch (err) {
-    console.error('POST /properties/user-post error:', err);
-    res.status(500).json({ error: 'Failed to submit property' });
-  } finally {
-    if (Array.isArray(req.files)) {
-      await Promise.all(req.files.map((file) => (
-        file?.path ? fsPromises.unlink(file.path).catch(() => {}) : Promise.resolve()
-      )));
+    } catch (err) {
+      console.error('POST /properties/user-post error:', err);
+      res.status(500).json({ error: 'Failed to submit property' });
+    } finally {
+      const allFiles = [
+        ...(req.files?.images || []),
+        ...(req.files?.videos || []),
+        ...(req.files?.brochure || []),
+      ];
+      await Promise.all(
+        allFiles.map((file) => file?.path ? fsPromises.unlink(file.path).catch(() => {}) : Promise.resolve())
+      );
     }
   }
-});
+);
 
 // ── PUT /api/properties/user/:id  (authenticated users only)
-router.put('/user/:id', requireAuth, upload.array('images', 10), async (req, res) => {
-  try {
-    const docRef = db.collection('properties').doc(req.params.id);
-    const doc = await docRef.get();
-    if (!doc.exists) return res.status(404).json({ error: 'Property not found' });
+router.put(
+  '/user/:id',
+  requireAuth,
+  upload.fields([
+    { name: 'images', maxCount: MAX_IMAGES },
+    { name: 'videos', maxCount: MAX_VIDEOS },
+    { name: 'brochure', maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const docRef = db.collection('properties').doc(req.params.id);
+      const doc = await docRef.get();
+      if (!doc.exists) return res.status(404).json({ error: 'Property not found' });
 
-    const existing = doc.data();
-    if (existing.userId !== req.user.uid) {
-      return res.status(403).json({ error: 'Forbidden - not your property' });
-    }
-
-    const payload = req.body || {};
-
-    let amenities = [];
-    if (payload.amenities) {
-      try {
-        const parsed = JSON.parse(payload.amenities);
-        if (Array.isArray(parsed)) amenities = parsed;
-      } catch {
-        amenities = String(payload.amenities)
-          .split(',')
-          .map((item) => item.trim())
-          .filter(Boolean);
+      const existing = doc.data();
+      if (existing.userId !== req.user.uid) {
+        return res.status(403).json({ error: 'Forbidden - not your property' });
       }
-    }
 
-    let existingImages = [];
-    if (payload.existingImages) {
-      try {
-        const parsed = JSON.parse(payload.existingImages);
-        if (Array.isArray(parsed)) existingImages = parsed;
-      } catch {
-        existingImages = [];
+      const payload = req.body || {};
+
+      // Parse amenities
+      let amenities = [];
+      if (payload.amenities) {
+        try {
+          const parsed = JSON.parse(payload.amenities);
+          if (Array.isArray(parsed)) amenities = parsed;
+        } catch {
+          amenities = String(payload.amenities)
+            .split(',')
+            .map((item) => item.trim())
+            .filter(Boolean);
+        }
       }
-    } else if (Array.isArray(existing.images)) {
-      existingImages = existing.images;
-    }
 
-    let newImageUrls = [];
-    if (req.files && req.files.length > 0) {
-      newImageUrls = req.files.map((file) => `/uploads/${file.originalname}`);
-    }
-
-    let floorPlans = existing.floorPlans || [];
-    if (payload.floorPlans) {
-      try {
-        const parsed = JSON.parse(payload.floorPlans);
-        if (Array.isArray(parsed)) floorPlans = parsed;
-      } catch {
-        // keep existing
+      // Parse existing images
+      let existingImages = [];
+      if (payload.existingImages) {
+        try {
+          const parsed = JSON.parse(payload.existingImages);
+          if (Array.isArray(parsed)) existingImages = parsed;
+        } catch {
+          existingImages = [];
+        }
+      } else if (Array.isArray(existing.images)) {
+        existingImages = existing.images;
       }
-    }
 
-    const now = new Date().toISOString();
-    const data = {
-      title: payload.title || existing.title || '',
-      description: payload.description || existing.description || '',
-      price: payload.price ? Number(payload.price) : (existing.price || 0),
-      location: {
-        city: existing.location?.city || DEFAULT_CITY,
-        locality: payload.location || existing.location?.locality || '',
-        address: payload.address || existing.location?.address || '',
-      },
-      area: payload.area ? Number(payload.area) : (existing.area || 0),
-      bedrooms: payload.bedrooms ? Number(payload.bedrooms) : (existing.bedrooms || 0),
-      bathrooms: payload.bathrooms ? Number(payload.bathrooms) : (existing.bathrooms || 0),
-      propertyType: payload.propertyType || existing.propertyType || 'apartment',
-      status: normalizeUserStatus(payload.status || existing.status),
-      images: [...existingImages, ...newImageUrls],
-      floorPlans,
-      amenities,
-      userName: payload.userName || existing.userName || 'Unknown User',
-      intent: normalizeUserIntent(payload.intent || existing.intent),
-      type: normalizeUserType(payload.propertyType || existing.type),
-      updatedAt: now,
-    };
+      // Parse existing videos
+      let existingVideos = [];
+      if (payload.existingVideos) {
+        try {
+          const parsed = JSON.parse(payload.existingVideos);
+          if (Array.isArray(parsed)) existingVideos = parsed;
+        } catch {
+          existingVideos = [];
+        }
+      } else if (Array.isArray(existing.videos)) {
+        existingVideos = existing.videos;
+      }
 
-    await docRef.update(data);
-    res.json({ id: doc.id, ...existing, ...data });
-  } catch (err) {
-    console.error('PUT /properties/user/:id error:', err);
-    res.status(500).json({ error: 'Failed to update property' });
-  } finally {
-    if (Array.isArray(req.files)) {
-      await Promise.all(req.files.map((file) => (
-        file?.path ? fsPromises.unlink(file.path).catch(() => {}) : Promise.resolve()
-      )));
+      // Validate total counts before processing new files
+      const incomingImageCount = req.files?.images?.length || 0;
+      if (existingImages.length + incomingImageCount > MAX_IMAGES) {
+        return res.status(400).json({ error: `Maximum ${MAX_IMAGES} images allowed.` });
+      }
+
+      const incomingVideoCount = req.files?.videos?.length || 0;
+      if (existingVideos.length + incomingVideoCount > MAX_VIDEOS) {
+        return res.status(400).json({ error: `Maximum ${MAX_VIDEOS} videos allowed.` });
+      }
+
+      // Process new images
+      let newImageUrls = [];
+      if (req.files?.images) {
+        for (const file of req.files.images) {
+          if (!ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
+            return res.status(400).json({ error: `Invalid image type: ${file.originalname}` });
+          }
+          if (file.size > IMAGE_SIZE_LIMIT) {
+            return res.status(400).json({ error: `Image too large: ${file.originalname}. Max 5MB.` });
+          }
+          try {
+            const url = await uploadToFirebase(file, 'properties/images');
+            newImageUrls.push(url);
+          } catch (err) {
+            console.error('Image upload error:', err);
+            return res.status(500).json({ error: `Failed to upload image: ${file.originalname}` });
+          }
+        }
+      }
+
+      // Process new videos
+      let newVideoUrls = [];
+      if (req.files?.videos) {
+        for (const file of req.files.videos) {
+          if (!ALLOWED_VIDEO_TYPES.includes(file.mimetype)) {
+            return res.status(400).json({ error: `Invalid video type: ${file.originalname}` });
+          }
+          if (file.size > VIDEO_SIZE_LIMIT) {
+            return res.status(400).json({ error: `Video too large: ${file.originalname}. Max 100MB.` });
+          }
+          try {
+            const url = await uploadToFirebase(file, 'properties/videos');
+            newVideoUrls.push(url);
+          } catch (err) {
+            console.error('Video upload error:', err);
+            return res.status(500).json({ error: `Failed to upload video: ${file.originalname}` });
+          }
+        }
+      }
+
+      // Process brochure (if new file uploaded)
+      let newBrochureData = null;
+      if (req.files?.brochure && req.files.brochure.length > 0) {
+        const file = req.files.brochure[0];
+        if (!ALLOWED_BROCHURE_TYPES.includes(file.mimetype)) {
+          return res.status(400).json({ error: 'Invalid brochure type. Only PDF, DOC, DOCX allowed.' });
+        }
+        if (file.size > BROCHURE_SIZE_LIMIT) {
+          return res.status(400).json({ error: 'Brochure file too large. Max 10MB.' });
+        }
+        try {
+          const url = await uploadToFirebase(file, 'properties/brochures');
+          newBrochureData = { url, name: file.originalname, size: file.size };
+        } catch (err) {
+          console.error('Brochure upload error:', err);
+          return res.status(500).json({ error: 'Failed to upload brochure' });
+        }
+      }
+
+      // Parse floorPlans
+      let floorPlans = existing.floorPlans || [];
+      if (payload.floorPlans) {
+        try {
+          const parsed = JSON.parse(payload.floorPlans);
+          if (Array.isArray(parsed)) floorPlans = parsed;
+        } catch {
+          // keep existing
+        }
+      }
+
+      const now = new Date().toISOString();
+      const data = {
+        title: payload.title || existing.title || '',
+        description: payload.description || existing.description || '',
+        price: payload.price ? Number(payload.price) : (existing.price || 0),
+        location: {
+          city: existing.location?.city || DEFAULT_CITY,
+          locality: payload.location || existing.location?.locality || '',
+          address: payload.address || existing.location?.address || '',
+        },
+        area: payload.area ? Number(payload.area) : (existing.area || 0),
+        bedrooms: payload.bedrooms ? Number(payload.bedrooms) : (existing.bedrooms || 0),
+        bathrooms: payload.bathrooms ? Number(payload.bathrooms) : (existing.bathrooms || 0),
+        propertyType: payload.propertyType || existing.propertyType || 'apartment',
+        status: normalizeUserStatus(payload.status || existing.status),
+        images: [...existingImages, ...newImageUrls],
+        videos: [...existingVideos, ...newVideoUrls],
+        floorPlans,
+        amenities,
+        builder: payload.builder || existing.builder || '',
+        brochure: newBrochureData || existing.brochure,
+        userName: payload.userName || existing.userName || 'Unknown User',
+        intent: normalizeUserIntent(payload.intent || existing.intent),
+        type: normalizeUserType(payload.propertyType || existing.type),
+        updatedAt: now,
+      };
+
+      await docRef.update(data);
+      res.json({ id: doc.id, ...existing, ...data });
+    } catch (err) {
+      console.error('PUT /properties/user/:id error:', err);
+      res.status(500).json({ error: 'Failed to update property' });
+    } finally {
+      const allFiles = [
+        ...(req.files?.images || []),
+        ...(req.files?.videos || []),
+        ...(req.files?.brochure || []),
+      ];
+      await Promise.all(
+        allFiles.map((file) => file?.path ? fsPromises.unlink(file.path).catch(() => {}) : Promise.resolve())
+      );
     }
   }
-});
+);
 
 // ── POST /api/properties  (admin only)
 router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
