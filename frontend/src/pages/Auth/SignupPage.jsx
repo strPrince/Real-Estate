@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { toast } from 'react-hot-toast';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, ChevronLeft } from 'lucide-react';
 import logo from '../../property-master.png';
 import MathCaptcha from '../../components/MathCaptcha/MathCaptcha.jsx';
 
@@ -59,6 +59,17 @@ export default function SignupPage() {
 
       {/* ── card ── */}
       <div className="auth-card auth-card--signup">
+        {/* back to home button */}
+        <div className="flex justify-start mb-4">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-sm font-medium text-white/90 hover:text-white hover:bg-white/20 transition-all"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Back to Home
+          </Link>
+        </div>
+
         {/* logo / wordmark */}
         <div className="flex justify-center mb-2">
           <Link to="/" className="hover:scale-105 transition-transform duration-300">

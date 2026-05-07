@@ -137,22 +137,22 @@ export default function Footer() {
                 <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
                   <MapPin className="w-4 h-4 text-brand-400" />
                 </span>
-                <span className="leading-relaxed">Vadodara, Gujarat, India</span>
+                <span className="leading-relaxed">{import.meta.env.VITE_BRAND_ADDRESS || '303, 3rd Floor, Raj Avenue, Near Domino\'z Pizza, Ellora Park, Vadodara 390023'}</span>
               </li>
               <li className="flex gap-3 items-center">
                 <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
                   <Phone className="w-4 h-4 text-brand-400" />
                 </span>
-                <a href="tel:+919876543210" className="hover:text-brand-300 transition-colors duration-200">
-                  +91 98765 43210
+                <a href={`tel:${import.meta.env.VITE_BRAND_PHONE || '+919824252698'}`} className="hover:text-brand-300 transition-colors duration-200">
+                  {import.meta.env.VITE_BRAND_PHONE ? import.meta.env.VITE_BRAND_PHONE.replace('+91', '+91 ') : '+91 98242 52698'}
                 </a>
               </li>
               <li className="flex gap-3 items-center">
                 <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
                   <Mail className="w-4 h-4 text-brand-400" />
                 </span>
-                <a href="mailto:info@propertymaster.com" className="hover:text-brand-300 transition-colors duration-200">
-                  info@propertymaster.com
+                <a href={`mailto:${import.meta.env.VITE_BRAND_EMAIL || 'propertymastervadodara@gmail.com'}`} className="hover:text-brand-300 transition-colors duration-200">
+                  {import.meta.env.VITE_BRAND_EMAIL || 'propertymastervadodara@gmail.com'}
                 </a>
               </li>
             </ul>

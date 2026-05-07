@@ -21,8 +21,8 @@ const ALLOWED_BROCHURE_TYPES = [
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ];
 
-const IMAGE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB
-const VIDEO_SIZE_LIMIT = 100 * 1024 * 1024; // 100MB
+const IMAGE_SIZE_LIMIT = 50 * 1024; // 50KB
+const VIDEO_SIZE_LIMIT = 10 * 1024 * 1024; // 10MB
 const BROCHURE_SIZE_LIMIT = 10 * 1024 * 1024; // 10MB
 
 const MAX_IMAGES = 10;
@@ -60,7 +60,7 @@ const upload = multer({
     },
   }),
   limits: {
-    fileSize: Math.max(IMAGE_SIZE_LIMIT, VIDEO_SIZE_LIMIT, BROCHURE_SIZE_LIMIT), // 100MB max
+    fileSize: Math.max(IMAGE_SIZE_LIMIT, VIDEO_SIZE_LIMIT, BROCHURE_SIZE_LIMIT), // 10MB max (largest limit)
   },
   fileFilter: (_req, file, cb) => {
     const allowed = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES, ...ALLOWED_BROCHURE_TYPES];
@@ -93,7 +93,7 @@ const normalizeUserType = (propertyType) => {
 const normalizeUserIntent = (intent) => {
   const value = String(intent || '').toLowerCase();
   if (value === 'rent') return 'rent';
-  if (value === 'commercial') return 'commercial';
+  if (value === 'lease') return 'rent'; // Commercial lease is treated as rent
   return 'buy';
 };
 
@@ -302,11 +302,30 @@ router.get('/:id', async (req, res) => {
 router.post(
   '/user-post',
   requireAuth,
-  upload.fields([
-    { name: 'images', maxCount: MAX_IMAGES },
-    { name: 'videos', maxCount: MAX_VIDEOS },
-    { name: 'brochure', maxCount: 1 },
-  ]),
+  (req, res, next) => {
+    upload.fields([
+      { name: 'images', maxCount: MAX_IMAGES },
+      { name: 'videos', maxCount: MAX_VIDEOS },
+      { name: 'brochure', maxCount: 1 },
+    ])(req, res, (err) => {
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({
+            error: 'File too large. Images: 50KB max, Videos: 10MB max, Brochures: 10MB max.'
+          });
+        }
+        if (err.code === 'LIMIT_FILE_COUNT') {
+          return res.status(400).json({
+            error: 'Too many files. Images: 10 max, Videos: 5 max.'
+          });
+        }
+        return res.status(400).json({ error: `Upload error: ${err.message}` });
+      } else if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+      next();
+    });
+  },
   async (req, res) => {
     try {
       const payload = req.body || {};
@@ -331,7 +350,7 @@ router.post(
             return res.status(400).json({ error: `Invalid image type: ${file.originalname}` });
           }
           if (file.size > IMAGE_SIZE_LIMIT) {
-            return res.status(400).json({ error: `Image too large: ${file.originalname}. Max 5MB.` });
+            return res.status(400).json({ error: `Image too large: ${file.originalname}. Max 50KB.` });
           }
           try {
             const url = await uploadToFirebase(file, 'properties/images');
@@ -465,11 +484,30 @@ router.post(
 router.put(
   '/user/:id',
   requireAuth,
-  upload.fields([
-    { name: 'images', maxCount: MAX_IMAGES },
-    { name: 'videos', maxCount: MAX_VIDEOS },
-    { name: 'brochure', maxCount: 1 },
-  ]),
+  (req, res, next) => {
+    upload.fields([
+      { name: 'images', maxCount: MAX_IMAGES },
+      { name: 'videos', maxCount: MAX_VIDEOS },
+      { name: 'brochure', maxCount: 1 },
+    ])(req, res, (err) => {
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({
+            error: 'File too large. Images: 50KB max, Videos: 10MB max, Brochures: 10MB max.'
+          });
+        }
+        if (err.code === 'LIMIT_FILE_COUNT') {
+          return res.status(400).json({
+            error: 'Too many files. Images: 10 max, Videos: 5 max.'
+          });
+        }
+        return res.status(400).json({ error: `Upload error: ${err.message}` });
+      } else if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+      next();
+    });
+  },
   async (req, res) => {
     try {
       const docRef = db.collection('properties').doc(req.params.id);
@@ -542,7 +580,7 @@ router.put(
             return res.status(400).json({ error: `Invalid image type: ${file.originalname}` });
           }
           if (file.size > IMAGE_SIZE_LIMIT) {
-            return res.status(400).json({ error: `Image too large: ${file.originalname}. Max 5MB.` });
+            return res.status(400).json({ error: `Image too large: ${file.originalname}. Max 50KB.` });
           }
           try {
             const url = await uploadToFirebase(file, 'properties/images');

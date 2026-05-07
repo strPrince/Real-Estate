@@ -7,9 +7,11 @@ import toast from 'react-hot-toast';
 import BrochureUploadSection from '../../components/BrochureUploadSection/BrochureUploadSection.jsx';
 
 const PROPERTY_TYPES = ['residential', 'commercial', 'plot', 'pg'];
-const INTENTS = ['buy', 'rent', 'commercial'];
+const PROPERTY_CATEGORIES = ['residential', 'commercial'];
+const INTENTS = ['buy', 'rent'];
+const COMMERCIAL_INTENTS = ['rent', 'lease'];
 const STATUSES = ['active', 'draft', 'sold', 'rented'];
-const DEFAULT_CITY = 'Vadodara';
+const DEFAULT_CITY = import.meta.env.VITE_DEFAULT_CITY || 'Vadodara';
 
 const AMENITIES_LIST = [
   'Parking', 'Lift', 'Gym', 'Swimming Pool', 'Security', 'Power Backup',
@@ -18,7 +20,7 @@ const AMENITIES_LIST = [
 
 const EMPTY_FORM = {
   title: '', description: '',
-  type: 'residential', intent: 'buy',
+  type: 'residential', category: 'residential', intent: 'buy',
   price: '', priceUnit: 'total',
   bedrooms: '', bathrooms: '', area: '',
   locality: '', address: '',
@@ -51,6 +53,7 @@ export default function AdminPropertyForm() {
           title: data.title || '',
           description: data.description || '',
           type: data.type || 'residential',
+          category: data.category || 'residential',
           intent: data.intent || 'buy',
           price: data.price ?? '',
           priceUnit: data.priceUnit || 'total',
@@ -137,6 +140,7 @@ export default function AdminPropertyForm() {
         title: form.title.trim(),
         description: form.description.trim(),
         type: form.type,
+        category: form.category,
         intent: form.intent,
         price: form.price,
         priceUnit: form.priceUnit,
@@ -219,7 +223,12 @@ export default function AdminPropertyForm() {
               <textarea rows={4} value={form.description} onChange={set('description')} placeholder="Describe the property in detail..." className={`${inputCls} resize-none`} required />
             </Field>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <Field label="Category *" required>
+                <select required value={form.category} onChange={set('category')} className={inputCls}>
+                  {PROPERTY_CATEGORIES.map((c) => <option key={c} value={c} className="capitalize">{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+                </select>
+              </Field>
               <Field label="Property Type *" required>
                 <select required value={form.type} onChange={set('type')} className={inputCls}>
                   {PROPERTY_TYPES.map((t) => <option key={t} value={t} className="capitalize">{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
@@ -228,6 +237,9 @@ export default function AdminPropertyForm() {
               <Field label="Intent *" required>
                 <select required value={form.intent} onChange={set('intent')} className={inputCls}>
                   {INTENTS.map((i) => <option key={i} value={i} className="capitalize">{i.charAt(0).toUpperCase() + i.slice(1)}</option>)}
+                  <optgroup label="Commercial">
+                    {COMMERCIAL_INTENTS.map((i) => <option key={`commercial-${i}`} value={i} className="capitalize">{i.charAt(0).toUpperCase() + i.slice(1)}</option>)}
+                  </optgroup>
                 </select>
               </Field>
             </div>

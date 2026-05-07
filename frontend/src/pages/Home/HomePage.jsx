@@ -74,10 +74,10 @@ export default function HomePage() {
     };
 
   useEffect(() => {
-    document.title = 'Property Master Vadodara - Find Your Dream Property';
+    document.title = import.meta.env.VITE_APP_TITLE || 'Property Master Vadodara - Find Your Dream Property';
     const meta = document.querySelector('meta[name="description"]');
     if (meta) {
-      meta.setAttribute('content', 'Discover top properties for sale and rent in Vadodara with Property Master Vadodara. Browse featured listings and get personalized assistance.');
+      meta.setAttribute('content', import.meta.env.VITE_APP_DESCRIPTION || 'Discover top properties for sale and rent in Vadodara with Property Master Vadodara. Browse featured listings and get personalized assistance.');
     }
     setLoading(true);
     const limit = currentUser ? 6 : 3;

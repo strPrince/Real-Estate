@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
 import './FloorPlansSection.css';
-import floorPlanPlaceholder from '../../assets/floor-plan-placeholder.png';
 
 const DOT_COLORS = ['dot-orange', 'dot-blue', 'dot-green', 'dot-purple', 'dot-rose', 'dot-teal'];
 
@@ -78,12 +77,23 @@ export default function FloorPlansSection({ floorPlans = [], propertyId }) {
                   </div>
                 </div>
               </div>
-              <img
-                src={fp.image || floorPlanPlaceholder}
-                alt={fp.label || 'Floor Plan'}
-                className="fp-card-image"
-                onError={(e) => { e.target.src = floorPlanPlaceholder; }}
-              />
+              {fp.image ? (
+                <img
+                  src={fp.image}
+                  alt={fp.label || 'Floor Plan'}
+                  className="fp-card-image"
+                  onError={(e) => {
+                    // Hide image if it fails to load and no placeholder
+                    e.target.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div className="fp-card-image-placeholder">
+                  <div className="fp-placeholder-content">
+                    <span>No Image Available</span>
+                  </div>
+                </div>
+              )}
               <div className="fp-card-footer">
                 <div className="fp-card-price">
                   {fp.price ? (

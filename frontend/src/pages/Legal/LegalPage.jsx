@@ -228,9 +228,9 @@ const LegalPage = () => {
                   <div className="mt-8 pt-8 border-t border-slate-100">
                     <div className="p-4 rounded-2xl bg-slate-900 text-white">
                       <p className="text-xs text-slate-400 mb-2 italic">Need immediate help?</p>
-                      <a href="tel:+919876543210" className="flex items-center gap-2 group underline-offset-4 hover:underline">
-                        <Phone className="w-4 h-4 text-brand-500" />
-                        <span className="text-sm font-bold">+91 98765 43210</span>
+                      <a href="tel:+919824252698" className="flex items-center gap-2 group underline-offset-4 hover:underline">
+
+                        <span className="text-sm font-bold">+91 98242 52698</span>
                       </a>
                     </div>
                   </div>

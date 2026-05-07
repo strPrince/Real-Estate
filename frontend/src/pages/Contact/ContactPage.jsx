@@ -38,8 +38,8 @@ export default function ContactPage() {
       };
 
   React.useEffect(() => {
-    document.title = 'Contact Us — Property Master Vadodara';
-    const desc = 'Get in touch with Property Master Vadodara for questions about buying, renting or investing in Vadodara real estate.';
+    document.title = `Contact Us — ${import.meta.env.VITE_APP_NAME || 'Property Master Vadodara'}`;
+    const desc = `Get in touch with ${import.meta.env.VITE_APP_NAME || 'Property Master Vadodara'} for questions about buying, renting or investing in Vadodara real estate.`;
     const meta = document.querySelector('meta[name="description"]');
     if (meta) meta.setAttribute('content', desc);
   }, []);
@@ -158,7 +158,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-600 mb-1">Email</div>
-                    <div className="text-base font-semibold text-gray-900">info@propertymastervadodara.com</div>
+                    <div className="text-base font-semibold text-gray-900">{import.meta.env.VITE_BRAND_EMAIL || 'propertymastervadodara@gmail.com'}</div>
                     <p className="text-sm text-gray-500 mt-1">Quick replies within 24 hours</p>
                   </div>
                 </div>
@@ -172,7 +172,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-600 mb-1">Office</div>
-                    <div className="text-base font-semibold text-gray-900">101, Real Estate Tower, Vadodara, Gujarat</div>
+                    <div className="text-base font-semibold text-gray-900">{import.meta.env.VITE_BRAND_ADDRESS || '303, 3rd Floor, Raj Avenue, Near Domino\'z Pizza, Ellora Park, Vadodara 390023'}</div>
                     <p className="text-sm text-gray-500 mt-1">Central location, easy parking</p>
                   </div>
                 </div>
@@ -186,7 +186,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-600 mb-1">Phone</div>
-                    <div className="text-base font-semibold text-gray-900">+91 98765 43210</div>
+                    <div className="text-base font-semibold text-gray-900">{import.meta.env.VITE_BRAND_PHONE ? import.meta.env.VITE_BRAND_PHONE.replace('+91', '+91 ') : '+91 98242 52698'}</div>
                     <p className="text-sm text-gray-500 mt-1">Mon-Sat, 9:00 AM – 7:00 PM</p>
                   </div>
                 </div>
@@ -260,7 +260,7 @@ export default function ContactPage() {
                           htmlFor="email"
                           className="block text-sm font-medium text-gray-700 mb-2"
                         >
-                          Email Address <span className="text-red-500">*</span>
+                          Email Address (optional)
                         </label>
                         <input
                           type="email"
@@ -268,9 +268,8 @@ export default function ContactPage() {
                           name="email"
                           value={formData.email}
                           onChange={handleChange}
-                          required
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-colors"
-                          placeholder="Enter your email address"
+                          placeholder="Enter your email address (optional)"
                         />
                       </div>
                     </div>
@@ -319,17 +318,16 @@ export default function ContactPage() {
                         htmlFor="query"
                         className="block text-sm font-medium text-gray-700 mb-2"
                       >
-                        Query <span className="text-red-500">*</span>
+                        Query (optional)
                       </label>
                       <textarea
                         id="query"
                         name="query"
                         value={formData.query}
                         onChange={handleChange}
-                        required
                         rows="4"
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-colors resize-none"
-                        placeholder="Describe your property requirements or questions..."
+                        placeholder="Describe your property requirements or questions (optional)..."
                       ></textarea>
                     </div>
 
@@ -384,7 +382,7 @@ export default function ContactPage() {
                 <MapPin className="w-5 h-5 text-brand-500" />
                 <div>
                   <div className="text-sm font-semibold text-gray-900">Our Office — Vadodara</div>
-                  <div className="text-xs text-gray-500">101, Real Estate Tower, Vadodara, Gujarat</div>
+                  <div className="text-xs text-gray-500">303, 3rd Floor, Raj Avenue, Near Domino'z Pizza, Ellora Park, Vadodara 390023</div>
                 </div>
               </div>
             </div>

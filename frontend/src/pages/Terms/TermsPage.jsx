@@ -76,7 +76,7 @@ export default function TermsPage() {
 
             <h2 className="text-2xl font-bold text-gray-900 mb-6">4. Contact Information</h2>
             <p className="text-gray-600 mb-4">
-              If you have any questions about these Terms of Service, please contact us at info@propertymaster.com.
+              If you have any questions about these Terms of Service, please contact us at propertymastervadodara@gmail.com.
             </p>
           </m.div>
         </div>

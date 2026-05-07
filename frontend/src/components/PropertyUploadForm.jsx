@@ -15,11 +15,13 @@ export default function PropertyUploadForm() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [images, setImages] = useState([]);
+  const [videos, setVideos] = useState([]);
   const [formData, setFormData] = useState({
     name: 'Aadikara Avenue',
     locality: 'Atladra',
     city: 'Vadodara',
     description: 'Premium residential and commercial project',
+    category: 'residential',
     type: 'residential',
     intent: 'buy',
     status: 'active',
@@ -30,6 +32,45 @@ export default function PropertyUploadForm() {
     bedrooms: 2,
     amenities: 'Parking, Security, Water Supply, Electricity',
   });
+
+  const FILE_SIZE_LIMITS = {
+    image: 50 * 1024,        // 50KB
+    video: 10 * 1024 * 1024, // 10MB
+  };
+
+  const ALLOWED_TYPES = {
+    image: ['image/jpeg', 'image/png', 'image/webp'],
+    video: ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'],
+  };
+
+  const validateFiles = (files, type) => {
+    const validFiles = [];
+    const errors = [];
+
+    for (const file of files) {
+      const isAllowedType = type === 'image' 
+        ? ALLOWED_TYPES.image.includes(file.type)
+        : ALLOWED_TYPES.video.includes(file.type);
+
+      if (!isAllowedType) {
+        errors.push(`${file.name}: Invalid file type. ${type === 'image' ? 'Use JPEG, PNG, or WebP' : 'Use MP4, WebM, MOV, or AVI'}.`);
+        continue;
+      }
+
+      const maxSize = type === 'image' ? FILE_SIZE_LIMITS.image : FILE_SIZE_LIMITS.video;
+      if (file.size > maxSize) {
+        const maxSizeMB = Math.round(maxSize / (1024 * 1024) * 10) / 10;
+        const maxSizeKB = Math.round(maxSize / 1024);
+        const maxSizeStr = maxSizeMB > 1 ? `${maxSizeMB}MB` : `${maxSizeKB}KB`;
+        errors.push(`${file.name}: File too large. Maximum size is ${maxSizeStr}.`);
+        continue;
+      }
+
+      validFiles.push(file);
+    }
+
+    return { validFiles, errors };
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -42,27 +83,44 @@ export default function PropertyUploadForm() {
   };
 
   const handleImageChange = (e) => {
-    setImages([...e.target.files]);
+    const { validFiles, errors } = validateFiles(Array.from(e.target.files), 'image');
+    if (errors.length > 0) {
+      setError(errors.join('\n'));
+    } else {
+      setError('');
+    }
+    setImages(validFiles);
   };
 
-  const uploadImages = async () => {
-    const imageUrls = [];
+  const handleVideoChange = (e) => {
+    const { validFiles, errors } = validateFiles(Array.from(e.target.files), 'video');
+    if (errors.length > 0) {
+      setError(errors.join('\n'));
+    } else {
+      setError('');
+    }
+    setVideos(validFiles);
+  };
 
-    for (const image of images) {
+  const uploadFiles = async (files, type) => {
+    const fileUrls = [];
+
+    for (const file of files) {
       try {
+        const folder = type === 'video' ? 'videos' : 'properties';
         const storageRef = ref(
           storage,
-          `properties/${Date.now()}-${Math.random().toString(36).slice(2)}-${image.name}`
+          `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`
         );
-        await uploadBytes(storageRef, image);
+        await uploadBytes(storageRef, file);
         const downloadUrl = await getDownloadURL(storageRef);
-        imageUrls.push(downloadUrl);
+        fileUrls.push(downloadUrl);
       } catch (err) {
-        throw new Error(`Failed to upload image ${image.name}: ${err.message}`);
+        throw new Error(`Failed to upload ${type} ${file.name}: ${err.message}`);
       }
     }
 
-    return imageUrls;
+    return fileUrls;
   };
 
   const handleSubmit = async (e) => {
@@ -72,14 +130,19 @@ export default function PropertyUploadForm() {
     setSuccess('');
 
     try {
-      // Upload images
-      const imageUrls = images.length > 0 ? await uploadImages() : [];
+      // Upload images and videos
+      const imageUrls = images.length > 0 ? await uploadFiles(images, 'image') : [];
+      const videoUrls = videos.length > 0 ? await uploadFiles(videos, 'video') : [];
 
       // Create property document
       const propertyData = {
         ...formData,
+        category: formData.category,
+        type: formData.type,
+        intent: formData.intent,
         amenities: formData.amenities.split(',').map(a => a.trim()),
-        imageUrls,
+        images: imageUrls,
+        videos: videoUrls,
         units: formData.type === 'residential' ? [
           {
             type: '2 BHK',
@@ -99,6 +162,7 @@ export default function PropertyUploadForm() {
         locality: '',
         city: 'Vadodara',
         description: '',
+        category: 'residential',
         type: 'residential',
         intent: 'buy',
         status: 'active',
@@ -110,6 +174,7 @@ export default function PropertyUploadForm() {
         amenities: '',
       });
       setImages([]);
+      setVideos([]);
     } catch (err) {
       setError(`Upload failed: ${err.message}`);
     } finally {
@@ -151,6 +216,21 @@ export default function PropertyUploadForm() {
               />
             </div>
             <div>
+              <label className="block text-sm font-medium mb-1">Category *</label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
+              >
+                <option value="residential">Residential</option>
+                <option value="commercial">Commercial</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
               <label className="block text-sm font-medium mb-1">Type *</label>
               <select
                 name="type"
@@ -161,6 +241,22 @@ export default function PropertyUploadForm() {
                 <option value="residential">Residential</option>
                 <option value="commercial">Commercial</option>
                 <option value="plot">Plot</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Intent *</label>
+              <select
+                name="intent"
+                value={formData.intent}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
+              >
+                <option value="buy">Buy</option>
+                <option value="rent">Rent</option>
+                <optgroup label="Commercial">
+                  <option value="rent">Rent</option>
+                  <option value="lease">Lease</option>
+                </optgroup>
               </select>
             </div>
           </div>
@@ -263,16 +359,15 @@ export default function PropertyUploadForm() {
 
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Intent *</label>
-              <select
-                name="intent"
-                value={formData.intent}
+              <label className="block text-sm font-medium mb-1">Bedrooms *</label>
+              <input
+                type="number"
+                name="bedrooms"
+                value={formData.bedrooms}
                 onChange={handleInputChange}
+                required
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <option value="buy">Buy</option>
-                <option value="rent">Rent</option>
-              </select>
+              />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Status *</label>
@@ -287,18 +382,6 @@ export default function PropertyUploadForm() {
                 <option value="sold">Sold</option>
               </select>
             </div>
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Bedrooms *</label>
-            <input
-              type="number"
-              name="bedrooms"
-              value={formData.bedrooms}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
           </div>
 
           <div>
@@ -316,17 +399,34 @@ export default function PropertyUploadForm() {
 
         {/* Images */}
         <fieldset className="border-l-4 border-purple-500 pl-4">
-          <legend className="text-lg font-semibold mb-4">Images</legend>
+          <legend className="text-lg font-semibold mb-4">Images (Max 50KB each)</legend>
           <input
             type="file"
             multiple
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp"
             onChange={handleImageChange}
             className="w-full"
           />
           {images.length > 0 && (
             <p className="text-sm text-gray-600 mt-2">
-              {images.length} image(s) selected
+              ✅ {images.length} image(s) selected
+            </p>
+          )}
+        </fieldset>
+
+        {/* Videos */}
+        <fieldset className="border-l-4 border-orange-500 pl-4">
+          <legend className="text-lg font-semibold mb-4">Videos (Max 10MB each)</legend>
+          <input
+            type="file"
+            multiple
+            accept="video/mp4,video/webm,video/quicktime,video/x-msvideo"
+            onChange={handleVideoChange}
+            className="w-full"
+          />
+          {videos.length > 0 && (
+            <p className="text-sm text-gray-600 mt-2">
+              ✅ {videos.length} video(s) selected
             </p>
           )}
         </fieldset>

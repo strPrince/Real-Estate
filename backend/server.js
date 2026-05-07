@@ -53,8 +53,7 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// Middleware for handling multipart/form-data for user property posts
-app.use('/api/properties/user-post', upload.array('images', 10));
+// Note: Multer is handled within the properties route itself
 
 // Health check
 app.get('/api/health', (req, res) => {

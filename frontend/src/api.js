@@ -1,4 +1,5 @@
-const API_PREFIX = '/api';
+const API_PREFIX = import.meta.env.VITE_API_PREFIX || '/api';
+const BACKEND_URL = import.meta.env.VITE_BASE_URL || '';
 
 const cache = new Map();
 let lastPropertiesCache = [];
@@ -6,7 +7,7 @@ let lastPropertiesCache = [];
 const buildUrl = (path) => {
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
   const normalized = path.startsWith('/') ? path : `/${path}`;
-  return `${API_PREFIX}${normalized}`;
+  return `${BACKEND_URL}${API_PREFIX}${normalized}`;
 };
 
 const mergeHeaders = (headers = {}) => ({
@@ -25,12 +26,15 @@ const parseError = async (res) => {
 };
 
 const apiFetch = async (path, options = {}) => {
+  const url = buildUrl(path);
   const init = { ...options };
   init.headers = mergeHeaders(options.headers);
+
+  // For FormData, don't set Content-Type header (let browser set it)
   if (init.body && !(init.body instanceof FormData)) {
     init.headers['Content-Type'] = init.headers['Content-Type'] || 'application/json';
   }
-  const res = await fetch(buildUrl(path), init);
+  const res = await fetch(url, init);
   if (!res.ok) {
     const message = await parseError(res);
     const err = new Error(message || 'Request failed');
@@ -128,6 +132,17 @@ export const deleteProperty = (id, token) =>
   });
 
 export const uploadImage = async (file, token) => {
+  // Validate file size before upload (50KB limit)
+  if (file.size > 50 * 1024) {
+    throw new Error(`Image too large: ${file.name}. Max size 50KB.`);
+  }
+
+  // Validate file type
+  const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!validTypes.includes(file.type)) {
+    throw new Error(`Invalid file format: ${file.name}. Only JPG, PNG, WebP allowed.`);
+  }
+
   const data = new FormData();
   data.append('image', file);
   const res = await apiFetch('/upload', {
@@ -220,12 +235,15 @@ export const submitContactForm = (formData) => {
     formData?.contactNumber ? `Contact: ${formData.contactNumber}` : '',
   ].filter(Boolean);
 
+  // Create message even if query is empty
+  const message = messageParts.length > 0 ? messageParts.join('\n') : 'General inquiry';
+
   const payload = {
     propertyId: 'general-contact',
     name: formData?.name || 'Anonymous',
     email: formData?.email || '',
     phone: formData?.contactNumber || '',
-    message: messageParts.join('\n'),
+    message: message,
   };
 
   return submitInquiry(payload);

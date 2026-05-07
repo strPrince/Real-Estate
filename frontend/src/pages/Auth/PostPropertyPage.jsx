@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { toast } from 'react-hot-toast';
-import { CheckCircle2, Upload, Sparkles, Layers, Plus, Trash2, ImagePlus, X } from 'lucide-react';
+import { CheckCircle2, Upload, Sparkles, Layers, Plus, Trash2, ImagePlus, X, ChevronLeft } from 'lucide-react';
 import Header from '../../components/Header/Header.jsx';
 import BrochureUploadSection from '../../components/BrochureUploadSection/BrochureUploadSection.jsx';
 import { getLocalities, uploadImage } from '../../api.js';
@@ -40,6 +40,7 @@ export default function PostPropertyPage() {
   const [loading, setLoading] = useState(false);
   const [loadingProperty, setLoadingProperty] = useState(isEdit);
   const [localities, setLocalities] = useState([]);
+  const [uploadingFloorPlan, setUploadingFloorPlan] = useState(null); // Track which floor plan is uploading
 
   const inputClass =
     'mt-2 w-full rounded-xl border border-gray-100 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 shadow-[0_1px_3px_rgba(15,23,42,0.06)] focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-gray-50';
@@ -69,8 +70,8 @@ export default function PostPropertyPage() {
         toast.error(`Invalid image format: ${file.name}. Only JPG, PNG, WebP allowed.`);
         return;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error(`Image too large: ${file.name}. Max size 5MB.`);
+      if (file.size > 50 * 1024) {
+        toast.error(`Image too large: ${file.name}. Max size 50KB.`);
         return;
       }
     }
@@ -102,8 +103,8 @@ export default function PostPropertyPage() {
         toast.error(`Invalid video format: ${file.name}. Only MP4, MOV, AVI, MKV, WebM allowed.`);
         return;
       }
-      if (file.size > 100 * 1024 * 1024) {
-        toast.error(`Video too large: ${file.name}. Max size 100MB.`);
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`Video too large: ${file.name}. Max size 10MB.`);
         return;
       }
     }
@@ -144,16 +145,16 @@ export default function PostPropertyPage() {
       }
       
       if (isImage) {
-        if (file.size > 5 * 1024 * 1024) {
-          toast.error(`Image too large: ${file.name}. Max size 5MB.`);
+        if (file.size > 50 * 1024) {
+          toast.error(`Image too large: ${file.name}. Max size 50KB.`);
           continue;
         }
         newImages.push(file);
       }
-      
+
       if (isVideo) {
-        if (file.size > 100 * 1024 * 1024) {
-          toast.error(`Video too large: ${file.name}. Max size 100MB.`);
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error(`Video too large: ${file.name}. Max size 10MB.`);
           continue;
         }
         newVideos.push(file);
@@ -210,6 +211,28 @@ export default function PostPropertyPage() {
     setExistingVideos((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const removeNewImage = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
+    setImagePreviews((prev) => {
+      URL.revokeObjectURL(prev[index]);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const removeNewVideo = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      videos: prev.videos.filter((_, i) => i !== index),
+    }));
+    setVideoPreviews((prev) => {
+      URL.revokeObjectURL(prev[index]);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
   useEffect(() => {
     const fetchLocalities = async () => {
       try {
@@ -221,6 +244,14 @@ export default function PostPropertyPage() {
     };
     fetchLocalities();
   }, []);
+
+  // Cleanup object URLs on unmount
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+      videoPreviews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [imagePreviews, videoPreviews]);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -348,9 +379,18 @@ export default function PostPropertyPage() {
       <Header />
       <div className="min-h-screen bg-gray-50">
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-brand-500 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-full">
-            {isEdit ? 'Edit Property' : 'Post Property'}
-          </span>
+          <div className="flex items-center justify-between mb-4">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-brand-500 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-full">
+              {isEdit ? 'Edit Property' : 'Post Property'}
+            </span>
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:text-accent-600 hover:border-accent-300 transition-all shadow-sm"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Back to Home
+            </Link>
+          </div>
           <div className="mt-3 flex flex-col gap-2">
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 text-balance">
               {isEdit ? 'Update your listing' : 'List your property'}
@@ -609,7 +649,7 @@ export default function PostPropertyPage() {
                     >
                       <Upload className="w-5 h-5 text-brand-500" />
                       <span className="font-semibold text-gray-900">Upload Images & Videos</span>
-                      <span className="text-xs text-gray-500">Images: PNG, JPG, WebP (Max 5MB • up to 10 files) | Videos: MP4, MOV, AVI, MKV, WebM (Max 100MB • up to 5 videos)</span>
+                      <span className="text-xs text-gray-500">Images: PNG, JPG, WebP (Max 50KB • up to 10 files) | Videos: MP4, MOV, AVI, MKV, WebM (Max 10MB • up to 5 videos)</span>
                       <input
                         type="file"
                         id="media"
@@ -626,20 +666,36 @@ export default function PostPropertyPage() {
                       <p className="text-sm text-gray-600 mb-2">New Media:</p>
                       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                         {imagePreviews.map((preview, index) => (
-                          <img
-                            key={`img-${index}`}
-                            src={preview}
-                            alt={`Preview ${index}`}
-                            className="h-24 w-full rounded-xl object-cover"
-                          />
+                          <div key={`img-${index}`} className="relative">
+                            <img
+                              src={preview}
+                              alt={`Preview ${index}`}
+                              className="h-24 w-full rounded-xl object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeNewImage(index)}
+                              className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
                         ))}
                         {videoPreviews.map((preview, index) => (
-                          <video
-                            key={`vid-${index}`}
-                            src={preview}
-                            controls
-                            className="h-24 w-full rounded-xl object-cover"
-                          />
+                          <div key={`vid-${index}`} className="relative">
+                            <video
+                              src={preview}
+                              controls
+                              className="h-24 w-full rounded-xl object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeNewVideo(index)}
+                              className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -784,18 +840,44 @@ export default function PostPropertyPage() {
                                   <X className="w-3 h-3" />
                                 </button>
                               </div>
-                            ) : (
-                              <label className="inline-flex items-center gap-2 text-xs text-gray-500 cursor-pointer hover:text-brand-500 transition-colors">
-                                <ImagePlus className="w-4 h-4" />
-                                Upload floor plan image
-                                <input
+                             ) : (
+                               <label className={`inline-flex items-center gap-2 text-xs cursor-pointer transition-colors ${
+                                 uploadingFloorPlan === idx
+                                   ? 'text-gray-400 cursor-not-allowed'
+                                   : 'text-gray-500 hover:text-brand-500'
+                               }`}>
+                                 {uploadingFloorPlan === idx ? (
+                                   <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                                 ) : (
+                                   <ImagePlus className="w-4 h-4" />
+                                 )}
+                                 {uploadingFloorPlan === idx ? 'Uploading...' : 'Upload floor plan image'}
+                                 <input
                                   type="file"
                                   accept="image/*"
                                   className="sr-only"
+                                  disabled={uploadingFloorPlan === idx}
                                   onChange={async (e) => {
                                     const file = e.target.files?.[0];
                                     if (!file) return;
+
+                                    // Validate file size (50KB limit)
+                                    if (file.size > 50 * 1024) {
+                                      toast.error(`Image too large: ${file.name}. Max size 50KB.`);
+                                      e.target.value = '';
+                                      return;
+                                    }
+
+                                    // Validate file type
+                                    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+                                    if (!validTypes.includes(file.type)) {
+                                      toast.error(`Invalid file format: ${file.name}. Only JPG, PNG, WebP allowed.`);
+                                      e.target.value = '';
+                                      return;
+                                    }
+
                                     try {
+                                      setUploadingFloorPlan(idx);
                                       const token = await getToken();
                                       const url = await uploadImage(file, token);
                                       const updated = [...formData.floorPlans];
@@ -804,8 +886,10 @@ export default function PostPropertyPage() {
                                       toast.success('Floor plan image uploaded');
                                     } catch (err) {
                                       toast.error(err.message || 'Upload failed');
+                                    } finally {
+                                      setUploadingFloorPlan(null);
+                                      e.target.value = '';
                                     }
-                                    e.target.value = '';
                                   }}
                                 />
                               </label>

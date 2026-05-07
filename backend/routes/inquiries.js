@@ -9,21 +9,24 @@ router.post('/', async (req, res) => {
     const { propertyId, name, email, phone, message } = req.body;
 
     // Basic input sanitization
-    if (!propertyId || !name?.trim() || !email?.trim() || !message?.trim()) {
-      return res.status(400).json({ error: 'propertyId, name, email, and message are required' });
+    if (!propertyId || !name?.trim()) {
+      return res.status(400).json({ error: 'propertyId and name are required' });
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: 'Invalid email address' });
+    // Email validation (optional but must be valid if provided)
+    if (email?.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) {
+        return res.status(400).json({ error: 'Invalid email address' });
+      }
     }
 
     const data = {
       propertyId,
       name: name.trim(),
-      email: email.trim().toLowerCase(),
+      email: email?.trim() ? email.trim().toLowerCase() : '',
       phone: phone?.trim() || '',
-      message: message.trim(),
+      message: message?.trim() || '',
       createdAt: new Date().toISOString(),
     };
 

@@ -403,12 +403,21 @@ export default function PropertyDetailPage() {
       <LazyMotion features={domAnimation}>
         <m.main {...pageMotion} className="pb-20 bg-[#F7F4F1]">
         <m.div {...reveal} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-3">
-          <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.28em] font-semibold text-gray-500 bg-white/70 border border-white/80 px-3 py-2 rounded-full shadow-[0_8px_18px_-14px_rgba(15,23,42,0.35)]">
-            <Link to="/" className="hover:text-accent-500">Home</Link>
-            <ChevronRight className="w-3 h-3" />
-            <Link to="/properties" className="hover:text-accent-500">Properties</Link>
-            <ChevronRight className="w-3 h-3" />
-            <span className="text-gray-800 truncate max-w-[220px] sm:max-w-none">{property.title}</span>
+          <div className="flex items-center justify-between">
+            <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.28em] font-semibold text-gray-500 bg-white/70 border border-white/80 px-3 py-2 rounded-full shadow-[0_8px_18px_-14px_rgba(15,23,42,0.35)]">
+              <Link to="/" className="hover:text-accent-500">Home</Link>
+              <ChevronRight className="w-3 h-3" />
+              <Link to="/properties" className="hover:text-accent-500">Properties</Link>
+              <ChevronRight className="w-3 h-3" />
+              <span className="text-gray-800 truncate max-w-[220px] sm:max-w-none">{property.title}</span>
+            </div>
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur border border-white/60 rounded-full text-sm font-medium text-gray-700 hover:text-accent-600 hover:bg-white/90 transition-all shadow-[0_4px_12px_-8px_rgba(15,23,42,0.25)]"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Back to Home
+            </Link>
           </div>
         </m.div>
 

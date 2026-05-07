@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { toast } from 'react-hot-toast';
 import Header from '../../components/Header/Header.jsx';
-import { User, ShieldCheck, LogOut, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { User, ShieldCheck, LogOut, Mail, Lock, Eye, EyeOff, Loader2, ChevronLeft } from 'lucide-react';
 
 export default function AccountPage() {
   const { currentUser, logout, changePassword, updateProfile } = useAuth();
@@ -82,9 +82,18 @@ export default function AccountPage() {
       <Header />
       <div className="min-h-screen bg-gray-50">
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-brand-500 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-full">
-            Account
-          </span>
+          <div className="flex items-center justify-between mb-4">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-brand-500 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-full">
+              Account
+            </span>
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:text-accent-600 hover:border-accent-300 transition-all shadow-sm"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Back to Home
+            </Link>
+          </div>
           <div className="mt-3 flex flex-col gap-2">
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 text-balance">Your Account</h1>
             <p className="text-sm sm:text-base text-gray-600 text-pretty">
