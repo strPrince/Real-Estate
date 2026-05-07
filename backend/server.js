@@ -74,6 +74,29 @@ app.use('/api/admin', adminRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/localities', localitiesRouter);
 
+// Keep backend awake by calling health endpoint every 4 minutes
+const keepAwake = () => {
+  const healthUrl = `http://localhost:${PORT}/api/health`;
+  fetch(healthUrl)
+    .then(response => {
+      if (response.ok) {
+        console.log(`Health check successful at ${new Date().toISOString()}`);
+      } else {
+        console.log(`Health check failed with status ${response.status}`);
+      }
+    })
+    .catch(error => {
+      console.error('Health check error:', error.message);
+    });
+};
+
+// Schedule health check every 4 minutes (240,000 milliseconds)
+const HEALTH_CHECK_INTERVAL = 4 * 60 * 1000; // 4 minutes
+setInterval(keepAwake, HEALTH_CHECK_INTERVAL);
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Health check scheduled every ${HEALTH_CHECK_INTERVAL / 1000 / 60} minutes`);
+  // Initial health check
+  keepAwake();
 });
