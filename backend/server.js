@@ -31,22 +31,21 @@ const upload = multer({
 });
 
 const isProd = process.env.NODE_ENV === 'production';
-const corsOrigins = (process.env.CORS_ORIGIN || '')
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-
-if (isProd && corsOrigins.length === 0) {
-  console.error('CORS_ORIGIN must be set in production.');
-  process.exit(1);
-}
+const allowedOrigins = [
+  '*',
+  'real-estate-fawn-one.vercel.app',
+  'https://real-estate-fawn-one.vercel.app',
+  'https://propertymastervadodara.in',
+  'https://propertymastervadodara.in/',
+];
 
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin) return cb(null, true); // non-browser or same-origin
-    if (!corsOrigins.length) return cb(null, true); // dev fallback
-    if (corsOrigins.includes(origin)) return cb(null, true);
-    return cb(new Error('Not allowed by CORS'));
+    if (!origin || allowedOrigins.some(allowed => origin.includes(allowed))) {
+      cb(null, true);
+    } else {
+      cb(new Error('Not allowed by CORS'));
+    }
   },
   credentials: true,
 }));
