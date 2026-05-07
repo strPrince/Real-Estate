@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import { Building2, LogOut, Plus, ChevronLeft } from 'lucide-react';
 import Header from '../../components/Header/Header.jsx';
 import SkeletonCard from '../../components/SkeletonCard/SkeletonCard.jsx';
+import { BACKEND_URL } from '../../config.js';
 
 export default function UserDashboardPage() {
   const { currentUser, logout, getToken } = useAuth();
@@ -38,7 +39,7 @@ export default function UserDashboardPage() {
       const qs = new URLSearchParams();
       if (cursor) qs.set('cursor', cursor);
       qs.set('limit', '8');
-      const response = await fetch(`/api/properties/user/my-properties?${qs.toString()}`, {
+      const response = await fetch(`${BACKEND_URL}/api/properties/user/my-properties?${qs.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -6,6 +6,7 @@ import { CheckCircle2, Upload, Sparkles, Layers, Plus, Trash2, ImagePlus, X, Che
 import Header from '../../components/Header/Header.jsx';
 import BrochureUploadSection from '../../components/BrochureUploadSection/BrochureUploadSection.jsx';
 import { getLocalities, uploadImage } from '../../api.js';
+import { BACKEND_URL } from '../../config.js';
 
 export default function PostPropertyPage() {
   const { currentUser, getToken } = useAuth();
@@ -259,7 +260,7 @@ export default function PostPropertyPage() {
       try {
         const token = await getToken();
         if (!token) throw new Error('Not authenticated');
-        const response = await fetch(`/api/properties/user/${id}`, {
+        const response = await fetch(`${BACKEND_URL}/api/properties/user/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!response.ok) throw new Error('Failed to load property');
@@ -342,7 +343,7 @@ export default function PostPropertyPage() {
       data.append('existingImages', JSON.stringify(existingImages));
       data.append('existingVideos', JSON.stringify(existingVideos));
 
-      const response = await fetch(isEdit ? `/api/properties/user/${id}` : '/api/properties/user-post', {
+      const response = await fetch(isEdit ? `${BACKEND_URL}/api/properties/user/${id}` : `${BACKEND_URL}/api/properties/user-post`, {
         method: isEdit ? 'PUT' : 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
