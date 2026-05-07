@@ -1,5 +1,6 @@
+import { BACKEND_URL } from './config.js';
+
 const API_PREFIX = import.meta.env.VITE_API_PREFIX || '/api';
-const BACKEND_URL = import.meta.env.VITE_BASE_URL || '';
 
 const cache = new Map();
 let lastPropertiesCache = [];
