@@ -31,22 +31,9 @@ const upload = multer({
 });
 
 const isProd = process.env.NODE_ENV === 'production';
-const allowedOrigins = [
-  '*',
-  'real-estate-fawn-one.vercel.app',
-  'https://real-estate-fawn-one.vercel.app',
-  'https://propertymastervadodara.in',
-  'https://propertymastervadodara.in/',
-];
 
 app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin || allowedOrigins.some(allowed => origin.includes(allowed))) {
-      cb(null, true);
-    } else {
-      cb(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true,
   credentials: true,
 }));
 app.use(express.json());
