@@ -1,10 +1,12 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { BACKEND_URL } from '../config.js';
 
 const AuthContext = createContext(null);
 
 const authFetch = async (path, options = {}) => {
   const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
-  const res = await fetch(`/api/auth${path}`, {
+  const url = `${BACKEND_URL}/api/auth${path}`;
+  const res = await fetch(url, {
     ...options,
     headers,
     credentials: 'include',
