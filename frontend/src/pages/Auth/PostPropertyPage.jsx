@@ -71,8 +71,8 @@ export default function PostPropertyPage() {
         toast.error(`Invalid image format: ${file.name}. Only JPG, PNG, WebP allowed.`);
         return;
       }
-      if (file.size > 50 * 1024) {
-        toast.error(`Image too large: ${file.name}. Max size 50KB.`);
+      if (file.size > 100 * 1024) {
+        toast.error(`Image too large: ${file.name}. Max size 100KB.`);
         return;
       }
     }
@@ -145,9 +145,9 @@ export default function PostPropertyPage() {
         continue;
       }
       
-      if (isImage) {
-        if (file.size > 50 * 1024) {
-          toast.error(`Image too large: ${file.name}. Max size 50KB.`);
+        if (isImage) {
+        if (file.size > 100 * 1024) {
+          toast.error(`Image too large: ${file.name}. Max size 100KB.`);
           continue;
         }
         newImages.push(file);
@@ -650,7 +650,7 @@ export default function PostPropertyPage() {
                     >
                       <Upload className="w-5 h-5 text-brand-500" />
                       <span className="font-semibold text-gray-900">Upload Images & Videos</span>
-                      <span className="text-xs text-gray-500">Images: PNG, JPG, WebP (Max 50KB • up to 10 files) | Videos: MP4, MOV, AVI, MKV, WebM (Max 10MB • up to 5 videos)</span>
+                      <span className="text-xs text-gray-500">Images: PNG, JPG, WebP (Max 100KB • up to 10 files) | Videos: MP4, MOV, AVI, MKV, WebM (Max 10MB • up to 5 videos)</span>
                       <input
                         type="file"
                         id="media"
@@ -862,9 +862,9 @@ export default function PostPropertyPage() {
                                     const file = e.target.files?.[0];
                                     if (!file) return;
 
-                                    // Validate file size (50KB limit)
-                                    if (file.size > 50 * 1024) {
-                                      toast.error(`Image too large: ${file.name}. Max size 50KB.`);
+                                    // Validate file size (100KB limit)
+                                    if (file.size > 100 * 1024) {
+                                      toast.error(`Image too large: ${file.name}. Max size 100KB.`);
                                       e.target.value = '';
                                       return;
                                     }

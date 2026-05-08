@@ -11,7 +11,7 @@ const router = Router();
 
 // File size limits in bytes
 const FILE_SIZE_LIMITS = {
-  image: 50 * 1024,        // 50KB for images
+  image: 100 * 1024,        // 100KB for images
   video: 10 * 1024 * 1024, // 10MB for videos
 };
 
@@ -44,7 +44,7 @@ const upload = multer({
       cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}-${safe}`);
     },
   }),
-  limits: { fileSize: FILE_SIZE_LIMITS.image }, // 50KB for images
+  limits: { fileSize: FILE_SIZE_LIMITS.image }, // 100KB for images
   fileFilter: (_req, file, cb) => {
     if (ALLOWED_MIME_TYPES.image.includes(file.mimetype)) {
       cb(null, true);
@@ -59,7 +59,7 @@ router.post('/', requireAuth, (req, res, next) => {
   upload.single('image')(req, res, (err) => {
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ error: 'File too large. Maximum size is 50KB for images.' });
+        return res.status(400).json({ error: 'File too large. Maximum size is 100KB for images.' });
       }
       return res.status(400).json({ error: `Upload error: ${err.message}` });
     } else if (err) {

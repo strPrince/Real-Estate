@@ -133,9 +133,9 @@ export const deleteProperty = (id, token) =>
   });
 
 export const uploadImage = async (file, token) => {
-  // Validate file size before upload (50KB limit)
-  if (file.size > 50 * 1024) {
-    throw new Error(`Image too large: ${file.name}. Max size 50KB.`);
+  // Validate file size before upload (100KB limit)
+  if (file.size > 100 * 1024) {
+    throw new Error(`Image too large: ${file.name}. Max size 100KB.`);
   }
 
   // Validate file type

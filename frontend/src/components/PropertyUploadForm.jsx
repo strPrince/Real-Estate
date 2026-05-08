@@ -34,7 +34,7 @@ export default function PropertyUploadForm() {
   });
 
   const FILE_SIZE_LIMITS = {
-    image: 50 * 1024,        // 50KB
+    image: 100 * 1024,        // 100KB
     video: 10 * 1024 * 1024, // 10MB
   };
 
@@ -399,7 +399,7 @@ export default function PropertyUploadForm() {
 
         {/* Images */}
         <fieldset className="border-l-4 border-purple-500 pl-4">
-          <legend className="text-lg font-semibold mb-4">Images (Max 50KB each)</legend>
+          <legend className="text-lg font-semibold mb-4">Images (Max 100KB each)</legend>
           <input
             type="file"
             multiple

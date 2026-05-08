@@ -21,7 +21,7 @@ const ALLOWED_BROCHURE_TYPES = [
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ];
 
-const IMAGE_SIZE_LIMIT = 50 * 1024; // 50KB
+const IMAGE_SIZE_LIMIT = 100 * 1024; // 100KB
 const VIDEO_SIZE_LIMIT = 10 * 1024 * 1024; // 10MB
 const BROCHURE_SIZE_LIMIT = 10 * 1024 * 1024; // 10MB
 
@@ -309,9 +309,9 @@ router.post(
       { name: 'brochure', maxCount: 1 },
     ])(req, res, (err) => {
       if (err instanceof multer.MulterError) {
-        if (err.code === 'LIMIT_FILE_SIZE') {
+          if (err.code === 'LIMIT_FILE_SIZE') {
           return res.status(400).json({
-            error: 'File too large. Images: 50KB max, Videos: 10MB max, Brochures: 10MB max.'
+            error: 'File too large. Images: 100KB max, Videos: 10MB max, Brochures: 10MB max.'
           });
         }
         if (err.code === 'LIMIT_FILE_COUNT') {
@@ -350,7 +350,7 @@ router.post(
             return res.status(400).json({ error: `Invalid image type: ${file.originalname}` });
           }
           if (file.size > IMAGE_SIZE_LIMIT) {
-            return res.status(400).json({ error: `Image too large: ${file.originalname}. Max 50KB.` });
+            return res.status(400).json({ error: `Image too large: ${file.originalname}. Max 100KB.` });
           }
           try {
             const url = await uploadToFirebase(file, 'properties/images');
@@ -493,7 +493,7 @@ router.put(
       if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
           return res.status(400).json({
-            error: 'File too large. Images: 50KB max, Videos: 10MB max, Brochures: 10MB max.'
+            error: 'File too large. Images: 100KB max, Videos: 10MB max, Brochures: 10MB max.'
           });
         }
         if (err.code === 'LIMIT_FILE_COUNT') {
@@ -580,7 +580,7 @@ router.put(
             return res.status(400).json({ error: `Invalid image type: ${file.originalname}` });
           }
           if (file.size > IMAGE_SIZE_LIMIT) {
-            return res.status(400).json({ error: `Image too large: ${file.originalname}. Max 50KB.` });
+            return res.status(400).json({ error: `Image too large: ${file.originalname}. Max 100KB.` });
           }
           try {
             const url = await uploadToFirebase(file, 'properties/images');
